@@ -49,8 +49,34 @@ You’ll still need to render `README.Rmd` regularly, to keep `README.md`
 up-to-date. `devtools::build_readme()` is handy for this.
 
 You can also embed plots, for example:
+=======
+A fast, time-discrete compartmental approximation of [malariasimulation](https://mrc-ide.github.io/malariasimulation/). 
 
-<img src="man/figures/README-pressure-1.png" width="100%" />
+# Installation
+------
 
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub and CRAN.
+# Usage
+Performing a model simulation in malariasimple is a three-step process:
+
+```{r, eval=FALSE}
+library(malariasimple)
+
+#1. Generate model
+gen <- gen_model()
+
+#2. Define model parameters
+params <- get_parameters() |>
+          set_equilibrium(init_EIR = 10)
+
+#3. Run model
+out <- run_simulation(gen,params)
+```
+
+# Code Organisation
+The model itself is defined in a single script (`inst/malariasimple_deterministic.R`) written with [odin.dust](https://mrc-ide.github.io/odin.dust/).
+
+Customisations occur in the parameter set-up stage, which is facilitated by the helper functions found in `R/`.
+
+# License
+[MIT](https://choosealicense.com/licenses/mit/)
+
