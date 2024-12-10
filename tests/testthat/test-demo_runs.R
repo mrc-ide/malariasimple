@@ -22,8 +22,7 @@ test_that("Full demo run produces incidence and prevalence as expected",{
     set_seasonality(Thies_ff) |>
     set_equilibrium(init_EIR = init_EIR)
 
-  gen <- gen_model()
-  out <- run_simulation(gen,params) |> as.data.frame()
+  out <- run_simulation(params) |> as.data.frame()
 
   expect_equal(round(out$n_detect_730_3650[300], 3), 0.134)
   expect_equal(round(out$n_clin_inc_0_Inf[10], 5), 0.00144)

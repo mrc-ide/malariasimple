@@ -7,6 +7,8 @@
 #' @examples
 #' params <- get_parameters() |>
 #'             set_equilibrium(init_EIR = 6)
+#' @importFrom stats rlnorm
+#' @export
 
 set_equilibrium <- function(params, init_EIR)
 {
@@ -319,8 +321,8 @@ set_equilibrium <- function(params, init_EIR)
   #Interventions
   if(params$itn_set == 0){
     params$max_itn_cov <- 0
-    params$itn_decay_daily <- rep(0,params$n_days)
-    params$itn_eff_cov_daily <- rep(0,params$n_days)
+    params$itn_decay_daily <- rep(0,(params$n_days+1))
+    params$itn_eff_cov_daily <- rep(0,(params$n_days+1))
     params$mean_itn_decay <- 0
     params$dn0 <- 0
     params$rn <- 0
@@ -332,10 +334,10 @@ set_equilibrium <- function(params, init_EIR)
   params$smc_mask <- array(0, dim = c(na,nh,num_int))
   if(params$smc_set == 0){
     params$max_smc_cov <- 0
-    params$eff_smc_prop <- rep(0,params$n_days)
-    params$P_smc <- rep(0,params$n_days)
-    params$alpha_smc <- rep(0,params$n_ts)
-    params$rel_c_days <- rep(1,params$n_days)
+    params$eff_smc_prop <- rep(0,(params$n_days+1))
+    params$P_smc_daily <- rep(0,(params$n_days+1))
+    params$alpha_smc <- rep(0,(params$n_ts+1))
+    params$rel_c_days <- rep(1,(params$n_days+1))
   }
   ##SMC mask must be defined in set_equilibrium, because num_int must be defined
   if(params$smc_set == 1){
@@ -347,9 +349,9 @@ set_equilibrium <- function(params, init_EIR)
 
   #Climate
   if (is.null(params$daily_rain_input))
-    params$daily_rain_input <- rep(1, params$n_days)
+    params$daily_rain_input <- rep(1, (params$n_days+1))
   if (is.null(params$daily_temp))
-    params$daily_temp <- rep(1, params$n_days)
+    params$daily_temp <- rep(1, (params$n_days+1))
 
   params$init_S <- init_S
   params$init_T <- init_T
@@ -365,6 +367,9 @@ set_equilibrium <- function(params, init_EIR)
   params$init_ICM <- init_ICM
 
   params$ICM_init_eq = ICM_init_eq
+
+  params$days <- 0:(params$n_days)
+  params$iterations <- 0:(params$n_ts)
 
   ## collate init
   res <- list( init_Iv = init_Iv, init_Sv = init_Sv,

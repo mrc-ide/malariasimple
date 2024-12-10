@@ -79,6 +79,7 @@
 #'                          clin_inc_rendering_min_ages = c(0,2*365),
 #'                          clin_inc_rendering_max_ages = c(10*365,Inf)) |>
 #'           set_equilibrium(init_EIR = 10)
+#' @export
 get_parameters <- function(
     ##Accuracy/speed trade off parameters
     n_days = 100,
@@ -293,6 +294,7 @@ get_parameters <- function(
 
   #Additional parameters for dust model
   params$lag_rates <- lag_rates
+  params$lag_ratesMos <- lag_rates
   params$dt <- 1/tsd
 
   #Set age rendering parameters for prevalence and clinical incidence estimates

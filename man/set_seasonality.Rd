@@ -12,10 +12,6 @@ set_seasonality(params, season_params, floor = 0.001)
 \item{season_params}{List of Fourier parameters for manual seasonal input}
 
 \item{floor}{Minimum value of seasonal forcing}
-
-\item{admin_unit}{Name of admin 2 region}
-
-\item{country}{Name of admin 2 country}
 }
 \value{
 Updates the input parameter list to include seasonal parameters
@@ -31,6 +27,4 @@ theta_c = 1)
 params <- get_parameters() |>
           set_seasonality(season_params = season_params, floor = 0.005) |>
           set_equilibrium(init_EIR = 5)
-
-
 }

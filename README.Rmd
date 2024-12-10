@@ -30,24 +30,20 @@ pak::pak("mrc-ide/malariasimple")
 ```
 
 ## Usage
-Performing a model simulation in malariasimple is a three-step process:
+Performing a model simulation in malariasimple is a two-step process:
 
 ```{r, eval=FALSE}
 library(malariasimple)
-
-#1. Generate model
-gen <- gen_model()
-
-#2. Define model parameters
+#1. Define model parameters
 params <- get_parameters() |>
           set_equilibrium(init_EIR = 10)
 
-#3. Run model
-out <- run_simulation(gen,params)
+#2. Run model
+out <- run_simulation(params)
 ```
 
 ## Code Organisation
-The model itself is defined in a single script (`inst/malariasimple_deterministic.R`) written with [odin.dust](https://mrc-ide.github.io/odin.dust/).
+The model itself is defined in a single script (`inst/odin/malariasimple_deterministic.R`) written with [odin.dust](https://mrc-ide.github.io/odin.dust/).
 
 Customisations occur in the parameter set-up stage, which is facilitated by the helper functions found in `R/`.
 

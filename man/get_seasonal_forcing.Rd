@@ -24,5 +24,4 @@ season_params <- list(g0 = 0.28,
 get_seasonal_forcing(season_params,
                       n_days = 1000,
                       floor = 0.005)
-
 }

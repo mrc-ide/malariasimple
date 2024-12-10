@@ -1,8 +1,6 @@
 #' @title Add seasonal patterns
 #' @description Adds seasonal forcing to the model using a Fourier function of rainfall.
 #' @param params Other malariasimple parameters
-#' @param admin_unit Name of admin 2 region
-#' @param country Name of admin 2 country
 #' @param season_params List of Fourier parameters for manual seasonal input
 #' @param floor Minimum value of seasonal forcing
 #' @return Updates the input parameter list to include seasonal parameters
@@ -14,7 +12,7 @@
 #' params <- get_parameters() |>
 #'           set_seasonality(season_params = season_params, floor = 0.005) |>
 #'           set_equilibrium(init_EIR = 5)
-#'
+#'@export
 #'
 set_seasonality <- function(params, season_params, floor = 0.001){
   #if(!is.null(params$daily_rain_input)) warning("Seasonality profile has replaced daily_rain input")
@@ -22,7 +20,7 @@ set_seasonality <- function(params, season_params, floor = 0.001){
   if (params$equilibrium_set == 1) warning(message("Equilbrium must be set last"))
 
   theta2 <- get_seasonal_forcing(season_params, params$n_days, floor = floor)
-  params$daily_rain_input <- theta2
+  params$daily_rain_input <- c(1,theta2)
   params$seasonality_set <- 1
   return(params)
 }
@@ -41,7 +39,7 @@ set_seasonality <- function(params, season_params, floor = 0.001){
 #' get_seasonal_forcing(season_params,
 #'                       n_days = 1000,
 #'                       floor = 0.005)
-#'
+#'@export
 get_seasonal_forcing <- function(season_params, n_days, floor = 0.001){
   #Ensure parameters have been correctly described
   if (length(season_params) != 4 |

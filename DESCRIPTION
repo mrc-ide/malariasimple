@@ -4,7 +4,7 @@ Title: A time-discrete compartmental model for malaria
 Version: 0.1.0
 Authors@R: c(
   person("Debbie", "Shackleton", email="dshackle@imperial.ac.uk", role = c("aut","cre")),
-  person("Peter", "Winskill", email="p.winskill@imperial.ac.uk", role = c("aut"))
+  person("Peter", "Winskill", email="p.winskill@imperial.ac.uk", role = c("aut")))
 Maintainer: Debbie Shackleton <dshackle@imperial.ac.uk>
 Description: A faster, simpler implementation of malariasimulation built using 
     the package 'odin.dust'.
@@ -14,9 +14,12 @@ LazyData: true
 Remotes: 
     mrc-ide/odin.dust
 Imports: 
-    odin.dust,
-    statmod,
-    reshape2
+    dust2,
+    statmod
+LinkingTo:
+    cpp11,
+    dust2,
+    monty
 Suggests: 
     knitr,
     rmarkdown,

@@ -4,10 +4,12 @@
 \alias{run_simulation}
 \title{Run deterministic malariasimple}
 \usage{
-run_simulation(gen, params, full_output = FALSE)
+run_simulation(params, full_output = FALSE)
 }
 \arguments{
 \item{params}{List of model parameters generated using get_parameters() and other helper functions}
+
+\item{full_output}{Boolean variable stating whether model should output model outputs, or a selected few.}
 }
 \description{
 Generates and runs the deterministic malariasimple model
@@ -15,6 +17,5 @@ Generates and runs the deterministic malariasimple model
 \examples{
 params <- get_parameters() |>
           set_equilibrium(init_EIR = 10)
-gen <- gen_model()
-simulation_output <- run_simulation(gen,params)
+simulation_output <- run_simulation(params)
 }
