@@ -165,10 +165,12 @@ dim(UA_trans) <- c(na,nh,num_int)
 dim(UD_trans) <- c(na,nh,num_int)
 dim(UT_trans) <- c(na,nh,num_int)
 dim(US_trans) <- c(na,nh,num_int)
+dim(US_trans_SMC) <- c(na,nh,num_int)
 dim(U_age) <- c(na,nh,num_int)
 dim(U_death) <- c(na,nh,num_int)
 
-US_trans[,,] <- if(U[i,j,k]*dt*(rU+alpha_smc_array[i,j,k] < 0)) 0 else U[i,j,k]*dt*(rU+alpha_smc_array[i,j,k])
+US_trans[,,] <- if(U[i,j,k]*dt*rU < 0) 0 else U[i,j,k]*dt*rU
+US_trans_SMC[,,] <- if(U[i,j,k]*alpha_smc_array[i,j,k] < 0) 0 else U[i,j,k]*alpha_smc_array[i,j,k]
 UA_trans[,,] <- if(U[i,j,k]*dt*UA_rate[i,j,k] < 0) 0 else U[i,j,k]*dt*UA_rate[i,j,k]
 UD_trans[,,] <- if(U[i,j,k]*dt*UD_rate[i,j,k] < 0) 0 else U[i,j,k]*dt*UD_rate[i,j,k]
 UT_trans[,,] <- if(U[i,j,k]*dt*UT_rate[i,j,k] < 0) 0 else U[i,j,k]*dt*UT_rate[i,j,k]
@@ -185,8 +187,8 @@ P_death[,,] <- if(P[i,j,k]*dt*eta < 0) 0 else P[i,j,k]*dt*eta
 P_age[,,] <- if(P[i,j,k]*dt*age_rate[i] < 0) 0 else P[i,j,k]*dt*age_rate[i]
 
 #------------------------------ TRANSITIONS ----------------------------------
-update(S[1,1:nh,1:num_int]) <- S[i,j,k] + PS_trans[i,j,k] + US_trans[i,j,k] + AS_trans[i,j,k] + DS_trans[i,j,k] - ST_trans[i,j,k] - SD_trans[i,j,k] - SA_trans[i,j,k] - S_death[i,j,k] - S_age[i,j,k] + births[1,j,k]
-update(S[2:na,1:nh,1:num_int]) <- S[i,j,k] + PS_trans[i,j,k] + US_trans[i,j,k] + AS_trans[i,j,k] + DS_trans[i,j,k] - ST_trans[i,j,k] - SD_trans[i,j,k] - SA_trans[i,j,k] - S_death[i,j,k] - S_age[i,j,k] + S_age[i-1,j,k]
+update(S[1,1:nh,1:num_int]) <- S[i,j,k] + PS_trans[i,j,k] + US_trans[i,j,k] + US_trans_SMC[i,j,k] + AS_trans[i,j,k] + DS_trans[i,j,k] - ST_trans[i,j,k] - SD_trans[i,j,k] - SA_trans[i,j,k] - S_death[i,j,k] - S_age[i,j,k] + births[1,j,k]
+update(S[2:na,1:nh,1:num_int]) <- S[i,j,k] + PS_trans[i,j,k] + US_trans[i,j,k] + US_trans_SMC[i,j,k] + AS_trans[i,j,k] + DS_trans[i,j,k] - ST_trans[i,j,k] - SD_trans[i,j,k] - SA_trans[i,j,k] - S_death[i,j,k] - S_age[i,j,k] + S_age[i-1,j,k]
 
 update(T[1,1:nh,1:num_int]) <- T[i,j,k] + AT_trans[i,j,k] + ST_trans[i,j,k] + UT_trans[i,j,k] - TP_trans[i,j,k] - T_age[i,j,k] - T_death[i,j,k]
 update(T[2:na,1:nh,1:num_int]) <- T[i,j,k] + AT_trans[i,j,k] + ST_trans[i,j,k] + UT_trans[i,j,k] - TP_trans[i,j,k] - T_age[i,j,k] - T_death[i,j,k] + T_age[i-1,j,k]
@@ -197,8 +199,8 @@ update(D[2:na,1:nh,1:num_int]) <- D[i,j,k] + SD_trans[i,j,k] + AD_trans[i,j,k] +
 update(A[1,1:nh,1:num_int]) <- A[i,j,k] + SA_trans[i,j,k] + DA_trans[i,j,k] + UA_trans[i,j,k] - AT_trans[i,j,k] - AD_trans[i,j,k] - AU_trans[i,j,k] - AS_trans[i,j,k] - A_death[i,j,k] - A_age[i,j,k]
 update(A[2:na,1:nh,1:num_int]) <- A[i,j,k] + SA_trans[i,j,k] + DA_trans[i,j,k] + UA_trans[i,j,k] - AT_trans[i,j,k] - AD_trans[i,j,k] - AU_trans[i,j,k] - AS_trans[i,j,k] - A_death[i,j,k] - A_age[i,j,k] + A_age[i-1,j,k]
 
-update(U[1,1:nh,1:num_int]) <- U[i,j,k] + AU_trans[i,j,k] - UD_trans[i,j,k] - UT_trans[i,j,k] - US_trans[i,j,k] - UA_trans[i,j,k] - U_age[i,j,k] - U_death[i,j,k]
-update(U[2:na,1:nh,1:num_int]) <- U[i,j,k] + AU_trans[i,j,k] - UD_trans[i,j,k] - UT_trans[i,j,k] - US_trans[i,j,k] - UA_trans[i,j,k] - U_age[i,j,k] - U_death[i,j,k] + U_age[i-1,j,k]
+update(U[1,1:nh,1:num_int]) <- U[i,j,k] + AU_trans[i,j,k] - UD_trans[i,j,k] - UT_trans[i,j,k] - US_trans[i,j,k] - US_trans_SMC[i,j,k] - UA_trans[i,j,k] - U_age[i,j,k] - U_death[i,j,k]
+update(U[2:na,1:nh,1:num_int]) <- U[i,j,k] + AU_trans[i,j,k] - UD_trans[i,j,k] - UT_trans[i,j,k] - US_trans[i,j,k] - US_trans_SMC[i,j,k] - UA_trans[i,j,k] - U_age[i,j,k] - U_death[i,j,k] + U_age[i-1,j,k]
 
 update(P[1,1:nh,1:num_int]) <- P[i,j,k] + TP_trans[i,j,k] - PS_trans[i,j,k] - P_death[i,j,k] - P_age[i,j,k]
 update(P[2:na,1:nh,1:num_int]) <- P[i,j,k] + TP_trans[i,j,k] - PS_trans[i,j,k] - P_death[i,j,k] - P_age[i,j,k] + P_age[i-1,j,k]

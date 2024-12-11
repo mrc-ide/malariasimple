@@ -13,7 +13,6 @@ Encoding: UTF-8
 LazyData: true
 Remotes: 
     mrc-ide/dust2,
-    mrc-ide/deterministic-malaria-model,
     mrc-ide/monty
 Imports: 
     dust2,
