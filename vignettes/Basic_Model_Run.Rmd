@@ -106,20 +106,26 @@ Seasonality can be included in the model using the `set_seasonality()` function.
 
 ```{r, message = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=0.55}
 ##------------------ Define seasonal parameters --------------------
-admin2 <- "Thies" #Define admin2 region
-
-#Import dataframe of FF coefficients for all regions within the ICDMM database
-ff_df <- ICDMM::load_file("admin_units_seasonal.rds")
-
-#Find row defining Thies
-admin_row_index <- ICDMM::admin_match(admin_unit = admin2, admin_units_seasonal = ff_df)
-admin_row <- ff_df[admin_row_index,]
-
-#Put into format required by malariasimple
-ff_coeffs <- list(g0 = admin_row["a0"],
-                  g = admin_row[c("a1","a2","a3")],
-                  h = admin_row[c("b1","b2","b3")],
-                  theta_c = admin_row["theta_c"])
+# admin2 <- "Thies" #Define admin2 region
+# 
+# #Import dataframe of FF coefficients for all regions within the ICDMM database
+# ff_df <- ICDMM::load_file("admin_units_seasonal.rds")
+# 
+# #Find row defining Thies
+# admin_row_index <- ICDMM::admin_match(admin_unit = admin2, admin_units_seasonal = ff_df)
+# admin_row <- ff_df[admin_row_index,]
+# 
+# #Put into format required by malariasimple
+# ff_coeffs <- list(g0 = admin_row["a0"],
+#                   g = admin_row[c("a1","a2","a3")],
+#                   h = admin_row[c("b1","b2","b3")],
+#                   theta_c = admin_row["theta_c"])
+ff_coeffs <- list(
+  g0 = 0.28,
+  g = c(-0.3, -0.03, 0.17),
+  h = c(-0.35, 0.33, -0.08),
+  theta_c = 0.28
+)
 
 #Floor argument defines minimal value of relative carrying capacity
 seasonal_params <- get_parameters(n_days = 365,
