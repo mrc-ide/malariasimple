@@ -1,0 +1,8 @@
+pandoc: 3.1.11
+pkgdown: 2.1.1
+pkgdown_sha: ~
+articles:
+  Basic_Model_Run: Basic_Model_Run.html
+  model_introduction: model_introduction.html
+  speed_vs_accuracy: speed_vs_accuracy.html
+last_built: 2024-12-12T11:42Z

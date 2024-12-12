@@ -1,0 +1,20 @@
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/LICENSE-text.html</loc></url>
+<url><loc>/LICENSE.html</loc></url>
+<url><loc>/articles/Basic_Model_Run.html</loc></url>
+<url><loc>/articles/index.html</loc></url>
+<url><loc>/articles/model_introduction.html</loc></url>
+<url><loc>/articles/speed_vs_accuracy.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/reference/get_parameters.html</loc></url>
+<url><loc>/reference/get_peak_cc.html</loc></url>
+<url><loc>/reference/get_seasonal_forcing.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/malariasimple-package.html</loc></url>
+<url><loc>/reference/run_simulation.html</loc></url>
+<url><loc>/reference/set_equilibrium.html</loc></url>
+<url><loc>/reference/set_seasonality.html</loc></url>
+</urlset>
+
