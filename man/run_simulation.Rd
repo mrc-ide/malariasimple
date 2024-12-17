@@ -4,10 +4,12 @@
 \alias{run_simulation}
 \title{Run deterministic malariasimple}
 \usage{
-run_simulation(params, full_output = FALSE)
+run_simulation(params, n_particles = 1, full_output = FALSE)
 }
 \arguments{
 \item{params}{List of model parameters generated using get_parameters() and other helper functions}
+
+\item{n_particles}{Number of simulations to perform}
 
 \item{full_output}{Boolean variable stating whether model should output model outputs, or a selected few.}
 }

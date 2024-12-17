@@ -5,7 +5,9 @@
 \title{Create parameters for malariasimple}
 \usage{
 get_parameters(
+  stochastic = FALSE,
   n_days = 100,
+  human_pop = 1e+05,
   tsd = 4,
   age_vector = c(0, 0.25, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 5, 6, 7, 8.5, 10, 20, 30, 40,
     60, 80) * 365,
@@ -76,7 +78,11 @@ get_parameters(
 )
 }
 \arguments{
+\item{stochastic}{Boolean variable. Set to false for deterministic simulation}
+
 \item{n_days}{Number of days for which the simulation will run.}
+
+\item{human_pop}{Size of human population (count)}
 
 \item{tsd}{Number of time-steps per day. Fewer is faster, more better approximates the continuous solution.}
 

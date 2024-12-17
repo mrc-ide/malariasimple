@@ -1,4 +1,4 @@
-test_that("Full demo run produces incidence and prevalence as expected",{
+test_that("Deterministic demo run produces incidence and prevalence as expected",{
   n_days <- 365
   init_EIR <- 10
 
@@ -10,6 +10,8 @@ test_that("Full demo run produces incidence and prevalence as expected",{
 
   params <- get_parameters(
     n_days = n_days,
+    stochastic = FALSE,
+    human_pop = 1,
     tsd = 3,
     het_brackets = 5,
     prevalence_rendering_min_ages = 2 * 365,

@@ -46,6 +46,7 @@ The other key function in preparing parameters is `set_equilbrium()`. This calcu
 
 ```{r, eval = FALSE}
 custom_params <- get_parameters(n_days = 200, #Length of simulation
+                                human_population = 1000, #Size of human population
                                 ft = 0.3, #Proportion treated
                                 eta = 1/(30*365)) |> #Human population birth/death rate
   set_equilibrium(init_EIR = 10)
@@ -102,24 +103,10 @@ legend("bottomright", legend = c("All ages", "Ages 2-10"),
 
 ## 3. Introducing seasonality
 
-Seasonality can be included in the model using the `set_seasonality()` function. The main argument is the coefficients of a Fourier function (FF) describing the relative carrying capacity of the vector population over time. In this example, we will use default parameters for Thies, Senegal using the [ICDMM package](https://mrc-ide.github.io/deterministic-malaria-model/index). FF coefficients can also be input manually.
+Seasonality can be included in the model using the `set_seasonality()` function. The main argument is the coefficients of a Fourier function (FF) describing the relative carrying capacity of the vector population over time. 
 
 ```{r, message = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=0.55}
 ##------------------ Define seasonal parameters --------------------
-# admin2 <- "Thies" #Define admin2 region
-# 
-# #Import dataframe of FF coefficients for all regions within the ICDMM database
-# ff_df <- ICDMM::load_file("admin_units_seasonal.rds")
-# 
-# #Find row defining Thies
-# admin_row_index <- ICDMM::admin_match(admin_unit = admin2, admin_units_seasonal = ff_df)
-# admin_row <- ff_df[admin_row_index,]
-# 
-# #Put into format required by malariasimple
-# ff_coeffs <- list(g0 = admin_row["a0"],
-#                   g = admin_row[c("a1","a2","a3")],
-#                   h = admin_row[c("b1","b2","b3")],
-#                   theta_c = admin_row["theta_c"])
 ff_coeffs <- list(
   g0 = 0.28,
   g = c(-0.3, -0.03, 0.17),
@@ -128,8 +115,7 @@ ff_coeffs <- list(
 )
 
 #Floor argument defines minimal value of relative carrying capacity
-seasonal_params <- get_parameters(n_days = 365,
-                                  age_vector = c(0, 1, 3, 5, 10, 20, 40, 60)*365) |>
+seasonal_params <- get_parameters(n_days = 365) |>
   set_seasonality(ff_coeffs, floor = 0.002) |>
   set_equilibrium(init_EIR = 10)
 
@@ -149,4 +135,30 @@ plot(theta2, lwd = 2, type = "l",
      xlab = "Days", ylab = "theta2")
 ```
 
+## 4. Stochastic Simulations
+Simulations can also be run with stochastic human transitions. To achieve this, we can just add `stochastic = TRUE` to the `get_parameters()` function call. We can also run multiple simulations by setting the `n_particles` parameter in `run_simulation()`. This will produce a 3D array with dimensions [*timesteps, variables, particles*]. 
+
+```{r, message = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=0.55}
+##------------------- Prepare parameters ---------------------
+n_particles <- 5
+n_days <- 365
+stoch_params <- get_parameters(n_days = n_days,
+                                  stochastic = TRUE,
+                                  human_population = 1000) |>
+  set_seasonality(ff_coeffs, floor = 0.002) |>
+  set_equilibrium(init_EIR = 10)
+
+##------------------- Run simulation and plot ---------------------
+stochastic_output <- run_simulation(stoch_params, n_particles = n_particles)
+stochastic_output_2d <- do.call(rbind, lapply(1:n_particles, function(i) stochastic_output[,,i])) |>
+  as.data.frame()
+stochastic_output_2d$particle <- rep(1:n_particles, each = n_days)
+
+library(ggplot2)
+ggplot() +
+  geom_line(data = stochastic_output_2d, aes(x=time,y=n_detect_730_3650/n_730_3650, col = "Stochastic", group = particle)) +
+  geom_line(data = seasonal_output, aes(x=time,y=n_detect_730_3650/n_730_3650, col = "Deterministic"),lwd=1) +
+  labs(x="Time",y=bquote(italic(Pf)~PR[2-10]), col = "Simulation") +
+  theme_bw()
+```
 

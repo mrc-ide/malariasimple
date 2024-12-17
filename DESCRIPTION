@@ -16,7 +16,8 @@ Remotes:
     mrc-ide/monty
 Imports: 
     dust2,
-    statmod
+    statmod,
+    abind
 LinkingTo:
     cpp11,
     dust2,
@@ -24,6 +25,7 @@ LinkingTo:
 Suggests: 
     knitr,
     rmarkdown,
+    ggplot2,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 RoxygenNote: 7.3.2

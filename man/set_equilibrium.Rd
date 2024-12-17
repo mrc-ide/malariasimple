@@ -12,7 +12,7 @@ set_equilibrium(params, init_EIR)
 \item{init_EIR}{Value of EIR at equilbrium}
 }
 \description{
-Updates parameter list to include equilibrium values for a given EIR (entomological innoculation rate) for the malariasimple parameter list.
+Updates parameter list to include equilibrium values for a given EIR (entomological inoculation rate) for the malariasimple parameter list.
 This function also includes some 'finishing touches' for the smooth running of the simulation and so is essential that this function is performed last.
 }
 \examples{

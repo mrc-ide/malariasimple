@@ -1,7 +1,9 @@
 #' @title Create parameters for malariasimple
 #' @description Helper function to provide defaults for most necessary values required for running the malariasimple model
 #'
+#' @param stochastic Boolean variable. Set to false for deterministic simulation
 #' @param n_days Number of days for which the simulation will run.
+#' @param human_pop Size of human population (count)
 #' @param tsd Number of time-steps per day. Fewer is faster, more better approximates the continuous solution.
 #' @param age_vector Lower bound of each age category. See function for default.
 #' @param het_brackets Number of biting heterogeneity groups.
@@ -82,7 +84,9 @@
 #' @export
 get_parameters <- function(
     ##Accuracy/speed trade off parameters
+    stochastic = FALSE,
     n_days = 100,
+    human_pop = 100000,
     tsd = 4, #Time steps per day
     age_vector =  c(0,0.25,0.5,1,1.5,2,2.5,3,3.5,4,5,6,7,8.5,10,20,30,40,60,80)*365, #Default
     het_brackets = 5,
@@ -193,6 +197,8 @@ get_parameters <- function(
   ###########################################
   ## DEFAULT PARAMS
   params$n_days <- n_days
+  params$human_pop <- human_pop
+  params$stochastic <- stochastic
   params$tsd <- tsd
   params$n_ts <- n_days*tsd
   # duration of year

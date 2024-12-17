@@ -1,13 +1,14 @@
 #' @title Set equilibrium
-#' @description Updates parameter list to include equilibrium values for a given EIR (entomological innoculation rate) for the malariasimple parameter list.
+#' @description Updates parameter list to include equilibrium values for a given EIR (entomological inoculation rate) for the malariasimple parameter list.
 #' This function also includes some 'finishing touches' for the smooth running of the simulation and so is essential that this function is performed last.
 #' @param params List of parameters
 #' @param init_EIR Value of EIR at equilbrium
-#'
+
 #' @examples
 #' params <- get_parameters() |>
 #'             set_equilibrium(init_EIR = 6)
 #' @importFrom stats rlnorm
+#' @importFrom stats rbinom
 #' @export
 
 set_equilibrium <- function(params, init_EIR)
@@ -353,13 +354,31 @@ set_equilibrium <- function(params, init_EIR)
   if (is.null(params$daily_temp))
     params$daily_temp <- rep(1, (params$n_days+1))
 
-  params$init_S <- init_S
-  params$init_T <- init_T
-  params$init_D <- init_D
-  params$init_A <- init_A
-  params$init_U <- init_U
-  params$init_P <- init_P
-  params$init_Y <- init_Y
+  human_pop <- params$human_pop
+  if(params$stochastic == TRUE){
+    human_init_list <- list(init_S = init_S, init_T = init_T,
+                            init_D = init_D, init_A = init_A,
+                            init_U = init_U, init_P = init_P,
+                            init_Y = init_Y)
+    init_count_list <- lapply(human_init_list, function(arr) {
+      array(rbinom(length(arr), size = human_pop, prob = arr), dim = dim(arr))
+    })
+    params$init_S <- init_count_list$init_S
+    params$init_T <- init_count_list$init_T
+    params$init_D <- init_count_list$init_D
+    params$init_A <- init_count_list$init_A
+    params$init_U <- init_count_list$init_U
+    params$init_P <- init_count_list$init_P
+    params$init_Y <- init_count_list$init_Y
+  } else {
+    params$init_S <- init_S*human_pop
+    params$init_T <- init_T*human_pop
+    params$init_D <- init_D*human_pop
+    params$init_A <- init_A*human_pop
+    params$init_U <- init_U*human_pop
+    params$init_P <- init_P*human_pop
+    params$init_Y <- init_Y*human_pop
+  }
 
   params$init_IB <- init_IB
   params$init_ID <- init_ID
