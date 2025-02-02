@@ -58,5 +58,4 @@ discrete_itn_params <- get_parameters(n_days = n_days) |>
   set_itn(continuous_distribution = TRUE,
           daily_continuous_cov = itn_coverage) |>
   set_equilibrium(init_EIR = 10)
-
 }

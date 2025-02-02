@@ -25,6 +25,29 @@ set_seasonality <- function(params, season_params, floor = 0.001){
   return(params)
 }
 
+#' @title Add manual rainfall forcing
+#' @description Takes daily rain-forcing time series and adds it to the parameter set
+#' @param params Other malariasimple parameters
+#' @param rainfall_ts Vector daily rainfall values. Lenght must equal or exceed params$n_days
+#' @return Updates the input parameter list to include seasonal parameters
+#' @examples
+#' n_days = 1000
+#' t <- 1:n_days
+#' rainfall_ts <- sin((t*2*pi)/365) + 1.1
+#' params <- get_parameters() |>
+#'           set_rainfall_manual(rainfall_ts) |>
+#'           set_equilibrium(init_EIR = 5)
+#'@export
+#'
+set_rainfall_manual <- function(params, rainfall_ts){
+  #if(!is.null(params$daily_rain_input)) warning("Seasonality profile has replaced daily_rain input")
+  if (params$equilibrium_set == 1) warning(message("Equilbrium must be set last"))
+  if (length(rainfall_ts) < params$n_days) stop(message("rainfall_ts must be at least as long as n_days"))
+  params$daily_rain_input <- c(1,rainfall_ts)
+  params$seasonality_set <- 1
+  return(params)
+}
+
 #' @title Get seasonal forcing
 #' @description Convert Fourier function parameters into a smooth vector of daily seasonal forcing. Used within set_seasonality function
 #' @param season_params List of Fourier function parameters describing seasonality

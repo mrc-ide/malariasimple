@@ -27,7 +27,7 @@
 #'   set_itn(continuous_distribution = TRUE,
 #'           daily_continuous_cov = itn_coverage) |>
 #'   set_equilibrium(init_EIR = 10)
-#'
+#' @export
 set_itn <- function(params,
                     continuous_distribution = FALSE, #Assume discrete distributions or continuous?
                     daily_continuous_cov = NULL,

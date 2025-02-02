@@ -17,11 +17,11 @@ get_peak_cc <- function(season_params){
 
 ##Intervention coverage
 get_decay_mat <- function(days,n_days,gamman_itn = NULL,scale_smc = NULL,shape_smc = NULL,intervention = NULL){
-  n_dists <- length(days) #Number of smc distribution events
+  n_dists <- length(days) #Number of ITN/SMC distribution events
   decay_mat <- matrix(0,nrow = n_days, ncol = n_dists+1)
 
   for(i in 1:n_dists){
-    dist_day <- days[i]
+    dist_day <- days[i] #Days on which distribution events occur
     t <- 1:(n_days - dist_day + 1)
     if(intervention == "SMC"){
       decay_mat[dist_day:n_days,i] <- exp(-((t / scale_smc) ^ shape_smc))
