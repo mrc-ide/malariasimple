@@ -1438,7 +1438,7 @@ public:
     for (size_t i = 1; i <= shared.dim.detect_prev_full.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.detect_prev_full.dim[1]; ++j) {
         for (size_t k = 1; k <= shared.dim.detect_prev_full.dim[2]; ++k) {
-          internal.detect_prev_full[i - 1 + (j - 1) * shared.dim.detect_prev_full.mult[1] + (k - 1) * shared.dim.detect_prev_full.mult[2]] = T[i - 1 + (j - 1) * shared.dim.T.mult[1] + (k - 1) * shared.dim.T.mult[2]] + D[i - 1 + (j - 1) * shared.dim.D.mult[1] + (k - 1) * shared.dim.D.mult[2]] + A[i - 1 + (j - 1) * shared.dim.A.mult[1] + (k - 1) * shared.dim.A.mult[2]] * internal.p_det[i - 1 + (j - 1) * shared.dim.p_det.mult[1] + (k - 1) * shared.dim.p_det.mult[2]];
+          internal.detect_prev_full[i - 1 + (j - 1) * shared.dim.detect_prev_full.mult[1] + (k - 1) * shared.dim.detect_prev_full.mult[2]] = T[i - 1 + (j - 1) * shared.dim.T.mult[1] + (k - 1) * shared.dim.T.mult[2]] + D[i - 1 + (j - 1) * shared.dim.D.mult[1] + (k - 1) * shared.dim.D.mult[2]] + monty::random::binomial<real_type>(rng_state, A[i - 1 + (j - 1) * shared.dim.A.mult[1] + (k - 1) * shared.dim.A.mult[2]], internal.p_det[i - 1 + (j - 1) * shared.dim.p_det.mult[1] + (k - 1) * shared.dim.p_det.mult[2]]);
         }
       }
     }

@@ -711,7 +711,8 @@ n_prev[1:prev_dim] <- sum(S[min_age_prev[i]:max_age_prev[i],,]) + sum(T[min_age_
   sum(A[min_age_prev[i]:max_age_prev[i],,]) + sum(U[min_age_prev[i]:max_age_prev[i],,]) + sum(P[min_age_prev[i]:max_age_prev[i],,])
 
 dim(detect_prev_full) <- c(na,nh,num_int)
-detect_prev_full[,,] <- T[i,j,k] + D[i,j,k]  + A[i,j,k]*p_det[i,j,k]
+detect_prev_full[,,] <- T[i,j,k] + D[i,j,k]  + Binomial(A[i,j,k],p_det[i,j,k])
+#detect_prev_full[,,] <- T[i,j,k] + D[i,j,k]  + A[i,j,k]*p_det[i,j,k]
 
 dim(detect_prev) <- prev_dim
 detect_prev[1:prev_dim] <- sum(detect_prev_full[min_age_prev[i]:max_age_prev[i],,])
