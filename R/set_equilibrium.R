@@ -337,7 +337,11 @@ set_equilibrium <- function(params, init_EIR)
     params$max_smc_cov <- 0
     params$eff_smc_prop <- rep(0,(params$n_days+1))
     params$P_smc_daily <- rep(0,(params$n_days+1))
-    params$alpha_smc <- rep(0,(params$n_ts+1))
+    #params$alpha_smc <- rep(0,(params$n_ts+1))
+    params$alpha_smc_set <- c(0,0)
+    params$alpha_smc_times <- c(0,2)
+    # params$alpha_smc_set <- NULL
+    # params$alpha_smc_times <- NULL
     params$rel_c_days <- rep(1,(params$n_days+1))
   }
   ##SMC mask must be defined in set_equilibrium, because num_int must be defined

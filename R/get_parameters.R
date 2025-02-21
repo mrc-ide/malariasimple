@@ -160,8 +160,8 @@ get_parameters <- function(
     ft = 0,
     clin_inc_rendering_min_ages = NULL,
     clin_inc_rendering_max_ages = NULL,
-    prevalence_rendering_min_ages = NULL,
-    prevalence_rendering_max_ages = NULL,
+    prevalence_rendering_min_ages = NULL, #Default = 2*365
+    prevalence_rendering_max_ages = NULL, #Default = 10*365
     ...
 
 ){

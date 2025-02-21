@@ -34,8 +34,8 @@ run_simulation <- function(params, n_particles = 1, full_output = FALSE){
   out <- abind::abind(out, time_slice, along = 2)  # Add "time" as the last column of the second dimension
 
   #Add colnames to output
-  index <- get_output_colnames(sys, params)
-  dimnames(out)[[2]] <- c(index,"time")
+  colnames <- get_output_colnames(sys, params)
+  dimnames(out)[[2]] <- c(colnames,"time")
 
   #Only output select variables (unless requested otherwise)
   if(full_output == FALSE){

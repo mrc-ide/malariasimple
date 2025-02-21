@@ -50,3 +50,19 @@ get_daily_cov <- function(usage_mat){
   return(out)
 }
 
+#' @title Converts 3D to long 2D
+#' @description Takes a 3D array simulation output with multiple particles, and melts the third dimension to produce a 2D dataframe.
+#' @param array_output Any 3D array
+#' @examples
+#' params <- get_parameters(stochastic = TRUE) |>
+#'             set_equilibrium(init_EIR = 5)
+#' long_output <- run_simulation(params, n_particles = 3) |> make_2d()
+#' @export
+make_2d <- function(array_output){
+  n_particles <- dim(array_output)[3]
+  n_days <- dim(array_output)[1]
+  out_2d <- do.call(rbind, lapply(1:n_particles, function(i) array_output[,,i])) |>
+    as.data.frame()
+  out_2d$particle <- rep(1:n_particles, each = n_days)
+  return(out_2d)
+}

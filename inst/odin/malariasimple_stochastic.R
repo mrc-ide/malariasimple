@@ -1,16 +1,11 @@
-# ## DECLARE TIME STEPS
+## DECLARE TIME STEPS
 n_days <- parameter()
-n_ts <- parameter()
 
 dim(daily_rain_input) <- n_days +1
 daily_rain_input <- parameter()
 
 dim(days) <- n_days + 1
 days <- parameter()
-
-dim(iterations) <- n_ts + 1
-iterations <- parameter()
-
 
 ## MODEL VARIABLES
 ##------------------------------------------------------------------------------
@@ -147,106 +142,106 @@ T_age[,,] <- T_trans[i,j,k,2]
 T_death[,,] <- T_trans[i,j,k,3]
 
 #### TRANSITIONS FROM D #####
-dim(D_rates) <- c(na,nh,num_int,4)
-D_rates[,,,1] <- alpha_smc_array[i,j,k] #D -> S
-D_rates[,,,2] <- age_rate[i] * dt#Aging
-D_rates[,,,3] <- rD * dt#D -> A
-D_rates[,,,4] <- eta * dt#Death
+dim(D_rates) <- c(na,nh,num_int,3)
+D_rates[,,,1] <- age_rate[i] * dt#Aging
+D_rates[,,,2] <- rD * dt#D -> A
+D_rates[,,,3] <- eta * dt#Death
+
+dim(D_smc_cleared) <- c(na,nh,num_int)
+D_smc_cleared[,,] <- Binomial(D[i,j,k], alpha_smc_array[i,j,k])
 
 dim(D_leave_rate) <- c(na,nh,num_int)
 dim(D_leave_prob) <- c(na,nh,num_int)
 dim(D_leave) <- c(na,nh,num_int)
-D_leave_rate[,,] <- sum(D_rates[i,j,k,1:4])
+D_leave_rate[,,] <- sum(D_rates[i,j,k,1:3])
 D_leave_prob[,,] <- 1 - exp(-(D_leave_rate[i,j,k]))
-D_leave[, , ] <- Binomial(D[i, j, k], D_leave_prob[i, j, k])
+D_leave[, , ] <- Binomial(D[i, j, k] - D_smc_cleared[i,j,k], D_leave_prob[i, j, k])
 
-dim(D_trans) <- c(na,nh,num_int,4)
+dim(D_trans) <- c(na,nh,num_int,3)
 D_trans[,,,1] <- Binomial(D_leave[i,j,k], D_rates[i,j,k,1] / D_leave_rate[i,j,k])
-D_trans[, , , 2:4] <- Binomial(D_leave[i, j, k] - sum(D_trans[i, j, k, 1:(l - 1)]), D_rates[i, j, k, l]/sum(D_rates[i, j, k, l:4]))
+D_trans[, , , 2:3] <- Binomial(D_leave[i, j, k] - sum(D_trans[i, j, k, 1:(l - 1)]), D_rates[i, j, k, l]/sum(D_rates[i, j, k, l:3]))
 
 dim(D_death) <- c(na,nh,num_int)
 dim(D_age) <- c(na,nh,num_int)
 dim(DA_trans) <- c(na,nh,num_int)
-dim(DS_trans) <- c(na,nh,num_int)
 
-DS_trans[,,] <- D_trans[i,j,k,1]
-D_age[,,] <- D_trans[i,j,k,2]
-DA_trans[,,] <- D_trans[i,j,k,3]
-D_death[,,] <- D_trans[i,j,k,4]
+D_age[,,] <- D_trans[i,j,k,1]
+DA_trans[,,] <- D_trans[i,j,k,2]
+D_death[,,] <- D_trans[i,j,k,3]
 
 #### TRANSITIONS FROM A #####
-dim(A_rates) <- c(na,nh,num_int,6)
-A_rates[,,,1] <- alpha_smc_array[i,j,k] #A -> S
-A_rates[,,,2] <- age_rate[i] * dt #Aging
-A_rates[,,,3] <- rA * dt#A -> U
-A_rates[,,,4] <- phi[i,j,k] * FOI_smc[i,j,k] * ft * dt #A -> T
-A_rates[,,,5] <- phi[i,j,k] * FOI_smc[i,j,k] * (1-ft) * dt #A -> D
-A_rates[,,,6] <- eta * dt#Death
+dim(A_rates) <- c(na,nh,num_int,5)
+A_rates[,,,1] <- age_rate[i] * dt #Aging
+A_rates[,,,2] <- rA * dt#A -> U
+A_rates[,,,3] <- phi[i,j,k] * FOI_smc[i,j,k] * ft * dt #A -> T
+A_rates[,,,4] <- phi[i,j,k] * FOI_smc[i,j,k] * (1-ft) * dt #A -> D
+A_rates[,,,5] <- eta * dt#Death
+
+dim(A_smc_cleared) <- c(na,nh,num_int)
+A_smc_cleared[,,] <- Binomial(A[i,j,k], alpha_smc_array[i,j,k])
 
 dim(A_leave) <- c(na,nh,num_int)
 dim(A_leave_rate) <- c(na,nh,num_int)
 dim(A_leave_prob) <- c(na,nh,num_int)
 
-A_leave_rate[,,] <- sum(A_rates[i,j,k,1:6])
+A_leave_rate[,,] <- sum(A_rates[i,j,k,1:5])
 A_leave_prob[,,] <- 1 - exp(-(A_leave_rate[i,j,k]))
-A_leave[, , ] <- Binomial(A[i, j, k], A_leave_prob[i, j, k])
+A_leave[, , ] <- Binomial(A[i, j, k] - A_smc_cleared[i, j, k], A_leave_prob[i, j, k])
 
-dim(A_trans) <- c(na,nh,num_int,6)
+dim(A_trans) <- c(na,nh,num_int,5)
 A_trans[,,,1] <- Binomial(A_leave[i,j,k], A_rates[i,j,k,1] / A_leave_rate[i,j,k])
-A_trans[, , , 2:6] <- Binomial(A_leave[i, j, k] - sum(A_trans[i, j, k, 1:(l - 1)]), A_rates[i, j, k, l]/sum(A_rates[i, j, k, l:6]))
+A_trans[, , , 2:5] <- Binomial(A_leave[i, j, k] - sum(A_trans[i, j, k, 1:(l - 1)]), A_rates[i, j, k, l]/sum(A_rates[i, j, k, l:5]))
 
 dim(A_death) <- c(na,nh,num_int)
 dim(A_age) <- c(na,nh,num_int)
 dim(AU_trans) <- c(na,nh,num_int)
 dim(AT_trans) <- c(na,nh,num_int)
 dim(AD_trans) <- c(na,nh,num_int)
-dim(AS_trans) <- c(na,nh,num_int)
 
-AS_trans[,,] <- A_trans[i,j,k,1]
-A_age[,,] <- A_trans[i,j,k,2]
-AU_trans[,,] <- A_trans[i,j,k,3]
-AT_trans[,,] <- A_trans[i,j,k,4]
-AD_trans[,,] <- A_trans[i,j,k,5]
-A_death[,,] <- A_trans[i,j,k,6]
-
+A_age[,,] <- A_trans[i,j,k,1]
+AU_trans[,,] <- A_trans[i,j,k,2]
+AT_trans[,,] <- A_trans[i,j,k,3]
+AD_trans[,,] <- A_trans[i,j,k,4]
+A_death[,,] <- A_trans[i,j,k,5]
 
 #### TRANSITIONS FROM U #####
 dim(U_rates) <- c(na,nh,num_int,7)
-U_rates[,,,1] <- alpha_smc_array[i,j,k] #U -> S
-U_rates[,,,2] <- age_rate[i] * dt #Aging
-U_rates[,,,3] <- rU * dt #U -> S
-U_rates[,,,4] <- (1-phi[i,j,k]) * FOI_smc[i,j,k] * dt #U -> A
-U_rates[,,,5] <- phi[i,j,k] * (1-ft) * FOI_smc[i,j,k] * dt #U -> D
-U_rates[,,,6] <- phi[i,j,k] * ft * FOI_smc[i,j,k] * dt #U -> T
-U_rates[,,,7] <- eta * dt #Death
+U_rates[,,,1] <- age_rate[i] * dt #Aging
+U_rates[,,,2] <- rU * dt #U -> S
+U_rates[,,,3] <- (1-phi[i,j,k]) * FOI_smc[i,j,k] * dt #U -> A
+U_rates[,,,4] <- phi[i,j,k] * (1-ft) * FOI_smc[i,j,k] * dt #U -> D
+U_rates[,,,5] <- phi[i,j,k] * ft * FOI_smc[i,j,k] * dt #U -> T
+U_rates[,,,6] <- eta * dt #Death
+
+#Infection clearance from SMC
+dim(U_smc_cleared) <- c(na,nh,num_int)
+U_smc_cleared[,,] <- Binomial(U[i,j,k], alpha_smc_array[i,j,k])
 
 dim(U_leave_rate) <- c(na,nh,num_int)
 dim(U_leave_prob) <- c(na,nh,num_int)
 dim(U_leave) <- c(na,nh,num_int)
 
-U_leave_rate[,,] <- sum(U_rates[i,j,k,1:7])
+U_leave_rate[,,] <- sum(U_rates[i,j,k,1:6])
 U_leave_prob[,,] <- 1 - exp(-(U_leave_rate[i,j,k]))
-U_leave[, , ] <- Binomial(U[i, j, k], U_leave_prob[i, j, k])
+U_leave[, , ] <- Binomial(U[i, j, k] - U_smc_cleared[i,j,k], U_leave_prob[i, j, k])
 
-dim(U_trans) <- c(na,nh,num_int,7)
+dim(U_trans) <- c(na,nh,num_int,6)
 U_trans[,,,1] <- Binomial(U_leave[i,j,k], U_rates[i,j,k,1] / U_leave_rate[i,j,k])
-U_trans[, , , 2:7] <- Binomial(U_leave[i, j, k] - sum(U_trans[i, j, k, 1:(l - 1)]), U_rates[i, j, k, l]/sum(U_rates[i, j, k, l:7]))
+U_trans[, , , 2:6] <- Binomial(U_leave[i, j, k] - sum(U_trans[i, j, k, 1:(l - 1)]), U_rates[i, j, k, l]/sum(U_rates[i, j, k, l:6]))
 
 dim(U_death) <- c(na,nh,num_int)
 dim(U_age) <- c(na,nh,num_int)
 dim(US_trans) <- c(na,nh,num_int)
-dim(US_trans_SMC) <- c(na,nh,num_int)
 dim(UA_trans) <- c(na,nh,num_int)
 dim(UD_trans) <- c(na,nh,num_int)
 dim(UT_trans) <- c(na,nh,num_int)
 
-US_trans_SMC[,,] <- U_trans[i,j,k,1]
-U_age[,,]    <- U_trans[i,j,k,2]
-US_trans[,,] <- U_trans[i,j,k,3]
-UA_trans[,,] <- U_trans[i,j,k,4]
-UD_trans[,,] <- U_trans[i,j,k,5]
-UT_trans[,,] <- U_trans[i,j,k,6]
-U_death[,,]  <- U_trans[i,j,k,7]
+U_age[,,]    <- U_trans[i,j,k,1]
+US_trans[,,] <- U_trans[i,j,k,2]
+UA_trans[,,] <- U_trans[i,j,k,3]
+UD_trans[,,] <- U_trans[i,j,k,4]
+UT_trans[,,] <- U_trans[i,j,k,5]
+U_death[,,]  <- U_trans[i,j,k,6]
 
 #### TRANSITIONS FROM P #####
 dim(P_rates) <- c(na,nh,num_int,3)
@@ -274,24 +269,23 @@ P_age[,,] <- P_trans[i,j,k,2]
 P_death[,,] <- P_trans[i,j,k,3]
 
 #------------------------------ TRANSITIONS ----------------------------------
-update(S[1,1:nh,1:num_int]) <- S[i,j,k] + PS_trans[i,j,k] + US_trans[i,j,k] + US_trans_SMC[i,j,k] + AS_trans[i,j,k] + DS_trans[i,j,k] - ST_trans[i,j,k] - SD_trans[i,j,k] - SA_trans[i,j,k] - S_death[i,j,k] - S_age[i,j,k] + births[1,j,k]
-update(S[2:na,1:nh,1:num_int]) <- S[i,j,k] + PS_trans[i,j,k] + US_trans[i,j,k] + US_trans_SMC[i,j,k] + AS_trans[i,j,k] + DS_trans[i,j,k] - ST_trans[i,j,k] - SD_trans[i,j,k] - SA_trans[i,j,k] - S_death[i,j,k] - S_age[i,j,k] + S_age[i-1,j,k]
+update(S[1,1:nh,1:num_int]) <- S[i,j,k] + PS_trans[i,j,k] + US_trans[i,j,k] + U_smc_cleared[i,j,k] + A_smc_cleared[i,j,k] + D_smc_cleared[i,j,k] - ST_trans[i,j,k] - SD_trans[i,j,k] - SA_trans[i,j,k] - S_death[i,j,k] - S_age[i,j,k] + births[1,j,k]
+update(S[2:na,1:nh,1:num_int]) <- S[i,j,k] + PS_trans[i,j,k] + US_trans[i,j,k] + U_smc_cleared[i,j,k] + A_smc_cleared[i,j,k] + D_smc_cleared[i,j,k] - ST_trans[i,j,k] - SD_trans[i,j,k] - SA_trans[i,j,k] - S_death[i,j,k] - S_age[i,j,k] + S_age[i-1,j,k]
 
 update(T[1,1:nh,1:num_int]) <- T[i,j,k] + AT_trans[i,j,k] + ST_trans[i,j,k] + UT_trans[i,j,k] - TP_trans[i,j,k] - T_age[i,j,k] - T_death[i,j,k]
 update(T[2:na,1:nh,1:num_int]) <- T[i,j,k] + AT_trans[i,j,k] + ST_trans[i,j,k] + UT_trans[i,j,k] - TP_trans[i,j,k] - T_age[i,j,k] - T_death[i,j,k] + T_age[i-1,j,k]
 
-update(D[1,1:nh,1:num_int]) <- D[i,j,k] + SD_trans[i,j,k] + AD_trans[i,j,k] + UD_trans[i,j,k] - DA_trans[i,j,k] - DS_trans[i,j,k] - D_death[i,j,k] - D_age[i,j,k]
-update(D[2:na,1:nh,1:num_int]) <- D[i,j,k] + SD_trans[i,j,k] + AD_trans[i,j,k] + UD_trans[i,j,k] - DA_trans[i,j,k] - DS_trans[i,j,k] - D_death[i,j,k] - D_age[i,j,k] + D_age[i-1,j,k]
+update(D[1,1:nh,1:num_int]) <- D[i,j,k] + SD_trans[i,j,k] + AD_trans[i,j,k] + UD_trans[i,j,k] - DA_trans[i,j,k] - D_smc_cleared[i,j,k] - D_death[i,j,k] - D_age[i,j,k]
+update(D[2:na,1:nh,1:num_int]) <- D[i,j,k] + SD_trans[i,j,k] + AD_trans[i,j,k] + UD_trans[i,j,k] - DA_trans[i,j,k] - D_smc_cleared[i,j,k] - D_death[i,j,k] - D_age[i,j,k] + D_age[i-1,j,k]
 
-update(A[1,1:nh,1:num_int]) <- A[i,j,k] + SA_trans[i,j,k] + DA_trans[i,j,k] + UA_trans[i,j,k] - AT_trans[i,j,k] - AD_trans[i,j,k] - AU_trans[i,j,k] - AS_trans[i,j,k] - A_death[i,j,k] - A_age[i,j,k]
-update(A[2:na,1:nh,1:num_int]) <- A[i,j,k] + SA_trans[i,j,k] + DA_trans[i,j,k] + UA_trans[i,j,k] - AT_trans[i,j,k] - AD_trans[i,j,k] - AU_trans[i,j,k] - AS_trans[i,j,k] - A_death[i,j,k] - A_age[i,j,k] + A_age[i-1,j,k]
+update(A[1,1:nh,1:num_int]) <- A[i,j,k] + SA_trans[i,j,k] + DA_trans[i,j,k] + UA_trans[i,j,k] - AT_trans[i,j,k] - AD_trans[i,j,k] - AU_trans[i,j,k] - A_smc_cleared[i,j,k] - A_death[i,j,k] - A_age[i,j,k]
+update(A[2:na,1:nh,1:num_int]) <- A[i,j,k] + SA_trans[i,j,k] + DA_trans[i,j,k] + UA_trans[i,j,k] - AT_trans[i,j,k] - AD_trans[i,j,k] - AU_trans[i,j,k] - A_smc_cleared[i,j,k] - A_death[i,j,k] - A_age[i,j,k] + A_age[i-1,j,k]
 
-update(U[1,1:nh,1:num_int]) <- U[i,j,k] + AU_trans[i,j,k] - UD_trans[i,j,k] - UT_trans[i,j,k] - US_trans[i,j,k] - US_trans_SMC[i,j,k] - UA_trans[i,j,k] - U_age[i,j,k] - U_death[i,j,k]
-update(U[2:na,1:nh,1:num_int]) <- U[i,j,k] + AU_trans[i,j,k] - UD_trans[i,j,k] - UT_trans[i,j,k] - US_trans[i,j,k] - US_trans_SMC[i,j,k] - UA_trans[i,j,k] - U_age[i,j,k] - U_death[i,j,k] + U_age[i-1,j,k]
+update(U[1,1:nh,1:num_int]) <- U[i,j,k] + AU_trans[i,j,k] - UD_trans[i,j,k] - UT_trans[i,j,k] - US_trans[i,j,k] - U_smc_cleared[i,j,k] - UA_trans[i,j,k] - U_age[i,j,k] - U_death[i,j,k]
+update(U[2:na,1:nh,1:num_int]) <- U[i,j,k] + AU_trans[i,j,k] - UD_trans[i,j,k] - UT_trans[i,j,k] - US_trans[i,j,k] - U_smc_cleared[i,j,k] - UA_trans[i,j,k] - U_age[i,j,k] - U_death[i,j,k] + U_age[i-1,j,k]
 
 update(P[1,1:nh,1:num_int]) <- P[i,j,k] + TP_trans[i,j,k] - PS_trans[i,j,k] - P_death[i,j,k] - P_age[i,j,k]
 update(P[2:na,1:nh,1:num_int]) <- P[i,j,k] + TP_trans[i,j,k] - PS_trans[i,j,k] - P_death[i,j,k] - P_age[i,j,k] + P_age[i-1,j,k]
-
 
 ##------------------------------------------------------------------------------
 ##########################################
@@ -583,14 +577,15 @@ update(PL) <- if(PL + dt*(LL/dLL - muPL*PL - PL/dPL) < 0) 0 else (PL + dt*(LL/dL
 ################## SMC #######################
 #See supplementary materials of [Thompson, 2022] - https://doi.org/10.1016/S2214-109X(22)00416-8
 max_smc_cov <- parameter()
-#
-##Parameters relevant to clearance of existing infections by SMC treatment
-dim(alpha_smc) <- n_ts + 1
-alpha_smc <- parameter()
-alpha_smc_timestep <- interpolate(iterations, alpha_smc, "constant")
+
+dim(alpha_smc_times, alpha_smc_set) <- parameter(rank = 1)
+alpha_smc_times <- parameter(constant = TRUE)
+alpha_smc_set <- parameter(constant = TRUE)
+
+alpha_smc <- interpolate(alpha_smc_times, alpha_smc_set, mode = "constant")
 
 dim(alpha_smc_array) <-  c(na,nh,num_int)
-alpha_smc_array[,,] <- smc_mask[i,j,k] * alpha_smc_timestep #Multiply by proportion of individuals in SMC compartment currently receiving SMC
+alpha_smc_array[,,] <- smc_mask[i,j,k] * alpha_smc #Multiply by proportion of individuals in SMC compartment currently receiving SMC
 
 ##Parameters relating to prophylaxis effect of SMC
 dim(P_smc_daily) <- n_days + 1
@@ -614,8 +609,8 @@ smc_rel_c_mask[,,] <- 1 - (smc_mask[i,j,k] * (1-rel_c)) #Value = SMC_rel_c for t
 ################## ITN #######################
 # See supplementary materials S2 from http://journals.plos.org/plosmedicine/article?id=10.1371/journal.pmed.1000324#s6
 max_itn_cov <- parameter()
-#
-#
+
+
 Q0 <- parameter()
 bites_Bed <- parameter()
 
@@ -640,8 +635,8 @@ itn_decay <- interpolate(days, itn_decay_daily, "linear")
 d_itn <- dn0*itn_decay*itn_eff_cov
 r_itn <- (rnm + (rn - rnm)*itn_decay)*itn_eff_cov#Bednet repellency does not decay to zero.
 s_itn <- 1 - d_itn - r_itn
-#
-# ################## GENERAL INTERVENTION PARAMETERS #######################
+
+################## GENERAL INTERVENTION PARAMETERS #######################
 num_int <- parameter()
 
 # cov is a vector of coverages for each intervention category:
@@ -652,7 +647,7 @@ cov_[3] <- (1-max_itn_cov)*max_smc_cov	#      {SMC only}
 cov_[4] <- max_itn_cov*max_smc_cov #	   {Both itn and SMC}
 cov[] <- cov_[i]
 dim(cov) <- num_int
-#
+
 # probability that mosquito bites and survives for each intervention category
 dim(w_) <- 4
 w_[1] <- 1
@@ -712,7 +707,6 @@ n_prev[1:prev_dim] <- sum(S[min_age_prev[i]:max_age_prev[i],,]) + sum(T[min_age_
 
 dim(detect_prev_full) <- c(na,nh,num_int)
 detect_prev_full[,,] <- T[i,j,k] + D[i,j,k]  + Binomial(A[i,j,k],p_det[i,j,k])
-#detect_prev_full[,,] <- T[i,j,k] + D[i,j,k]  + A[i,j,k]*p_det[i,j,k]
 
 dim(detect_prev) <- prev_dim
 detect_prev[1:prev_dim] <- sum(detect_prev_full[min_age_prev[i]:max_age_prev[i],,])

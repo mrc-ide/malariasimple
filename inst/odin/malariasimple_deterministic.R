@@ -1,16 +1,11 @@
 ## DECLARE TIME STEPS
 n_days <- parameter()
-n_ts <- parameter()
 
 dim(daily_rain_input) <- n_days +1
 daily_rain_input <- parameter()
 
 dim(days) <- n_days + 1
 days <- parameter()
-
-dim(iterations) <- n_ts + 1
-iterations <- parameter()
-
 
 ## MODEL VARIABLES
 ##------------------------------------------------------------------------------
@@ -496,13 +491,14 @@ update(PL) <- if(PL + dt*(LL/dLL - muPL*PL - PL/dPL) < 0) 0 else (PL + dt*(LL/dL
 #See supplementary materials of [Thompson, 2022] - https://doi.org/10.1016/S2214-109X(22)00416-8
 max_smc_cov <- parameter()
 
-##Parameters relevant to clearance of existing infections by SMC treatment
-dim(alpha_smc) <- n_ts + 1
-alpha_smc <- parameter()
-alpha_smc_timestep <- interpolate(iterations, alpha_smc, "constant")
+dim(alpha_smc_times, alpha_smc_set) <- parameter(rank = 1)
+alpha_smc_times <- parameter(constant = TRUE)
+alpha_smc_set <- parameter(constant = TRUE)
+
+alpha_smc <- interpolate(alpha_smc_times, alpha_smc_set, mode = "constant")
 
 dim(alpha_smc_array) <-  c(na,nh,num_int)
-alpha_smc_array[,,] <- smc_mask[i,j,k] * alpha_smc_timestep #Multiply by proportion of individuals in SMC compartment currently receiving SMC
+alpha_smc_array[,,] <- smc_mask[i,j,k] * alpha_smc #Multiply by proportion of individuals in SMC compartment currently receiving SMC
 
 ##Parameters relating to prophylaxis effect of SMC
 dim(P_smc_daily) <- n_days + 1
@@ -712,3 +708,9 @@ update(EIR_mean) <- sum(EIR_pop[,,]) / H
 
 initial(mu_mosq) <- 0
 update(mu_mosq) <- mu
+
+##------------------DEBUGGING OUTPUTS THAT CAN BE DELETED----------------
+initial(alpha_smc_out) <- 0
+update(alpha_smc_out) <- alpha_smc
+
+

@@ -35,10 +35,6 @@ In `malariasimple`, ITNs interrupt the feeding cycle of mosquitoes. Upon attempt
 - The mosquito dies (probability = $d_{n}$)
 - The mosquito is thwarted by the net, but survives and searches for a new host (probability = $r_{n}$)
 
-```{r, echo = FALSE, out.width="100%"}
-knitr::include_graphics("images/itns.png")
-```
-
 Hence, the effectiveness an ITN intervention depends on how many people are currently using ITNs and how successful those ITNs at a given time at killing mosquitoes (or at least thwarting attempts at biting humans). These factors can be parameterised using the `set_itn()` function.
 
 #### ITN parameters

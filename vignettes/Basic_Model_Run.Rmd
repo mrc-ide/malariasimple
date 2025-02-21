@@ -24,14 +24,14 @@ We can get started with the simplest model run with almost entirely default mode
 ```{r, message = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=0.55}
 library(malariasimple)
 
-#Define default parameters
+##------------------- Define default parameters ----------------------
 params <- get_parameters() |>
   set_equilibrium(init_EIR = 10)
 
-#Run model
+##----------------------- Run model ----------------------------------
 out <- run_simulation(params) |> as.data.frame()
 
-#Plot PfPR[2-10]
+##-------------------- Plot PfPR[2-10] ------------------------------
 plot(x = out$time, y = out$n_detect_730_3650/out$n_730_3650,
      type = "l", col = "red", lwd = 2,
      xlab = "Days", ylab = expression(paste(italic(Pf),"PR"[2-10])),
@@ -59,16 +59,16 @@ From `get_parameters()`, we can define which age groups we want the model to out
 
 In the following examples we will request prevalence and clinical incidence for two age groups:
   
-  - Ages 2-10
+- Ages 2-10
 - Everyone
 
 ```{r, message = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=0.55}
-#Define age categories
+##--------------------- Define age categories ------------------------
 age_vector <- c(0,1,2,5,10,20,40,60,100)*365
 min_age_render <- c(2,0)*365
 max_age_render <- c(10,Inf)*365
 
-## Set up model parameters
+## --------------------- Set up model parameters --------------------
 params_ages <- get_parameters(n_days = 100,
                               age_vector = age_vector,
                               clin_inc_rendering_min_ages = min_age_render,
@@ -77,7 +77,7 @@ params_ages <- get_parameters(n_days = 100,
                               prevalence_rendering_max_ages = max_age_render) |>
   set_equilibrium(init_EIR = 10)
 
-## Run model
+## -------------------------- Run model --------------------------
 out_ages <- run_simulation(params_ages) |> as.data.frame()
 
 ## Plot
@@ -136,9 +136,9 @@ plot(theta2, lwd = 2, type = "l",
 ```
 
 ## 4. Stochastic Simulations
-Simulations can also be run with stochastic human transitions. To achieve this, we can just add `stochastic = TRUE` to the `get_parameters()` function call. We can also run multiple simulations by setting the `n_particles` parameter in `run_simulation()`. This will produce a 3D array with dimensions [*timesteps, variables, particles*]. 
+Simulations can also be run with stochastic human transitions. To achieve this, we can just add `stochastic = TRUE` to the `get_parameters()` function call. We can also run multiple simulations by setting the `n_particles` parameter in `run_simulation()`. This will produce a 3D array with dimensions [*timesteps, variables, particles*]. For ease in plotting with ggplot, this can be converted into a long dataframe using `make_2d()`. 
 
-```{r, message = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=0.55}
+```{r, message = FALSE, warning = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=0.55}
 ##------------------- Prepare parameters ---------------------
 n_particles <- 5
 n_days <- 365
@@ -148,15 +148,13 @@ stoch_params <- get_parameters(n_days = n_days,
   set_seasonality(ff_coeffs, floor = 0.002) |>
   set_equilibrium(init_EIR = 10)
 
-##------------------- Run simulation and plot ---------------------
-stochastic_output <- run_simulation(stoch_params, n_particles = n_particles)
-stochastic_output_2d <- do.call(rbind, lapply(1:n_particles, function(i) stochastic_output[,,i])) |>
-  as.data.frame()
-stochastic_output_2d$particle <- rep(1:n_particles, each = n_days)
+##---------------------- Run simulation ----------------------
+stochastic_output <- run_simulation(stoch_params, n_particles = n_particles) |> make_2d()
 
+##------------------------ Plot ------------------------------
 library(ggplot2)
 ggplot() +
-  geom_line(data = stochastic_output_2d, aes(x=time,y=n_detect_730_3650/n_730_3650, col = "Stochastic", group = particle)) +
+  geom_line(data = stochastic_output, aes(x=time,y=n_detect_730_3650/n_730_3650, col = "Stochastic", group = particle)) +
   geom_line(data = seasonal_output, aes(x=time,y=n_detect_730_3650/n_730_3650, col = "Deterministic"),lwd=1) +
   labs(x="Time",y=bquote(italic(Pf)~PR[2-10]), col = "Simulation") +
   theme_bw()
