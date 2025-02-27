@@ -242,10 +242,13 @@ dim(rel_foi) <- nh
 rel_foi <- parameter()
 
 dim(EIR_species1) <- c(na,nh,num_int)
-EIR_species1[,,] <- av_human1[k] * rel_foi[j] * foi_age[i] * Iv1/omega
-
+# EIR_species1[,,] <- av_human1[k] * rel_foi[j] * foi_age[i] * Iv1/omega # CHECK THIS: Discrepancy between this and prev version = existence of av_human[1:num_int] <- av*yy1[i]/wh
+EIR_species1[,,] <- av_mosq1[k] * rel_foi[j] * foi_age[i] * Iv1/omega    #             which was used in the EIR calculation. Neither av_human or yy present in the new version.
+                                                                         #             I.e. old version used av_mosq = av*w[i]/wh as input for FOIvijk and av_human as input for EIR
+                                                                         #             This new version uses av_mosq for BOTH FOIvijk AND EIR
 dim(EIR_species2) <- c(na,nh,num_int)
-EIR_species2[,,] <- av_human2[k] * rel_foi[j] * foi_age[i] * Iv2/omega
+# EIR_species2[,,] <- av_human2[k] * rel_foi[j] * foi_age[i] * Iv2/omega
+EIR_species2[,,] <- av_mosq2[k] * rel_foi[j] * foi_age[i] * Iv2/omega
 
 dim(EIR) <- c(na,nh,num_int)
 EIR[,,] <- EIR_species1[i,j,k] + EIR_species2[i,j,k]
@@ -665,41 +668,82 @@ cov[] <- cov_[i]
 dim(cov) <- num_int
 
 # probability that mosquito bites and survives for each intervention category
-dim(w_) <- 4
-w_[1] <- 1
-w_[2] <- 1 - bites_Bed + bites_Bed*s_itn
-w_[3] <- 1
-w_[4] <- 1 - bites_Bed + bites_Bed*s_itn
-w[] <- w_[i]
-dim(w) <- num_int
+dim(w1_) <- 4
+w1_[1] <- 1
+w1_[2] <- 1 - bites_Bed_species1 + bites_Bed_species1*s_itn_1 ## requires modification for IRS
+w1_[3] <- 1                                                   ## requires modification for IRS
+w1_[4] <- 1 - bites_Bed_species1 + bites_Bed_species1*s_itn_1 ## requires modification for IRS
+w1[] <- w1_[i]
+dim(w1) <- num_int
+
+dim(w2_) <- 4
+w2_[1] <- 1
+w2_[2] <- 1 - bites_Bed_species2 + bites_Bed_species2*s_itn_2 ## requires modification for IRS
+w2_[3] <- 1                                                   ## requires modification for IRS
+w2_[4] <- 1 - bites_Bed_species2 + bites_Bed_species2*s_itn_2 ## requires modification for IRS
+w2[] <- w2_[i]
+dim(w2) <- num_int
 
 # probability that mosquito is repelled during a single attempt for each int. cat.
-dim(z_) <- 4
-z_[1] <- 0
-z_[2] <- bites_Bed*r_itn
-z_[3] <- 0
-z_[4] <- bites_Bed*r_itn
-z[] <- z_[i]
-dim(z) <- num_int
+dim(z1_) <- 4
+z1_[1] <- 0
+z1_[2] <- bites_Bed_species1*r_itn1   ## requires modification for IRS
+z1_[3] <- 0                           ## requires modification for IRS
+z1_[4] <- bites_Bed_species1*r_itn1   ## requires modification for IRS
+z1[] <- z1_[i]
+dim(z1) <- num_int
+
+dim(z2_) <- 4
+z2_[1] <- 0
+z2_[2] <- bites_Bed_species2*r_itn2  ## requires modification for IRS
+z2_[3] <- 0                          ## requires modification for IRS
+z2_[4] <- bites_Bed_species2*r_itn2  ## requires modification for IRS
+z2[] <- z2_[i]
+dim(z2) <- num_int
 
 # Calculating Z (zbar) and W (wbar) - see Supplementary materials 2 for details
-dim(zhi) <- num_int
-dim(whi) <- num_int
-zhi[1:num_int] <- cov[i]*z[i]
-whi[1:num_int] <- cov[i]*w[i]
-zh <- sum(zhi)
-wh <- sum(whi)
+dim(zhi1) <- num_int
+dim(whi1) <- num_int
+zhi1[1:num_int] <- cov[i]*z1[i]
+whi1[1:num_int] <- cov[i]*w1[i]
+zh1 <- sum(zhi1)
+wh1 <- sum(whi1)
+
+dim(zhi2) <- num_int
+dim(whi2) <- num_int
+zhi2[1:num_int] <- cov[i]*z2[i]
+whi2[1:num_int] <- cov[i]*w2[i]
+zh2 <- sum(zhi2)
+wh2 <- sum(whi2)
+
 # Z (zbar) - average probability of mosquito trying again during single feeding attempt
-zbar <- Q0*zh
+zbar1 <- Q0_species1*zh1
+zbar2 <- Q0_species2*zh2
+
 # W (wbar) - average probability of mosquito successfully feeding during single attempt
-wbar <- 1 - Q0 + Q0*wh
+wbar1 <- 1 - Q0_species1 + Q0_species1*wh1
+wbar2 <- 1 - Q0_species2 + Q0_species2*wh2
 
 # p1 is the updated p10 given that interventions are now in place:
-p1 <- wbar*p10/(1-zbar*p10)
-Q <- 1-(1-Q0)/wbar # updated anthropophagy given interventions
-av <- fv*Q # biting rate on humans
-dim(av_mosq) <- num_int
-av_mosq[1:num_int] <- av*w[i]/wh # rate at which mosquitoes bite each int. cat.
+p1_1 <- wbar1*p10/(1-zbar1*p10)
+p1_2 <- wbar2*p10/(1-zbar2*p10)
+
+Q_1 <- 1-(1-Q0_species1)/wbar1 # updated anthropophagy given interventions
+Q_2 <- 1-(1-Q0_species2)/wbar2 # updated anthropophagy given interventions
+
+av1 <- fv1*Q_1 # biting rate on humans by species 1
+av2 <- fv2*Q_2 # biting rate on humans by species 2
+
+dim(av_mosq1) <- num_int
+av_mosq1[1:num_int] <- av1*w1[i]/wh1 # rate at which mosquitoes of species 1 bite each int. cat. - a bit unclear here why we multiply by w1/wh1 - this isn't consistent with Jamie's 2010 paper
+dim(av_mosq2) <- num_int
+av_mosq2[1:num_int] <- av2*w2[i]/wh2 # rate at which mosquitoes of species 2 bite each int. cat. - a bit unclear here why we multiply by w1/wh1 - this isn't consistent with Jamie's 2010 paper
+
+## CHECK: This was in a previous version and was used in EIR calculation. In this version, EIR uses av_mosq - BIT CONFUSED BY THIS, CHECK WITH DEBBIE.
+# dim(av_human1) <- num_int
+# av_human1[1:num_int] <- av1*yy1[i]/wh1 # biting rate by species 1 on humans of in each int. cat. - this is consistent with Jamie's 2010 paper in Protocol S2
+# dim(av_human2) <- num_int
+# av_human2[1:num_int] <- av2*yy2[i]/wh2 # biting rate by species 2 on humans in each int. cat. - this is consistent with Jamie's 2010 paper in Protocol S2
 
 
 ##------------------------------------------------------------------------------
