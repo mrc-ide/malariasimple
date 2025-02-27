@@ -512,7 +512,7 @@ b_lambda <- (gammaL*muLL/muEL-dEL/dLL+(gammaL-1)*muLL*dEL)
 lambda_species1 <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval1*muLL*dEL/(2*muEL*mu0_use*dLL*(1+dPL*muPL)))
 lambda_species2 <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval2*muLL*dEL/(2*muEL*mu0_use*dLL*(1+dPL*muPL)))
 
-### CHECK: THIS IS WHAT WAS THERE PREVIOUSLY, AND IT HAS mv0 IN THE NUMERATOR, WHEREAS MINE DOESN'T (AND POSS ICDMM DIDN'T)
+### CHECK: THIS IS WHAT WAS THERE PREVIOUSLY, AND IT HAS mv0 IN THE NUMERATOR, WHEREAS MY PREVIOUS VERSION (DISCRETE TIME DET MODEL FROM DEBBIE) DOESN'T
 # K0 <- 2*mv0*dLL*mu0_use*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dLL)-1)
 K0_species1 <- if(as.integer(step) == 0) 2*density_vec_sp1[as.integer(1)]*dLL*mu0_use*(1+dPL*muPL)*gammaL*(lambda_species1+1)/(lambda_species1/(muLL*dEL)-1/(muLL*dLL)-1) else
   2*density_vec_sp1[as.integer(step)]*dLL*mu0_use*(1+dPL*muPL)*gammaL*(lambda_species1+1)/(lambda_species1/(muLL*dEL)-1/(muLL*dLL)-1)
@@ -523,9 +523,9 @@ K0_species2 <- if(as.integer(step) == 0) 2*density_vec_sp2[as.integer(1)]*dLL*mu
 # parameters for species 1 density and species 2 density (latter increasing in abundance over time - NOTE this is distinct and on top of the custom seasonality)
 time_length <- parameter()
 density_vec_sp1[] <- parameter()
-dim(density_vec_sp1) <- time_length # CHECK AND MAKE THIS SOM FUNCTION OF ALREADY EXISTING INPUTS
+dim(density_vec_sp1) <- time_length # CHECK AND MAKE THIS SOME FUNCTION OF ALREADY EXISTING INPUTS
 density_vec_sp2[] <- parameter()
-dim(density_vec_sp2) <- time_length # CHECK AND MAKE THIS SOM FUNCTION OF ALREADY EXISTING INPUTS
+dim(density_vec_sp2) <- time_length # CHECK AND MAKE THIS SOME FUNCTION OF ALREADY EXISTING INPUTS
 
 # Seasonal carrying capacity KL = base carrying capacity K0 * effect for time of year theta:
 theta_species1 <- interpolate(days, daily_rain_input, "linear")
