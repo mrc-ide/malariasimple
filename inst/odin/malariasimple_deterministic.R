@@ -240,8 +240,15 @@ dim(foi_age) <- na
 foi_age <- parameter()
 dim(rel_foi) <- nh
 rel_foi <- parameter()
+
+dim(EIR_species1) <- c(na,nh,num_int)
+EIR_species1[,,] <- av_human1[k] * rel_foi[j] * foi_age[i] * Iv1/omega
+
+dim(EIR_species2) <- c(na,nh,num_int)
+EIR_species2[,,] <- av_human2[k] * rel_foi[j] * foi_age[i] * Iv2/omega
+
 dim(EIR) <- c(na,nh,num_int)
-EIR[,,] <- av_mosq[k] * rel_foi[j] * foi_age[i] * Iv/omega
+EIR[,,] <- EIR_species1[i,j,k] + EIR_species2[i,j,k]
 
 ##------------------------------------------------------------------------------
 #####################
