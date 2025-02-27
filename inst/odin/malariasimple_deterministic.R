@@ -376,10 +376,10 @@ initial(Sv) <- init_Sv * mv0
 initial(Pv) <- init_Pv * mv0
 initial(Iv) <- init_Iv * mv0
 initial(Sv1) <- init_Sv * mv0
-initial(Ev1) <- init_Ev * mv0
+initial(Pv1) <- init_Ev * mv0
 initial(Iv1) <- init_Iv * mv0
 initial(Sv2) <- init_Sv * mv0 * 0.01 ## This is a bit of a fudge but initial low carrying capacity for stephensi will bring it even lower during equilibration time.
-initial(Ev2) <- init_Ev * mv0 * 0.01 ## Still to do: equilibrium solution for two (or N) mosquitoes and updating this to reflect that.
+initial(Pv2) <- init_Ev * mv0 * 0.01 ## Still to do: equilibrium solution for two (or N) mosquitoes and updating this to reflect that.
 initial(Iv2) <- init_Iv * mv0 * 0.01
 
 # cA is the infectiousness to mosquitoes of humans in the asmyptomatic compartment broken down
@@ -430,7 +430,7 @@ update(ince_delay2[1]) <- ince_delay2[1] + dt*(ince2 - (lag_ratesMos/delayMos_us
 update(ince_delay2[2:lag_ratesMos]) <- ince_delay2[i] + dt*((lag_ratesMos/delayMos_use)*ince_delay2[i-1] - (lag_ratesMos/delayMos_use)*ince_delay2[i])
 incv2 <- ince_delay2[lag_ratesMos]*lag_ratesMos/delayMos_use * surv2
 
-## Outputs for checking - species 1
+## Outputs for checking (new two species model)
 # initial(ince1_out) <- 0
 # update(ince1_out) <- ince1
 # initial(incv1_out) <- 0
@@ -448,15 +448,23 @@ delayMos_use <- delayMos
 surv <- exp(-mu*delayMos_use)
 
 # Number of mosquitoes born (depends on PL, number of larvae), or is constant outside of seasonality
-betaa <- 0.5*PL/dPL
+betaa1 <- 0.5*PL1/dPL
+betaa2 <- 0.5*PL2/dPL
 
-update(Sv) <- if(Sv + dt*(-ince - mu*Sv + betaa) < 0) 0 else Sv + dt*(-ince - mu*Sv + betaa)
-update(Pv) <- if(Pv + dt*(ince - incv - mu*Pv) < 0) 0 else Pv + dt*(ince - incv - mu*Pv)
-update(Iv) <- if(Iv + dt*(incv - mu*Iv) < 0) 0 else Iv + dt*(incv - mu*Iv)
+update(Sv1) <- if(Sv1 + dt*(-ince1 - mu1*Sv1 + betaa1) < 0) 0 else Sv1 + dt*(-ince1 - mu1*Sv1 + betaa1)
+update(Pv1) <- if(Pv1 + dt*(ince1 - incv1 - mu1*Pv1) < 0) 0 else Pv1 + dt*(ince1 - incv1 - mu1*Pv1)
+update(Iv1) <- if(Iv1 + dt*(incv1 - mu1*Iv1) < 0) 0 else Iv1 + dt*(incv1 - mu1*Iv1)
+
+update(Sv2) <- if(Sv2 + dt*(-ince2 - mu2*Sv2 + betaa2) < 0) 0 else Sv2 + dt*(-ince2 - mu2*Sv2 + betaa2)
+update(Pv2) <- if(Pv2 + dt*(ince2 - incv2 - mu2*Pv2) < 0) 0 else Pv2 + dt*(ince2 - incv2 - mu2*Pv2)
+update(Iv2) <- if(Iv2 + dt*(incv2 - mu2*Iv2) < 0) 0 else Iv2 + dt*(incv2 - mu2*Iv2)
 
 # Total mosquito population
-initial(mv) <- 0
-update(mv) <- Sv+Pv+Iv
+initial(mv1) <- 0
+update(mv1) <- Sv1 + Pv1 + Iv1
+initial(mv2) <- 0
+update(mv2) <- Sv2 + Pv2 + Iv2
+mv <- mv1 + mv2 ## CHECK: Does this need to be an initial/update type of process instead? Are we going to be out-by-one doing it this way?
 
 ##------------------------------------------------------------------------------
 ###################
