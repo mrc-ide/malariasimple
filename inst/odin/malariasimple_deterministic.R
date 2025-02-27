@@ -513,17 +513,25 @@ lambda_species2 <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval2*mu
 # K0 <- 2*mv0*dLL*mu0_use*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dLL)-1)
 K0_species1 <- if(as.integer(step) == 0) 2*density_vec_sp1[as.integer(1)]*dLL*mu0_use*(1+dPL*muPL)*gammaL*(lambda_species1+1)/(lambda_species1/(muLL*dEL)-1/(muLL*dLL)-1) else
   2*density_vec_sp1[as.integer(step)]*dLL*mu0_use*(1+dPL*muPL)*gammaL*(lambda_species1+1)/(lambda_species1/(muLL*dEL)-1/(muLL*dLL)-1)
-K0_species2 <- if(as.integer(step) == 0) 2*density_vec[as.integer(1)]*dLL*mu0_use*(1+dPL*muPL)*gammaL*(lambda_species2+1)/(lambda_species2/(muLL*dEL)-1/(muLL*dLL)-1) else
-  2*density_vec[as.integer(step)]*dLL*mu0_use*(1+dPL*muPL)*gammaL*(lambda_species2+1)/(lambda_species2/(muLL*dEL)-1/(muLL*dLL)-1)
+K0_species2 <- if(as.integer(step) == 0) 2*density_vec_sp2[as.integer(1)]*dLL*mu0_use*(1+dPL*muPL)*gammaL*(lambda_species2+1)/(lambda_species2/(muLL*dEL)-1/(muLL*dLL)-1) else
+  2*density_vec_sp2[as.integer(step)]*dLL*mu0_use*(1+dPL*muPL)*gammaL*(lambda_species2+1)/(lambda_species2/(muLL*dEL)-1/(muLL*dLL)-1)
 ## density_vec is defined above and is a monotonically increasing function designed to mimic and simulate invasion and establishment of An. stephensi
 
+# parameters for species 1 density and species 2 density (latter increasing in abundance over time - NOTE this is distinct and on top of the custom seasonality)
+time_length <- parameter()
+density_vec_sp1[] <- parameter()
+dim(density_vec_sp1) <- time_length # CHECK AND MAKE THIS SOM FUNCTION OF ALREADY EXISTING INPUTS
+density_vec_sp2[] <- parameter()
+dim(density_vec_sp2) <- time_length # CHECK AND MAKE THIS SOM FUNCTION OF ALREADY EXISTING INPUTS
+
 # Seasonal carrying capacity KL = base carrying capacity K0 * effect for time of year theta:
-rain_input <- interpolate(days, daily_rain_input, "linear")
-KL_species1 <- K0_species1 * rain_input
+theta_species1 <- interpolate(days, daily_rain_input, "linear")
+KL_species1 <- K0_species1 * theta_species1
 
 ## Custom seasonality function for species 2 (which is An.stephensi for us)
 custom_seasonality[] <- parameter()
-dim(custom_seasonality) <- _____ # CHECK: NEED TO CHANGE
+time_length <- parameter(type = "integer")
+dim(custom_seasonality) <- time_length # CHECK: NEED TO CHANGE THIS AS I SUSPECT THIS CAN BE SOME FUNCTION OF ALREADY INPUTTED PARAMETERS
 theta_species2 <- if(as.integer(step) == 0) custom_seasonality[as.integer(1)] else custom_seasonality[as.integer(step)]
 KL_species2 <- K0_species2 * theta_species2
 initial(theta_species2_out) <- 0
@@ -542,13 +550,30 @@ initial(LL) <- init_LL
 init_EL <- parameter()
 initial(EL) <- init_EL
 
-# (beta_larval (egg rate) * total mosquito) - den. dep. egg mortality - egg hatching
-update(EL) <- if(EL + dt*(beta_larval*mv-muEL*(1+(EL+LL)/KL)*EL - EL/dEL) < 0) 0 else (EL + dt*(beta_larval*mv-muEL*(1+(EL+LL)/KL)*EL - EL/dEL))
-# egg hatching - den. dep. mortality - maturing larvae
-update(LL) <- if(LL + dt*(EL/dEL - muLL*(1+gammaL*(EL + LL)/KL)*LL - LL/dLL) < 0) 0 else (LL + dt*(EL/dEL - muLL*(1+gammaL*(EL + LL)/KL)*LL - LL/dLL))
-# pupae - mortality - fully developed pupae
-update(PL) <- if(PL + dt*(LL/dLL - muPL*PL - PL/dPL) < 0) 0 else (PL + dt*(LL/dLL - muPL*PL - PL/dPL))
+## This is a bit of a fudge but initial low carrying capacity for stephensi will bring it even lower during equilibration time.
+## Still to do: equilibrium solution for two (or N) mosquito species and updating this to reflect that.
+initial(PL1) <- init_PL
+initial(LL1) <- init_LL
+initial(EL1) <- init_EL
+initial(PL2) <- init_PL * 0.01
+initial(LL2) <- init_LL * 0.01
+initial(EL2) <- init_EL * 0.01
 
+## For Species 1
+# (beta_larval (egg rate) * total mosquito) - den. dep. egg mortality - egg hatching
+update(EL1) <- if(EL1 + dt*(beta_larval1*mv1-muEL*(1+(EL1+LL1)/KL_species1)*EL1 - EL1/dEL) < 0) 0 else (EL1 + dt*(beta_larval1*mv1-muEL*(1+(EL1+LL1)/KL_species1)*EL1 - EL1/dEL))
+# egg hatching - den. dep. mortality - maturing larvae
+update(LL1) <- if(LL1 + dt*(EL1/dEL - muLL*(1+gammaL*(EL1 + LL1)/KL_species1)*LL1 - LL1/dLL) < 0) 0 else (LL1 + dt*(EL1/dEL - muLL*(1+gammaL*(EL1 + LL1)/KL_species1)*LL1 - LL1/dLL))
+# pupae - mortality - fully developed pupae
+update(PL1) <- if(PL1 + dt*(LL1/dLL - muPL*PL1 - PL1/dPL) < 0) 0 else (PL1 + dt*(LL1/dLL - muPL*PL1 - PL1/dPL))
+
+## For Species 2
+# (beta_larval (egg rate) * total mosquito) - den. dep. egg mortality - egg hatching
+update(EL2) <- if(EL2 + dt*(beta_larval2*mv2-muEL*(1+(EL2+LL2)/KL_species2)*EL2 - EL2/dEL) < 0) 0 else (EL2 + dt*(beta_larval2*mv2-muEL*(1+(EL2+LL2)/KL_species2)*EL2 - EL2/dEL))
+# egg hatching - den. dep. mortality - maturing larvae
+update(LL2) <- if(LL2 + dt*(EL2/dEL - muLL*(1+gammaL*(EL2 + LL2)/KL_species2)*LL2 - LL2/dLL) < 0) 0 else (LL2 + dt*(EL2/dEL - muLL*(1+gammaL*(EL2 + LL2)/KL_species2)*LL2 - LL2/dLL))
+# pupae - mortality - fully developed pupae
+update(PL2) <- if(PL2 + dt*(LL2/dLL - muPL*PL2 - PL2/dPL) < 0) 0 else (PL2 + dt*(LL2/dLL - muPL*PL2 - PL2/dPL))
 
 ##------------------------------------------------------------------------------
 ########################
@@ -591,9 +616,12 @@ smc_rel_c_mask[,,] <- 1 - (smc_mask[i,j,k] * (1-rel_c)) #Value = SMC_rel_c for t
 # See supplementary materials S2 from http://journals.plos.org/plosmedicine/article?id=10.1371/journal.pmed.1000324#s6
 max_itn_cov <- parameter()
 
-
-Q0 <- parameter()
-bites_Bed <- parameter()
+Q0_species1 <- parameter() # species 1 proportion of anthropophagy
+Q0_species2 <- parameter() # species 2 proportion of anthropophagy
+bites_Bed_species1 <- parameter() # endophagy in bed
+bites_Bed_species2 <- parameter() # endophagy in bed
+chi_species1 <- parameter() # proportion of vector endophily
+chi_species2 <- parameter() # proportion of vector endophily
 
 # General intervention model terminology:
 # r - probability of trying to repeat feed after hitting ITN
@@ -601,9 +629,12 @@ bites_Bed <- parameter()
 # s - probability of successful feed after hitting ITN
 
 # The maximum (and then minimum) r and d values for ITN on day 0 before they decay
-rn <- parameter()
-dn0 <- parameter()
-rnm <- parameter()
+rn_1 <- parameter()
+rn_2 <- parameter()
+dn0_1 <- parameter()
+dn0_2 <- parameter()
+rnm_1 <- parameter()
+rnm_2 <- parameter()
 
 dim(itn_decay_daily) <- n_days + 1 #Bednet insecticide decay
 dim(itn_eff_cov_daily) <- n_days + 1 #Proportion of individuals in the ITN compartment who currently have ITNs.= daily_ITN / max(daily_ITN)
@@ -613,9 +644,13 @@ itn_eff_cov_daily <- parameter()
 itn_eff_cov <- interpolate(days, itn_eff_cov_daily, "linear")
 itn_decay <- interpolate(days, itn_decay_daily, "linear")
 
-d_itn <- dn0*itn_decay*itn_eff_cov
-r_itn <- (rnm + (rn - rnm)*itn_decay)*itn_eff_cov#Bednet repellency does not decay to zero.
-s_itn <- 1 - d_itn - r_itn
+d_itn_1 <- dn0_1*itn_decay*itn_eff_cov
+r_itn_1 <- (rnm_1 + (rn_2 - rnm_1)*itn_decay)*itn_eff_cov #Bednet repellency does not decay to zero.
+s_itn_1 <- 1 - d_itn_1 - r_itn_1
+
+d_itn_2 <- dn0_2*itn_decay*itn_eff_cov
+r_itn_2 <- (rnm_2 + (rn_2 - rnm_2)*itn_decay)*itn_eff_cov #Bednet repellency does not decay to zero.
+s_itn_2 <- 1 - d_itn_2 - r_itn_2
 
 ################## GENERAL INTERVENTION PARAMETERS #######################
 num_int <- parameter()
