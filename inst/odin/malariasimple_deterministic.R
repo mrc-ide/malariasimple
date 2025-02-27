@@ -375,6 +375,12 @@ init_Iv <- parameter()
 initial(Sv) <- init_Sv * mv0
 initial(Pv) <- init_Pv * mv0
 initial(Iv) <- init_Iv * mv0
+initial(Sv1) <- init_Sv * mv0
+initial(Ev1) <- init_Ev * mv0
+initial(Iv1) <- init_Iv * mv0
+initial(Sv2) <- init_Sv * mv0 * 0.01 ## This is a bit of a fudge but initial low carrying capacity for stephensi will bring it even lower during equilibration time.
+initial(Ev2) <- init_Ev * mv0 * 0.01 ## Still to do: equilibrium solution for two (or N) mosquitoes and updating this to reflect that.
+initial(Iv2) <- init_Iv * mv0 * 0.01
 
 # cA is the infectiousness to mosquitoes of humans in the asmyptomatic compartment broken down
 # by age/het/int category, infectiousness depends on p_det which depends on detection immunity
@@ -389,29 +395,50 @@ cA[,,] <- cU + (cD-cU)*p_det[i,j,k]^gamma1
 lag_ratesMos <- parameter(type = "integer")
 
 FOIv_eq <- parameter()
-dim(FOIv) <- lag_ratesMos
-initial(FOIv[]) <- FOIv_eq*delayGam/lag_ratesMos
+dim(FOIv_species1) <- lag_ratesMos
+initial(FOIv_species1[]) <- FOIv_eq*delayGam/lag_ratesMos
+dim(FOIv_species2) <- lag_ratesMos
+initial(FOIv_species2[]) <- 0.01 * FOIv_eq*delayGam/lag_ratesMos
 
-update(FOIv[1]) <- FOIv[1] + dt*(lag_FOIv - (lag_ratesMos/delayGam)*FOIv[1])
-update(FOIv[2:lag_ratesMos]) <- FOIv[i] + dt*((lag_ratesMos/delayGam)*FOIv[i-1] - (lag_ratesMos/delayGam)*FOIv[i])
+update(FOIv_species1[1]) <- FOIv_species1[1] + dt*(lag_FOIv_species1 - (lag_ratesMos/delayGam)*FOIv_species1[1])
+update(FOIv_species1[2:lag_ratesMos]) <- FOIv_species1[i] + dt*((lag_ratesMos/delayGam)*FOIv_species1[i-1] - (lag_ratesMos/delayGam)*FOIv_species1[i])
+update(FOIv_species2[1]) <- FOIv_species2[1] + dt*(lag_FOIv_species2 - (lag_ratesMos/delayGam)*FOIv_species2[1])
+update(FOIv_species2[2:lag_ratesMos]) <- FOIv_species2[i] + dt*((lag_ratesMos/delayGam)*FOIv_species2[i-1] - (lag_ratesMos/delayGam)*FOIv_species2[i])
 
-
-dim(FOIvijk) <- c(na,nh,num_int)
+dim(FOIvijk_species1) <- c(na,nh,num_int)
+dim(FOIvijk_species2) <- c(na,nh,num_int)
 omega <- parameter()
-FOIvijk[1:na, 1:nh, 1:num_int] <- ((cT*smc_rel_c_mask[i,j,k]*T[i,j,k] + cD*smc_rel_c_mask[i,j,k]*D[i,j,k] + cA[i,j,k]*smc_rel_c_mask[i,j,k]*A[i,j,k] + cU*smc_rel_c_mask[i,j,k]*U[i,j,k])/H) *
-  rel_foi[j] * av_mosq[k]*foi_age[i]/omega ## For discrete human compartments
-lag_FOIv=sum(FOIvijk)
+FOIvijk_species1[1:na, 1:nh, 1:num_int] <- ((cT*smc_rel_c_mask[i,j,k]*T[i,j,k] + cD*smc_rel_c_mask[i,j,k]*D[i,j,k] + cA[i,j,k]*smc_rel_c_mask[i,j,k]*A[i,j,k] + cU*smc_rel_c_mask[i,j,k]*U[i,j,k])/H) * rel_foi[j] * av_mosq1[k]*foi_age[i]/omega ## For discrete human compartments
+FOIvijk_species2[1:na, 1:nh, 1:num_int] <- ((cT*smc_rel_c_mask[i,j,k]*T[i,j,k] + cD*smc_rel_c_mask[i,j,k]*D[i,j,k] + cA[i,j,k]*smc_rel_c_mask[i,j,k]*A[i,j,k] + cU*smc_rel_c_mask[i,j,k]*U[i,j,k])/H) * rel_foi[j] * av_mosq2[k]*foi_age[i]/omega ## For discrete human compartments
 
-ince <- FOIv[lag_ratesMos] * lag_ratesMos/delayGam * Sv
+lag_FOIv_species1=sum(FOIvijk_species1)
+lag_FOIv_species2=sum(FOIvijk_species2)
 
-initial(ince_delay[]) <- FOIv_eq*init_Sv*mv0*delayMos_use/lag_ratesMos
-dim(ince_delay) <- lag_ratesMos
+ince1 <- FOIv_species1[lag_ratesMos] * lag_ratesMos/delayGam * Sv1
+initial(ince_delay1[]) <- FOIv_eq*init_Sv*mv0*delayMos_use/lag_ratesMos
+dim(ince_delay1) <- lag_ratesMos
 
-update(ince_delay[1]) <- ince_delay[1] + dt*(ince - (lag_ratesMos/delayMos_use)*ince_delay[1])
-update(ince_delay[2:lag_ratesMos]) <- ince_delay[i] + dt*((lag_ratesMos/delayMos_use)*ince_delay[i-1] -
-                                                            (lag_ratesMos/delayMos_use)*ince_delay[i])
+update(ince_delay1[1]) <- ince_delay1[1] + dt*(ince1 - (lag_ratesMos/delayMos_use)*ince_delay1[1])
+update(ince_delay1[2:lag_ratesMos]) <- ince_delay1[i] + dt*((lag_ratesMos/delayMos_use)*ince_delay1[i-1] - (lag_ratesMos/delayMos_use)*ince_delay1[i])
+incv1 <- ince_delay1[lag_ratesMos]*lag_ratesMos/delayMos_use * surv1
 
-incv <- ince_delay[lag_ratesMos]*lag_ratesMos/delayMos_use * surv
+ince2 <- FOIv_species2[lag_ratesMos] * lag_ratesMos/delayGam * Sv2
+initial(ince_delay2[]) <- FOIv_eq*init_Sv*mv0*delayMos_use/lag_ratesMos
+dim(ince_delay2) <- lag_ratesMos
+
+update(ince_delay2[1]) <- ince_delay2[1] + dt*(ince2 - (lag_ratesMos/delayMos_use)*ince_delay2[1])
+update(ince_delay2[2:lag_ratesMos]) <- ince_delay2[i] + dt*((lag_ratesMos/delayMos_use)*ince_delay2[i-1] - (lag_ratesMos/delayMos_use)*ince_delay2[i])
+incv2 <- ince_delay2[lag_ratesMos]*lag_ratesMos/delayMos_use * surv2
+
+## Outputs for checking - species 1
+# initial(ince1_out) <- 0
+# update(ince1_out) <- ince1
+# initial(incv1_out) <- 0
+# update(incv1_out) <- incv1
+# initial(ince2_out) <- 0
+# update(ince2_out) <- ince2
+# initial(incv2_out) <- 0
+# update(incv2_out) <- incv2
 
 # Current hum->mos FOI depends on the number of individuals now producing gametocytes (12 day lag)
 delayGam <- parameter()
