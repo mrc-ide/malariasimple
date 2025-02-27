@@ -499,18 +499,40 @@ betaL <- parameter()
 mu0_use <- mu0
 p10 <- exp(-mu0_use * tau1)  # probability of surviving one feeding cycle
 p2 <- exp(-mu0_use * tau2)  # probability of surviving one resting cycle
-eov <- betaL/mu*(exp(mu/fv)-1)
-beta_larval <- eov*mu*exp(-mu/fv)/(1-exp(-mu/fv)) # Number of eggs laid per day
+
+eov1 <- betaL/mu1*(exp(mu1/fv1)-1)
+beta_larval1 <- eov1*mu1*exp(-mu1/fv1)/(1-exp(-mu1/fv1)) # Number of eggs laid per day
+eov2 <- betaL/mu2*(exp(mu2/fv2)-1)
+beta_larval2 <- eov2*mu2*exp(-mu2/fv2)/(1-exp(-mu2/fv2)) # Number of eggs laid per day
 b_lambda <- (gammaL*muLL/muEL-dEL/dLL+(gammaL-1)*muLL*dEL)
-lambda <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval*muLL*dEL/(2*muEL*mu0_use*dLL*(1+dPL*muPL)))
-K0 <- 2*mv0*dLL*mu0_use*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dLL)-1)
+
+lambda_species1 <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval1*muLL*dEL/(2*muEL*mu0_use*dLL*(1+dPL*muPL)))
+lambda_species2 <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval2*muLL*dEL/(2*muEL*mu0_use*dLL*(1+dPL*muPL)))
+
+### CHECK: THIS IS WHAT WAS THERE PREVIOUSLY, AND IT HAS mv0 IN THE NUMERATOR, WHEREAS MINE DOESN'T (AND POSS ICDMM DIDN'T)
+# K0 <- 2*mv0*dLL*mu0_use*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dLL)-1)
+K0_species1 <- if(as.integer(step) == 0) 2*density_vec_sp1[as.integer(1)]*dLL*mu0_use*(1+dPL*muPL)*gammaL*(lambda_species1+1)/(lambda_species1/(muLL*dEL)-1/(muLL*dLL)-1) else
+  2*density_vec_sp1[as.integer(step)]*dLL*mu0_use*(1+dPL*muPL)*gammaL*(lambda_species1+1)/(lambda_species1/(muLL*dEL)-1/(muLL*dLL)-1)
+K0_species2 <- if(as.integer(step) == 0) 2*density_vec[as.integer(1)]*dLL*mu0_use*(1+dPL*muPL)*gammaL*(lambda_species2+1)/(lambda_species2/(muLL*dEL)-1/(muLL*dLL)-1) else
+  2*density_vec[as.integer(step)]*dLL*mu0_use*(1+dPL*muPL)*gammaL*(lambda_species2+1)/(lambda_species2/(muLL*dEL)-1/(muLL*dLL)-1)
+## density_vec is defined above and is a monotonically increasing function designed to mimic and simulate invasion and establishment of An. stephensi
 
 # Seasonal carrying capacity KL = base carrying capacity K0 * effect for time of year theta:
 rain_input <- interpolate(days, daily_rain_input, "linear")
+KL_species1 <- K0_species1 * rain_input
 
-KL <- K0*rain_input
-fv <- 1/( tau1/(1-zbar) + tau2 ) # mosquito feeding rate (zbar from intervention param.)
-mu <- -fv*log(p1*p2) # mosquito death rate
+## Custom seasonality function for species 2 (which is An.stephensi for us)
+custom_seasonality[] <- parameter()
+dim(custom_seasonality) <- _____ # CHECK: NEED TO CHANGE
+theta_species2 <- if(as.integer(step) == 0) custom_seasonality[as.integer(1)] else custom_seasonality[as.integer(step)]
+KL_species2 <- K0_species2 * theta_species2
+initial(theta_species2_out) <- 0
+update(theta_species2_out) <- theta_species2
+
+fv1 <- 1/( tau1/(1-zbar1) + tau2 ) # mosquito feeding rate for species 1 (zbar is a derived intervention param.)
+fv2 <- 1/( tau1/(1-zbar2) + tau2 ) # mosquito feeding rate species 2 (zbar is a derived intervention param.)
+mu1 <- -fv1*log(p1_1*p2) # mosquito death rate - species 1
+mu2 <- -fv2*log(p1_2*p2) # mosquito death rate - species 2
 
 # finding equilibrium and initial values for EL, LL & PL
 init_PL <- parameter()
