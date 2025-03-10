@@ -545,7 +545,7 @@ b_lambda <- (gammaL*muLL/muEL-dEL/dLL+(gammaL-1)*muLL*dEL)
 lambda <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval*muLL*dEL/(2*muEL*mu0_use*dLL*(1+dPL*muPL)))
 K0 <- 2*mv0*dLL*mu0_use*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dLL)-1)
 
-# Seasonal carrying capacity KL = base carrying capacity K0 * effect for time of year theta:
+# Seasonal carrying capacity KL = base carrying capacity K0 * effect for time of year:
 rain_input <- interpolate(days, daily_rain_input, "linear")
 
 KL <- K0*rain_input

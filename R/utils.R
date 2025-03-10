@@ -1,16 +1,19 @@
 #' @title Timing of peak carrying capacity
-#' @description Returns the day-of-year on which carrying capacity is maximum
-#' @param season_params List of Fourier function parameters describing seasonality
+#' @description Returns the day-of-year on which vector carrying capacity is maximum
+#' @param g0 Mean baseline coefficient
+#' @param g Cosine coefficients
+#' @param h Sine coefficients
 #' @examples
-#' season_params <- list(g0 = 0.28,
-#'                           g = c(-0.30, -0.03, 0.17),
-#'                           h = c(-0.35, 0.32, -0.08),
-#'                           theta_c = 0.28)
-#' peak_cc <- get_peak_cc(season_params)
+#' #Seasonality parameters
+#' g0 = 0.28
+#' g = c(-0.3, -0.03, 0.17)
+#' h = c(-0.35, 0.32, -0.07)
+#'
+#' peak_cc <- get_peak_cc(g0, g, h)
 #' @export
 
-get_peak_cc <- function(season_params){
-  seasonal_forcing <- get_seasonal_forcing(season_params, n_days = 365)
+get_peak_cc <- function(g, g0, h){
+  seasonal_forcing <- get_seasonal_forcing(t = 1:365, g, g0, h)
   peak_day <- which.max(seasonal_forcing)
   return(peak_day)
 }

@@ -9,13 +9,13 @@ set_rainfall_manual(params, rainfall_ts)
 \arguments{
 \item{params}{Other malariasimple parameters}
 
-\item{rainfall_ts}{Vector daily rainfall values. Lenght must equal or exceed params$n_days}
+\item{rainfall_ts}{Vector daily rainfall-forcing. Length must equal or exceed params$n_days}
 }
 \value{
 Updates the input parameter list to include seasonal parameters
 }
 \description{
-Takes daily rain-forcing time series and adds it to the parameter set
+Takes daily rain-forcing time series input and adds it to the parameter set
 }
 \examples{
 n_days = 1000

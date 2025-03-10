@@ -35,11 +35,11 @@ n_days <- n_years*365
 init_EIR <- 10
 num_sims <- 10 #Number of parallel stochastic simulations
 fine_age_vector <- c(seq(0,10,by=0.25), 15, 20, seq(30,90, by = 10)) * 365
-season_params <- list(g0 = 0.28,
-                      g = c(-0.3, -0.03, 0.17),
-                      h = c(-0.35, 0.32, -0.07),
-                      theta_c = 0.28)
-
+##Seasonality parameters
+g0 = 0.28
+g = c(-0.3, -0.03, 0.17)
+h = c(-0.35, 0.32, -0.07)
+                      
 #Define ITN parameters
 itn_days <- c(100,365,500,800)
 itn_cov <- c(0.1,0.4,0.5,0.1)
@@ -48,7 +48,7 @@ retention <- 5*365
 
 #Define SMC parameters
 smc_offsets <- c(-60, -30, 0, 30)
-peak_cc <- get_peak_cc(season_params)
+peak_cc <- get_peak_cc(g0, g, h)
 smc_days <- rep(365 * seq(1, n_years - 1, by = 1), each = length(smc_offsets)) +
   peak_cc +
   rep(smc_offsets, 2)
@@ -69,9 +69,9 @@ gamman_vec <- rep(gamman, n_dist)
 malsim_params <- malariasimulation::get_parameters(
   overrides = list(
     model_seasonality = TRUE,
-    g0 = season_params$g0,
-    g = season_params$g,
-    h = season_params$h,
+    g0 = g0,
+    g = g,
+    h = h,
     clinical_incidence_rendering_min_ages = 0,
     clinical_incidence_rendering_max_ages = 100 * 365,
     prevalence_rendering_min_ages = 2 * 365,
@@ -116,7 +116,11 @@ simple_det_params_1 <- malariasimple::get_parameters(
   age_vector = fine_age_vector,
   human_pop = human_pop
 ) |>
-  malariasimple::set_seasonality(season_params = season_params) |>
+  malariasimple::set_seasonality(
+    g0 = g0,
+    g = g,
+    h = h
+  ) |>
   malariasimple::set_itn(
     itn_days = itn_days,
     itn_cov = itn_cov,
@@ -145,7 +149,11 @@ simple_stoch_params_1 <- malariasimple::get_parameters(
   stochastic = TRUE,
   human_pop = human_pop
 ) |>
-  malariasimple::set_seasonality(season_params = season_params) |>
+  malariasimple::set_seasonality(
+    g0 = g0,
+    g = g,
+    h = h
+  ) |>
   malariasimple::set_itn(
     itn_days = itn_days,
     itn_cov = itn_cov,

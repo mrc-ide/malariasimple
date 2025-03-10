@@ -45,7 +45,6 @@ run_simulation <- function(params, n_particles = 1, full_output = FALSE){
                        grep("^n_", colnames(out), value = TRUE),
                        "EL","LL","PL","Sv","Pv","Iv","mv")
     if(n_particles == 1){
-      #out[,"natural_deaths"] <- out[,"natural_deaths"] * params$tsd
       out <- out[,selected_cols]
     } else {
       out <- out[,selected_cols,]

@@ -461,7 +461,7 @@ K0 <- 2*mv0*dLL*mu0_use*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muL
 # Seasonal carrying capacity KL = base carrying capacity K0 * effect for time of year theta:
 rain_input <- interpolate(days, daily_rain_input, "linear")
 
-KL <- K0*rain_input
+KL <- K0 * rain_input
 fv <- 1/( tau1/(1-zbar) + tau2 ) # mosquito feeding rate (zbar from intervention param.)
 mu <- -fv*log(p1*p2) # mosquito death rate
 
@@ -709,8 +709,6 @@ update(EIR_mean) <- sum(EIR_pop[,,]) / H
 initial(mu_mosq) <- 0
 update(mu_mosq) <- mu
 
-##------------------DEBUGGING OUTPUTS THAT CAN BE DELETED----------------
-initial(alpha_smc_out) <- 0
-update(alpha_smc_out) <- alpha_smc
+
 
 

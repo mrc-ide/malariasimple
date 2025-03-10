@@ -2,11 +2,10 @@ test_that("Deterministic demo run produces incidence and prevalence as expected"
   n_days <- 365
   init_EIR <- 10
 
-  Thies_ff <- list(
-  g0 = 0.28,
-  g = c(-0.3, -0.03, 0.17),
-  h = c(-0.35, 0.33, -0.08),
-  theta_c = 0.28)
+g0 = 0.28
+g = c(-0.3, -0.03, 0.17)
+h = c(-0.35, 0.33, -0.08)
+
 
   params <- get_parameters(
     n_days = n_days,
@@ -21,7 +20,9 @@ test_that("Deterministic demo run produces incidence and prevalence as expected"
     age = c(0, 1, 2, 3, 4, 5, 10, 20, 40, 60, 80) *
       365
   ) |>
-    set_seasonality(Thies_ff) |>
+    set_seasonality(g0 = g0,
+                    g = g,
+                    h = h) |>
     set_equilibrium(init_EIR = init_EIR)
 
   out <- run_simulation(params) |> as.data.frame()
