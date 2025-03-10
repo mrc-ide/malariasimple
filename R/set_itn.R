@@ -29,12 +29,12 @@
 #'   set_equilibrium(init_EIR = 10)
 #' @export
 set_itn <- function(params,
-                    continuous_distribution = FALSE, #Assume discrete distributions or continuous?
+                    continuous_distribution = FALSE, #Assume discrete distributions or continuous
                     daily_continuous_cov = NULL,
                     itn_days = NULL,
                     itn_cov = NULL,
-                    gamman =   2.64 * 365, #ITN half life
-                    retention =   3 * 365, #Average number of days a net is kept for
+                    gamman =   2.64 * 365,
+                    retention =   3 * 365,
                     dn0 = 0.41,
                     rn = 0.56,
                     rnm = 0.24){
@@ -136,7 +136,7 @@ itn_discrete_distribution_params <- function(params,
   params$itn_decay_daily <- c(0,daily_itn_decay)
   params$max_itn_cov <- max(daily_itn_cov)
   if(params$max_itn_cov == 0){
-    params$itn_eff_cov_daily <- rep(0,n_days=1)
+    params$itn_eff_cov_daily <- rep(0,params$n_days+1)
   } else {
     params$itn_eff_cov_daily <- c(0,daily_itn_cov / params$max_itn_cov)
   }
