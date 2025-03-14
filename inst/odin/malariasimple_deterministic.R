@@ -701,10 +701,10 @@ all_deaths[,,] <- S_death[i,j,k] + T_death[i,j,k] + D_death[i,j,k] + A_death[i,j
 initial(natural_deaths) <- 0
 update(natural_deaths) <- sum(all_deaths[,,])
 
-dim(EIR_pop) <- c(na,nh,num_int)
-EIR_pop[,,] <- EIR[i,j,k] * all[i,j,k]
+dim(epsilon_0) <- c(na,nh,num_int)
+epsilon_0[,,] <- (all[i,j,k] * EIR[i,j,k]) / foi_age[i]
 initial(EIR_mean) <- 0
-update(EIR_mean) <- sum(EIR_pop[,,]) / H
+update(EIR_mean) <- sum(epsilon_0[,,])
 
 initial(mu_mosq) <- 0
 update(mu_mosq) <- mu

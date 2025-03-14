@@ -261,7 +261,7 @@ public:
       dust2::array::dimensions<3> ib_pop;
       dust2::array::dimensions<3> ic_pop;
       dust2::array::dimensions<3> all_deaths;
-      dust2::array::dimensions<3> EIR_pop;
+      dust2::array::dimensions<3> epsilon_0;
     } dim;
     int n_days;
     int na;
@@ -475,7 +475,7 @@ public:
     std::vector<real_type> EIR;
     std::vector<real_type> FOIvijk;
     std::vector<real_type> FOI_lag;
-    std::vector<real_type> EIR_pop;
+    std::vector<real_type> epsilon_0;
   };
   using data_type = dust2::no_data;
   static dust2::packing packing_state(const shared_state& shared) {
@@ -709,7 +709,7 @@ public:
     dim.ib_pop.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int)});
     dim.ic_pop.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int)});
     dim.all_deaths.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int)});
-    dim.EIR_pop.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int)});
+    dim.epsilon_0.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int)});
     std::vector<real_type> daily_rain_input(dim.daily_rain_input.size);
     dust2::r::read_real_array(parameters, dim.daily_rain_input, daily_rain_input.data(), "daily_rain_input", true);
     std::vector<real_type> days(dim.days.size);
@@ -951,8 +951,8 @@ public:
     std::vector<real_type> EIR(shared.dim.EIR.size);
     std::vector<real_type> FOIvijk(shared.dim.FOIvijk.size);
     std::vector<real_type> FOI_lag(shared.dim.FOI_lag.size);
-    std::vector<real_type> EIR_pop(shared.dim.EIR_pop.size);
-    return internal_state{FOI, init_ICM_pre, IC, b, all, D_rates, P_rates, phi, n_prev, icm_pop, ica_pop, id_pop, ib_pop, ic_pop, birth_prob, D_leave_rate, P_leave_rate, p_det, alpha_smc_array, births, T_leave_prob, D_smc_cleared, D_leave_prob, A_smc_cleared, U_smc_cleared, P_leave_prob, cA, FOI_smc, smc_rel_c_mask, detect_prev_full, S_rates, T_leave, D_leave, A_rates, U_rates, P_leave, z_, detect_prev, S_leave_rate, T_trans, D_trans, A_leave_rate, U_leave_rate, P_trans, w_, z, S_leave_prob, TP_trans, T_age, T_death, D_age, DA_trans, D_death, A_leave_prob, U_leave_prob, PS_trans, P_age, P_death, w, zhi, S_leave, A_leave, U_leave, whi, S_trans, A_trans, U_trans, SA_trans, S_age, ST_trans, SD_trans, S_death, A_age, AU_trans, AT_trans, AD_trans, A_death, U_age, US_trans, UA_trans, UD_trans, UT_trans, U_death, clin_inc, all_deaths, av_mosq, EIR, FOIvijk, FOI_lag, EIR_pop};
+    std::vector<real_type> epsilon_0(shared.dim.epsilon_0.size);
+    return internal_state{FOI, init_ICM_pre, IC, b, all, D_rates, P_rates, phi, n_prev, icm_pop, ica_pop, id_pop, ib_pop, ic_pop, birth_prob, D_leave_rate, P_leave_rate, p_det, alpha_smc_array, births, T_leave_prob, D_smc_cleared, D_leave_prob, A_smc_cleared, U_smc_cleared, P_leave_prob, cA, FOI_smc, smc_rel_c_mask, detect_prev_full, S_rates, T_leave, D_leave, A_rates, U_rates, P_leave, z_, detect_prev, S_leave_rate, T_trans, D_trans, A_leave_rate, U_leave_rate, P_trans, w_, z, S_leave_prob, TP_trans, T_age, T_death, D_age, DA_trans, D_death, A_leave_prob, U_leave_prob, PS_trans, P_age, P_death, w, zhi, S_leave, A_leave, U_leave, whi, S_trans, A_trans, U_trans, SA_trans, S_age, ST_trans, SD_trans, S_death, A_age, AU_trans, AT_trans, AD_trans, A_death, U_age, US_trans, UA_trans, UD_trans, UT_trans, U_death, clin_inc, all_deaths, av_mosq, EIR, FOIvijk, FOI_lag, epsilon_0};
   }
   static void update_shared(cpp11::list parameters, shared_state& shared) {
     shared.ft = dust2::r::read_real(parameters, "ft", shared.ft);
@@ -2032,10 +2032,10 @@ public:
     }
     const real_type lag_FOIv = dust2::array::sum<real_type>(internal.FOIvijk.data(), shared.dim.FOIvijk);
     const real_type lambda = -static_cast<real_type>(0.5) * shared.b_lambda + monty::math::sqrt(static_cast<real_type>(0.25) * monty::math::pow(shared.b_lambda, 2) + shared.gammaL * beta_larval * shared.muLL * shared.dEL / (2 * shared.muEL * shared.mu0_use * shared.dLL * (1 + shared.dPL * shared.muPL)));
-    for (size_t i = 1; i <= shared.dim.EIR_pop.dim[0]; ++i) {
-      for (size_t j = 1; j <= shared.dim.EIR_pop.dim[1]; ++j) {
-        for (size_t k = 1; k <= shared.dim.EIR_pop.dim[2]; ++k) {
-          internal.EIR_pop[i - 1 + (j - 1) * shared.dim.EIR_pop.mult[1] + (k - 1) * shared.dim.EIR_pop.mult[2]] = internal.EIR[i - 1 + (j - 1) * shared.dim.EIR.mult[1] + (k - 1) * shared.dim.EIR.mult[2]] * internal.all[i - 1 + (j - 1) * shared.dim.all.mult[1] + (k - 1) * shared.dim.all.mult[2]];
+    for (size_t i = 1; i <= shared.dim.epsilon_0.dim[0]; ++i) {
+      for (size_t j = 1; j <= shared.dim.epsilon_0.dim[1]; ++j) {
+        for (size_t k = 1; k <= shared.dim.epsilon_0.dim[2]; ++k) {
+          internal.epsilon_0[i - 1 + (j - 1) * shared.dim.epsilon_0.mult[1] + (k - 1) * shared.dim.epsilon_0.mult[2]] = (internal.all[i - 1 + (j - 1) * shared.dim.all.mult[1] + (k - 1) * shared.dim.all.mult[2]] * internal.EIR[i - 1 + (j - 1) * shared.dim.EIR.mult[1] + (k - 1) * shared.dim.EIR.mult[2]]) / shared.foi_age[i - 1];
         }
       }
     }
@@ -2243,7 +2243,7 @@ public:
     state_next[16] = dust2::array::sum<real_type>(internal.ib_pop.data(), shared.dim.ib_pop) / H;
     state_next[17] = dust2::array::sum<real_type>(internal.ic_pop.data(), shared.dim.ic_pop) / H;
     state_next[18] = dust2::array::sum<real_type>(internal.all_deaths.data(), shared.dim.all_deaths);
-    state_next[19] = dust2::array::sum<real_type>(internal.EIR_pop.data(), shared.dim.EIR_pop) / H;
+    state_next[19] = dust2::array::sum<real_type>(internal.epsilon_0.data(), shared.dim.epsilon_0);
     state_next[20] = mu;
   }
 };
