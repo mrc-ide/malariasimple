@@ -2,7 +2,7 @@
 title: "Comparison with malariasimulation"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{comparison_with_malariasimulation}
+  %\VignetteIndexEntry{Comparison with malariasimulation}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

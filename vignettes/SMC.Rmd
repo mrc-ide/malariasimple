@@ -2,7 +2,7 @@
 title: "Seasonal Malaria Chemoprevention"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Seasonal_Malaria_Chemoprevention}
+  %\VignetteIndexEntry{Seasonal Malaria Chemoprevention}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -79,33 +79,33 @@ Now we can set up the malariasimple parameters for different scenarios and run t
 
 ```{r, message = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=0.55}
 ## ------------ Seasonal transmission with no interventions ---------------
-basic_params <- get_parameters(n_days = n_days,
+basic_params <- malariasimple::get_parameters(n_days = n_days,
                                age_vector = c(0,1,2,3,4,5,10,20,40,60,80)*365) |>
-  set_seasonality(g0 = g0,
+  malariasimple::set_seasonality(g0 = g0,
                   g = g, 
                   h = h) |>
-  set_equilibrium(init_EIR = 10)
-basic_out <- run_simulation(basic_params) |> as.data.frame()
+  malariasimple::set_equilibrium(init_EIR = 10)
+basic_out <- malariasimple::run_simulation(basic_params) |> as.data.frame()
 
 ## ---------- Seasonal transmission with 'random' SMC distribution --------
 smc_random_params <- basic_params |>
-  set_smc(coverages = smc_cov, days = smc_days,
+  malariasimple::set_smc(coverages = smc_cov, days = smc_days,
           min_age = 1*365,
           max_age = 5*365,
           distribution_type = "random",
           drug = "AL") |>
-  set_equilibrium(init_EIR = 10)
-smc_random_out <- run_simulation(smc_random_params) |> as.data.frame()
+  malariasimple::set_equilibrium(init_EIR = 10)
+smc_random_out <- malariasimple::run_simulation(smc_random_params) |> as.data.frame()
 
 ## ---------- Seasonal transmission with 'cohort' SMC distribution --------
 smc_cohort_params <- basic_params |>
-  set_smc(coverages = smc_cov, days = smc_days,
+  malariasimple::set_smc(coverages = smc_cov, days = smc_days,
           min_age = 1*365,
           max_age = 5*365,
           distribution_type = "cohort",
           drug = "AL") |>
-  set_equilibrium(init_EIR = 10)
-smc_cohort_out <- run_simulation(smc_cohort_params) |> as.data.frame()
+  malariasimple::set_equilibrium(init_EIR = 10)
+smc_cohort_out <- malariasimple::run_simulation(smc_cohort_params) |> as.data.frame()
 
 ## --------------------------- Plot PfPR[2-10] ---------------------------- 
 plot(basic_out$time, basic_out$n_detect_730_3650/basic_out$n_730_3650,

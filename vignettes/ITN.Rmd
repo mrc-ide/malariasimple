@@ -2,7 +2,7 @@
 title: "Insecticide Treated Nets"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{ITN}
+  %\VignetteIndexEntry{Insecticide Treated Nets}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -69,16 +69,16 @@ retention <- 5*365 #People keep their nets for 5 years
 
 
 ## -------------  Set up malariasimple parameters ----------------------
-discrete_params = get_parameters(n_days = n_days,
+discrete_params = malariasimple::get_parameters(n_days = n_days,
                             age_vector = c(0,1,2,5,10,20,40,60,80)*365) |>
-  set_bednets(days = itn_days,
+  malariasimple::set_bednets(days = itn_days,
           coverages = itn_cov,
           gamman = gamman,
           retention = retention) |>
-  set_equilibrium(init_EIR = 5)
+  malariasimple::set_equilibrium(init_EIR = 5)
 
 ## ---------------------- Run simulation ------------------------------
-discrete_out <- run_simulation(discrete_params) |> as.data.frame()
+discrete_out <- malariasimple::run_simulation(discrete_params) |> as.data.frame()
 
 ## -----------------------  Plot  -------------------------------------
 plot(discrete_out$time, discrete_out$n_detect_730_3650/discrete_out$n_730_3650,
@@ -140,14 +140,14 @@ itn_coverage_data <- data.frame(day = c(1,365,2*365),
 daily_continuous_cov <- approx(itn_coverage_data$day, itn_coverage_data$cov, xout = 1:n_days)$y
 
 ## -------------  Set up malariasimple parameters ----------------------
-continuous_params = get_parameters(n_days = 2*365,
+continuous_params = malariasimple::get_parameters(n_days = 2*365,
                                    age_vector = c(0,1,2,5,10,20,40,60,80)*365) |>
-  set_bednets(continuous_distribution = TRUE,
+  malariasimple::set_bednets(continuous_distribution = TRUE,
           daily_continuous_cov = daily_continuous_cov) |>
-  set_equilibrium(init_EIR = 5)
+  malariasimple::set_equilibrium(init_EIR = 5)
 
 ## ---------------------- Run simulation ------------------------------
-continuous_out <- run_simulation(continuous_params) |> as.data.frame()
+continuous_out <- malariasimple::run_simulation(continuous_params) |> as.data.frame()
 
 ## -----------------------  Plot  -------------------------------------
 plot(continuous_out$time, continuous_out$n_detect_730_3650/continuous_out$n_730_3650,

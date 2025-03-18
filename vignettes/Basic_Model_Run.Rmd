@@ -2,7 +2,7 @@
 title: "Basic Model Run"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Basic_Model_Run}
+  %\VignetteIndexEntry{Basic Model Run}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

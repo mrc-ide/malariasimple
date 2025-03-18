@@ -44,7 +44,10 @@ set_bednets <- function(params,
     if (max(coverages) > 1) stop(message("coverages cannot exceed 1"))
     if(is.null(days)) stop(message("days must be specific when continuous_distribution == FALSE"))
     if(is.null(coverages)) stop(message("coverages must be specific when continuous_distribution == FALSE"))
-    if(max(days) > params$n_days) stop(message("days cannot exceed n_days"))
+    if(max(days) > params$n_days){
+      days <- days[days >= n_days]
+      coverages <- coverages[days >= n_days]
+    }
     if (length(days) != length(coverages)){
       if(length(coverages) != 1){
         stop(message("days and coverages must be equal in length"))
