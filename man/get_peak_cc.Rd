@@ -4,12 +4,12 @@
 \alias{get_peak_cc}
 \title{Timing of peak carrying capacity}
 \usage{
-get_peak_cc(g, g0, h)
+get_peak_cc(g0, g, h)
 }
 \arguments{
-\item{g}{Cosine coefficients}
-
 \item{g0}{Mean baseline coefficient}
+
+\item{g}{Cosine coefficients}
 
 \item{h}{Sine coefficients}
 }

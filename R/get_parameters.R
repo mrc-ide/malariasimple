@@ -89,7 +89,7 @@ get_parameters <- function(
     human_pop = 100000,
     tsd = 4, #Time steps per day
     age_vector =  c(0,0.25,0.5,1,1.5,2,2.5,3,3.5,4,5,6,7,8.5,10,20,30,40,60,80)*365, #Default
-    het_brackets = 5,
+    het_brackets = 3,
     lag_rates = 10, #Number of sub-compartments within FOI and FOIv which approximate delay-differential equation. Higher values are a closer approximation, but computationally more expensive
     # age, heterogeneity in exposure,
     eta = 1/(21*365),
@@ -201,8 +201,10 @@ get_parameters <- function(
   params$stochastic <- stochastic
   params$tsd <- tsd
   params$n_ts <- n_days*tsd
+
   # duration of year
   params$DY <- 365
+
   # age, heterogeneity in exposure
   params$age_vector <- age_vector
   params$het_brackets <- het_brackets
@@ -216,7 +218,6 @@ get_parameters <- function(
   params$na <- na
   params$nh <- nh
   params$ft <- ft
-
 
   # rate of leaving infection states
   params$rA <- rA
@@ -321,7 +322,7 @@ get_parameters <- function(
   params$EIP_tempsens <- 0 #odin.dust likes numerical variable types
   params$mu_tempsens <- 0
 
-  #check that none of the spare parameters in the extra
+  #Check that none of the spare parameters in the extra
   if(sum(!is.na(match(names(extra_param_list),names(params))))!=0){
 
     stop (message(cat("Extra params in ... share names with default param names. Please check:\n",

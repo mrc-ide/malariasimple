@@ -18,35 +18,35 @@ knitr::opts_chunk$set(
 
 Note: `malariasimple` is designed to be familiar to users of `malariasimulation` and hence many functions have the same name. Hence, when both libraries are loaded in an R session simultaneously, it becomes necessary to state which version of a function you are calling by using the :: operator. 
 
-```{r, eval = FALSE}
+```{r, message = FALSE}
 library(malariasimple)
 library(malariasimulation)
-library(ggplot2)
 set.seed(101)
 ```
 
-## Example 1 - Good Agreement
+## Example
 
 #### Set up parameters
-```{r, eval = FALSE}
+```{r,message = FALSE}
 n_years <- 3
-human_pop <- 10000
+human_pop <- 5000
 n_days <- n_years*365
-init_EIR <- 10
+init_EIR <- 50
 num_sims <- 10 #Number of parallel stochastic simulations
 fine_age_vector <- c(seq(0,10,by=0.25), 15, 20, seq(30,90, by = 10)) * 365
+
 ##Seasonality parameters
 g0 = 0.28
 g = c(-0.3, -0.03, 0.17)
 h = c(-0.35, 0.32, -0.07)
-                      
-#Define ITN parameters
+
+##Define ITN parameters
 itn_days <- c(100,365,500,800)
 itn_cov <- c(0.1,0.4,0.5,0.1)
 gamman <- 2.64*365
 retention <- 5*365
 
-#Define SMC parameters
+##Define SMC parameters
 smc_offsets <- c(-60, -30, 0, 30)
 peak_cc <- get_peak_cc(g0, g, h)
 smc_days <- rep(365 * seq(1, n_years - 1, by = 1), each = length(smc_offsets)) +
@@ -58,8 +58,8 @@ smc_max_age = 5*365
 ```
 
 ### malariasimulation
-```{r, eval = FALSE}
-#Set up malariasimulation parameters
+```{r}
+##Set up malariasimulation parameters
 n_dist <- length(itn_days)
 dn0 <- rep(0.41, n_dist)
 rn <- rep(0.56, n_dist)
@@ -98,7 +98,7 @@ malsim_params <- malariasimulation::get_parameters(
   ) |>
   malariasimulation::set_equilibrium(init_EIR = init_EIR)
 
-#Run malariasimulation 
+##Run malariasimulation
 malsim <- run_simulation_with_repetitions(
   timesteps = n_days,
   repetitions = num_sims,
@@ -108,7 +108,8 @@ malsim <- run_simulation_with_repetitions(
 ```
 
 ### malariasimple - deterministic
-```{r, eval = FALSE}
+```{r}
+##Set up deterministic malariasimple parameters
 simple_det_params_1 <- malariasimple::get_parameters(
   n_days = n_days,
   prevalence_rendering_min_ages = 2 * 365,
@@ -121,26 +122,28 @@ simple_det_params_1 <- malariasimple::get_parameters(
     g = g,
     h = h
   ) |>
-  malariasimple::set_itn(
-    itn_days = itn_days,
-    itn_cov = itn_cov,
+  malariasimple::set_bednets(
+    days = itn_days,
+    coverages = itn_cov,
     gamman = gamman,
     retention = retention
   ) |>
   malariasimple::set_smc(
-    smc_lower_age = smc_min_age,
-    smc_upper_age = smc_max_age,
-    smc_cov = smc_cov,
-    smc_days = smc_days,
+    min_age = smc_min_age,
+    max_age = smc_max_age,
+    days = smc_days,
+    coverages = smc_cov,
     distribution_type = "random"
   ) |>
   malariasimple::set_equilibrium(init_EIR = init_EIR)
 
+##Run determistic malariasimple
 simple_det_1 <- malariasimple::run_simulation(simple_det_params_1) |> as.data.frame()
 ```
 
 ### malariasimple - stochastic
-```{r, eval = FALSE}
+```{r}
+##Set up stochsatic malariasimple parameters
 simple_stoch_params_1 <- malariasimple::get_parameters(
   n_days = n_days,
   prevalence_rendering_min_ages = 2 * 365,
@@ -154,48 +157,56 @@ simple_stoch_params_1 <- malariasimple::get_parameters(
     g = g,
     h = h
   ) |>
-  malariasimple::set_itn(
-    itn_days = itn_days,
-    itn_cov = itn_cov,
+  malariasimple::set_bednets(
+    days = itn_days,
+    coverages = itn_cov,
     gamman = gamman,
     retention = retention
   ) |>
   malariasimple::set_smc(
-    smc_lower_age = smc_min_age,
-    smc_upper_age = smc_max_age,
-    smc_cov = smc_cov,
-    smc_days = smc_days,
+    min_age = smc_min_age,
+    max_age = smc_max_age,
+    days = smc_days,
+    coverages = smc_cov,
     distribution_type = "random"
   ) |>
   malariasimple::set_equilibrium(init_EIR = init_EIR)
 
+##Run stochastic malariasimple
 simple_stoch_1 <- malariasimple::run_simulation(simple_stoch_params_1, n_particles = num_sims) |>
   make_2d()
 ```
 
 ### Plot
-```{r, eval = FALSE}
-library(ggplot2)
-ggplot() +
-  geom_vline(aes(xintercept = itn_days, lty="ITN"), col = "#619CFF", key_glyph = "path") +
-  geom_vline(aes(xintercept = smc_days, lty="SMC"), col = "#00BA38", key_glyph = "path") +
-  geom_line(data = malsim,
-            aes(x=timestep, y = n_detect_lm_730_3650/n_age_730_3650,group=repetition, col = "malariasimulation"),
-            alpha=0.4) +
-  geom_line(data = simple_stoch_1,
-            aes(x=time, y=n_detect_730_3650 / n_730_3650, col = "malariasimple - stochastic", group = particle),
-            alpha=0.6) +
-  geom_line(data = simple_det_1,
-            aes(x=time, y=n_detect_730_3650 / n_730_3650, col = "malariasimple - deterministic")) +
-  scale_color_manual(values = c("malariasimple - deterministic" = "#CA0020","malariasimple - stochastic" = "#F4A582", "malariasimulation" = "black")) +
-  scale_linetype_manual(values = c(SMC = 2, ITN = 2)) +
-  labs(x="Time (Days)",
-       y=bquote(italic(Pf)~PR[2-10]),
-       linetype = "Intervention",
-       color = "Simulation") +
-  theme_bw()
+```{r, fig.width=3, fig.asp=0.6, dpi=300, fig.align="center"}
+par(mar = c(4, 4, 2, 1), cex = 0.4)  # Minimal margins # Adjust margins (bottom, left, top, right)
+plot(NULL, xlim = c(0, max(n_days)), ylim = c(0, max(malsim$n_detect_lm_730_3650 / malsim$n_age_730_3650, 
+                                                     simple_stoch_1$n_detect_730_3650 / simple_stoch_1$n_730_3650, 
+                                                     simple_det_1$n_detect_730_3650 / simple_det_1$n_730_3650)),
+     xlab = "Time (Days)", ylab = expression(italic(Pf)~PR[2-10]))
+
+abline(v = itn_days, col = "#619CFF", lty = 2, lwd = 0.7) 
+abline(v = smc_days, col = "#00BA38", lty = 2, lwd = 0.7) 
+
+for (i in unique(malsim$repetition)) {
+  lines(malsim$timestep[malsim$repetition == i], 
+        malsim$n_detect_lm_730_3650[malsim$repetition == i] / malsim$n_age_730_3650[malsim$repetition == i], 
+        col = rgb(0, 0, 0, alpha = 0.4), lty = 1, lwd = 0.7)
+}
+
+for (i in unique(simple_stoch_1$particle)) {
+  lines(simple_stoch_1$time[simple_stoch_1$particle == i], 
+        simple_stoch_1$n_detect_730_3650[simple_stoch_1$particle == i] / simple_stoch_1$n_730_3650[simple_stoch_1$particle == i], 
+        col = rgb(244/255, 165/255, 130/255, alpha = 0.6), lty = 1, lwd = 0.7)
+}
+
+lines(simple_det_1$time, 
+      simple_det_1$n_detect_730_3650 / simple_det_1$n_730_3650, 
+      col = "#CA0020", lwd = 1.5)
+
+legend("topright", legend = c("malariasimple - deterministic", "malariasimple - stochastic", "malariasimulation", "ITN distribution", "SMC distribution"),
+       col = c("#CA0020", "#F4A582", "black", "#619CFF", "#00BA38"),
+       lty = c(1,1,1,2,2), lwd = c(1.5,0.7,0.7,0.7,0.7), bty = "o", cex = 0.8)
 ```
 
-```{r echo = FALSE, out.width = "110%"}
-knitr::include_graphics("images/malsim_comp_1.png")
-```
+

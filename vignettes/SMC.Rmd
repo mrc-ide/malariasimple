@@ -41,11 +41,11 @@ In `malariasimulation`, you can adjust the 'correlation' of an intervention to d
 ## Using set_smc()
 To fully define an SMC intervention, we can specify:
 
- - SMC Drug (or manually define drug parameters): `drug`
- - Days on which SMC administration events occur: `smc_days`
- - Proportion of age-eligible children covered: `smc_cov`
- - Minimum age eligible for SMC: `smc_lower_age`
- - Maximum age eligible for SMC: `smc_lower_age`
+ - SMC Drug: `drug` (alternatively you can manually define drug parameters)
+ - Days on which SMC administration events occur: `days`
+ - Proportion of age-eligible children covered: `coverages`
+ - Minimum age eligible for SMC: `min_age`
+ - Maximum age eligible for SMC: `min_age`
  
 Note: SMC age boundaries must align with age categories defined in get_parameters()
 
@@ -89,9 +89,9 @@ basic_out <- run_simulation(basic_params) |> as.data.frame()
 
 ## ---------- Seasonal transmission with 'random' SMC distribution --------
 smc_random_params <- basic_params |>
-  set_smc(smc_cov = smc_cov, smc_days = smc_days,
-          smc_lower_age = 1*365,
-          smc_upper_age = 5*365,
+  set_smc(coverages = smc_cov, days = smc_days,
+          min_age = 1*365,
+          max_age = 5*365,
           distribution_type = "random",
           drug = "AL") |>
   set_equilibrium(init_EIR = 10)
@@ -99,9 +99,9 @@ smc_random_out <- run_simulation(smc_random_params) |> as.data.frame()
 
 ## ---------- Seasonal transmission with 'cohort' SMC distribution --------
 smc_cohort_params <- basic_params |>
-  set_smc(smc_cov = smc_cov, smc_days = smc_days,
-          smc_lower_age = 1*365,
-          smc_upper_age = 5*365,
+  set_smc(coverages = smc_cov, days = smc_days,
+          min_age = 1*365,
+          max_age = 5*365,
           distribution_type = "cohort",
           drug = "AL") |>
   set_equilibrium(init_EIR = 10)

@@ -10,9 +10,9 @@
 #' @export
 
 run_simulation <- function(params, n_particles = 1, full_output = FALSE){
-  if(params$stochastic == FALSE){
+  if(!params$stochastic){
     gen <- malariasimple_deterministic
-  } else if(params$stochastic == TRUE){
+  } else if(params$stochastic){
     gen <- malariasimple_stochastic
   }
   sys <- dust2::dust_system_create(gen(), params, n_particles = n_particles, dt = 1/params$tsd)
@@ -38,7 +38,7 @@ run_simulation <- function(params, n_particles = 1, full_output = FALSE){
   dimnames(out)[[2]] <- c(colnames,"time")
 
   #Only output select variables (unless requested otherwise)
-  if(full_output == FALSE){
+  if(!full_output){
     selected_cols <- c("time","EIR_mean","natural_deaths","mu_mosq",
                        grep("_count$", colnames(out), value = TRUE),
                        "ica_mean","icm_mean","ib_mean", "id_mean",

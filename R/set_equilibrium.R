@@ -281,7 +281,6 @@ set_equilibrium <- function(params, init_EIR)
   init_ICA = array(init_ICA, c(na, nh, num_int))
   init_ICM = array(init_ICM, c(na, nh, num_int))
 
-  # TODO: Remove this part and put it as an edit to the equilibrium solution
   if(!is.null(params$ncc)){
     init_IB = array(init_IB, c(na, nh, num_int, params$ncc))
     init_ID = array(init_ID, c(na, nh, num_int, params$ncc))
@@ -337,11 +336,8 @@ set_equilibrium <- function(params, init_EIR)
     params$max_smc_cov <- 0
     params$eff_smc_prop <- rep(0,(params$n_days+1))
     params$P_smc_daily <- rep(0,(params$n_days+1))
-    #params$alpha_smc <- rep(0,(params$n_ts+1))
     params$alpha_smc_set <- c(0,0)
     params$alpha_smc_times <- c(0,2)
-    # params$alpha_smc_set <- NULL
-    # params$alpha_smc_times <- NULL
     params$rel_c_days <- rep(1,(params$n_days+1))
   }
   ##SMC mask must be defined in set_equilibrium, because num_int must be defined
@@ -359,7 +355,7 @@ set_equilibrium <- function(params, init_EIR)
     params$daily_temp <- rep(1, (params$n_days+1))
 
   human_pop <- params$human_pop
-  if(params$stochastic == TRUE){
+  if(params$stochastic){
     human_init_list <- list(init_S = init_S, init_T = init_T,
                             init_D = init_D, init_A = init_A,
                             init_U = init_U, init_P = init_P,

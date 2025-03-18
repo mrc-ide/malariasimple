@@ -7,10 +7,10 @@
 set_smc(
   params,
   drug = "SP_AQ",
-  smc_cov = NULL,
-  smc_days = NULL,
-  smc_lower_age = 0.25 * 365,
-  smc_upper_age = 5 * 365,
+  coverages = NULL,
+  days = NULL,
+  min_age = 0.25 * 365,
+  max_age = 5 * 365,
   smc_clearance_lag = 5,
   drug_efficacy = NULL,
   drug_rel_c = NULL,
@@ -24,13 +24,13 @@ set_smc(
 
 \item{drug}{Specify default drug parameters. See ?set_drug_params for details}
 
-\item{smc_cov}{Numeric vector detailing proportion of target age population receiving SMC for each distribution event. A single value is also accepted}
+\item{coverages}{Numeric vector detailing proportion of target age population receiving SMC for each distribution event. A single value is also accepted}
 
-\item{smc_days}{Numeric vector detailing days on which SMC is administered}
+\item{days}{Numeric vector detailing days on which SMC is administered}
 
-\item{smc_lower_age}{Minimum age eligible for SMC}
+\item{min_age}{Minimum age eligible for SMC}
 
-\item{smc_upper_age}{Maximum age eligible for SMC}
+\item{max_age}{Maximum age eligible for SMC}
 
 \item{smc_clearance_lag}{No. of days between receipt of SMC and infectious clearance}
 
@@ -53,8 +53,8 @@ Set SMC parameters
 \examples{
 
 smc_params <- get_parameters(n_days = 300) |>
-          set_smc(smc_days = c(100,150,200),
-                  smc_cov = 0.4,
+          set_smc(days = c(100,150,200),
+                  coverages = 0.4,
                   distribution_type = "cohort") |>
           set_equilibrium(init_EIR = 10)
 }

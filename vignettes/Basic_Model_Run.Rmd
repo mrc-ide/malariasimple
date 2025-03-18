@@ -141,7 +141,7 @@ plot(rain_input, lwd = 2, type = "l",
 ```
 
 ## 4. Stochastic Simulations
-Simulations can also be run with stochastic human transitions. To achieve this, we can just add `stochastic = TRUE` to the `get_parameters()` function call. We can also run multiple simulations by setting the `n_particles` parameter in `run_simulation()`. This will produce a 3D array with dimensions [*timesteps, variables, particles*]. For ease in plotting with ggplot, this can be converted into a long dataframe using `make_2d()`. 
+Simulations can also be run with stochastic human transitions. To achieve this, we can just add `stochastic = TRUE` to the `get_parameters()` function call. We can also run multiple simulations by setting the `n_particles` parameter in `run_simulation()`. This will produce a 3D array with dimensions [*timesteps, variables, particles*]. This can be converted into a long dataframe using `make_2d()`. 
 
 ```{r, message = FALSE, warning = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=0.55}
 ##------------------- Prepare parameters ---------------------

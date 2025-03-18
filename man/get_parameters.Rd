@@ -11,7 +11,7 @@ get_parameters(
   tsd = 4,
   age_vector = c(0, 0.25, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 5, 6, 7, 8.5, 10, 20, 30, 40,
     60, 80) * 365,
-  het_brackets = 5,
+  het_brackets = 3,
   lag_rates = 10,
   eta = 1/(21 * 365),
   rho = 0.85,

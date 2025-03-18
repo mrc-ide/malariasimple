@@ -31,4 +31,13 @@ h = c(-0.35, 0.33, -0.08)
   expect_equal(round(out$n_clin_inc_0_Inf[10], 5), 0.00144)
 })
 
+test_that("Input EIR equals output EIR",{
+  human_pop <- 1000
+  init_EIR <- 20
+  params <- get_parameters(human_pop = human_pop, stochastic = FALSE) |>
+    set_equilibrium(init_EIR = init_EIR)
+  out <- run_simulation(params) |> as.data.frame()
+  expect_equal(365 * out$EIR_mean[1] / human_pop, init_EIR)
+})
+
 

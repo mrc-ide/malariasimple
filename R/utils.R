@@ -12,12 +12,23 @@
 #' peak_cc <- get_peak_cc(g0, g, h)
 #' @export
 
-get_peak_cc <- function(g, g0, h){
-  seasonal_forcing <- get_seasonal_forcing(t = 1:365, g, g0, h)
+get_peak_cc <- function(g0, g, h){
+  seasonal_forcing <- get_seasonal_forcing(t = 1:365, g0, g, h)
   peak_day <- which.max(seasonal_forcing)
   return(peak_day)
 }
 
+#' @title Decay matrix for ITN or SMC
+#' @description Produces an ij matrix representing the decay in efficacy of insecticide-treated nets (ITN) or
+#' prophylactic protection (SMC) on day j for individuals in receipt of distribution event i.
+#' @param days Days on which distribution events occur
+#' @param n_days Length of simulation (days)
+#' @param gamman_itn Half-life of ITN insecticide (days)
+#' @param scale_smc Scale parameter of Weibull distribution defining decay of prophylactic protection of SMC
+#' @param shape_smc Shape parameter of Weibull distribution defining decay of prophylactic protection of SMC
+#' @param intervention "ITN" or "SMC"
+#'
+#' @export
 ##Intervention coverage
 get_decay_mat <- function(days,n_days,gamman_itn = NULL,scale_smc = NULL,shape_smc = NULL,intervention = NULL){
   n_dists <- length(days) #Number of ITN/SMC distribution events
@@ -35,6 +46,12 @@ get_decay_mat <- function(days,n_days,gamman_itn = NULL,scale_smc = NULL,shape_s
   return(decay_mat)
 }
 
+#' @title Daily Effective Decay
+#' @description Estimates the mean average intervention decay across all distribution events
+#' @param usage_mat Matrix of usage values for each distribution event and simulation day.
+#' @param decay_mat Matrix of decay values for each distribution event and simulation day.
+
+#' @export
 get_daily_decay <- function(usage_mat, decay_mat){
   n_dists <- ncol(usage_mat) - 1
   prop_cat <- usage_mat[,1:n_dists] / rowSums(usage_mat[,1:n_dists]) #Proportion of pop. in each distribution category
@@ -42,6 +59,8 @@ get_daily_decay <- function(usage_mat, decay_mat){
   mean_decay <- rowSums(prop_cat * decay_mat[,1:n_dists])
   return(mean_decay)
 }
+
+
 #Convert intervention usage matrix into daily overall coverage time series
 get_daily_cov <- function(usage_mat){
   n_dists <- ncol(usage_mat) - 1
