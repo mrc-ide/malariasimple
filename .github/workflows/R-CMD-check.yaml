@@ -51,9 +51,9 @@ jobs:
           build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
 
       - name: Install dependencies
-  run: |
-    install.packages("remotes")
-    remotes::install_github("mrc-ide/dust2")
-    remotes::install_deps(dependencies = TRUE)
-    remotes::install_cran("rcmdcheck")
-  shell: Rscript {0}
+        run: |
+          remotes::install_deps(dependencies = TRUE)
+          remotes::install_cran("rcmdcheck")
+        shell: Rscript {0}
+
+
