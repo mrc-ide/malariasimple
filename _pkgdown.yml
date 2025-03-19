@@ -2,15 +2,3 @@ url: https://mrc-ide.github.io/malariasimple/
 template:
   bootstrap: 5
 
-articles:
-  - title: "Model Introduction"
-    contents:
-      - model_introduction
-      - basic_model_run
-  - title: "Using Interventions"
-    contents:
-      - ITN
-      - SMC
-  - title: "Comparing with malariasimulation"
-    contents:
-      - comparison_with_malariasimulation
