@@ -22,10 +22,10 @@
 #'   set_equilibrium(init_EIR = 10)
 #'
 #' #Continuous distribution scenario
-#' coverageserage <- 0.2 + 0.15*(sin(2 * pi * (1:n_days / 365)) + 1)
+#' continuous_cov <- 0.2 + 0.15*(sin(2 * pi * (1:n_days / 365)) + 1)
 #' discrete_itn_params <- get_parameters(n_days = n_days) |>
 #'   set_bednets(continuous_distribution = TRUE,
-#'           daily_continuous_cov = coverageserage) |>
+#'           daily_continuous_cov = continuous_cov) |>
 #'   set_equilibrium(init_EIR = 10)
 set_bednets <- function(params,
                     continuous_distribution = FALSE, #Assume discrete distributions or continuous
@@ -45,8 +45,8 @@ set_bednets <- function(params,
     if(is.null(days)) stop(message("days must be specific when continuous_distribution == FALSE"))
     if(is.null(coverages)) stop(message("coverages must be specific when continuous_distribution == FALSE"))
     if(max(days) > params$n_days){
-      days <- days[days >= n_days]
-      coverages <- coverages[days >= n_days]
+      days <- days[days >= params$n_days]
+      coverages <- coverages[days >= params$n_days]
     }
     if (length(days) != length(coverages)){
       if(length(coverages) != 1){

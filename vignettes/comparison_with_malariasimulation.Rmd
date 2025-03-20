@@ -99,7 +99,7 @@ malsim_params <- malariasimulation::get_parameters(
   malariasimulation::set_equilibrium(init_EIR = init_EIR)
 
 ##Run malariasimulation
-malsim <- run_simulation_with_repetitions(
+malsim <- malariasimulation::run_simulation_with_repetitions(
   timesteps = n_days,
   repetitions = num_sims,
   overrides = malsim_params,

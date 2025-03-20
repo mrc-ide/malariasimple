@@ -27,8 +27,8 @@ Suggests:
     knitr,
     rmarkdown,
     ggplot2,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    malariasimulation
 Config/testthat/edition: 3
 RoxygenNote: 7.3.2
 VignetteBuilder: knitr
-URL: https://mrc-ide.github.io/malariasimple/
