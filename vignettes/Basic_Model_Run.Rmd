@@ -128,17 +128,7 @@ plot(seasonal_output$time, seasonal_output$mv, lwd = 2,
      type = "l", xlab = "Days", "ylab" = "Mosquito Population")
 ```
 
-We can also view the seasonal forcing (known in the model as 'rain_input') directly using the `get_seasonal_forcing()` function
 
-```{r, message = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=0.55}
-rain_input <- get_seasonal_forcing(t = 1:365,
-                               g0 = g0,
-                               g = g,
-                               h = h,
-                               floor = 0.002)
-plot(rain_input, lwd = 2, type = "l",
-     xlab = "Days", ylab = "Seasonal Forcing")
-```
 
 ## 4. Stochastic Simulations
 Simulations can also be run with stochastic human transitions. To achieve this, we can just add `stochastic = TRUE` to the `get_parameters()` function call. We can also run multiple simulations by setting the `n_particles` parameter in `run_simulation()`. This will produce a 3D array with dimensions [*timesteps, variables, particles*]. This can be converted into a long dataframe using `make_2d()`. 

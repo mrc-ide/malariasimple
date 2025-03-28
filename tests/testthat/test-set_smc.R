@@ -59,3 +59,4 @@ test_that("SMC clearance is working as expected", {
   out <- run_simulation(params)
   expect_equal(as.numeric(out[47,"n_detect_91.25_1825"]), 0)
 })
+

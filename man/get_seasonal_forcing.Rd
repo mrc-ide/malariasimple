@@ -20,14 +20,3 @@ get_seasonal_forcing(t, g0, g, h, floor = 0.001)
 \description{
 Convert Fourier coefficients into a smooth vector of daily seasonal forcing. Used within set_seasonality function.
 }
-\examples{
-# Define seasonality parameters
-g0 = 0.28
-g = c(-0.3, -0.03, 0.17)
-h = c(-0.35, 0.33, -0.08)
-
-daily_forcing <- get_seasonal_forcing(t = 1:365,
-g0 = g0,
-g = g,
-h = h)
-}

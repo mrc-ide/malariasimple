@@ -321,15 +321,9 @@ set_equilibrium <- function(params, init_EIR)
   #Interventions
   if(params$itn_set == 0){
     params$max_itn_cov <- 0
-    params$itn_decay_daily <- rep(0,(params$n_days+1))
-    params$itn_eff_cov_daily <- rep(0,(params$n_days+1))
-    params$mean_itn_decay <- 0
-    params$dn0 <- 0
-    params$rn <- 0
-    params$rnm <- 0
-
+    params$r_itn_daily <- rep(0,(params$n_days+1))
+    params$s_itn_daily <- rep(1,(params$n_days+1))
   }
-
 
   params$smc_mask <- array(0, dim = c(na,nh,num_int))
   if(params$smc_set == 0){
@@ -340,6 +334,7 @@ set_equilibrium <- function(params, init_EIR)
     params$alpha_smc_times <- c(0,2)
     params$rel_c_days <- rep(1,(params$n_days+1))
   }
+
   ##SMC mask must be defined in set_equilibrium, because num_int must be defined
   if(params$smc_set == 1){
     params$smc_mask[which(params$age_vector %in% params$smc_age),1:nh,3:num_int] <- 1  #Produce an array which is 1 for compartments receiving SMC, else 0.

@@ -33,7 +33,7 @@ In `malariasimple`, ITNs interrupt the feeding cycle of mosquitoes. Upon attempt
 
 - The mosquito successfully feeds and continues to oviposit (probability = $s_{n}$)
 - The mosquito dies (probability = $d_{n}$)
-- The mosquito is thwarted by the net, but survives and searches for a new host (probability = $r_{n}$)
+- The mosquito survives the feeding attempt, but is repelled by the net and searches for a new host (probability = $r_{n}$)
 
 Hence, the effectiveness of an ITN intervention depends on how many people are currently using ITNs and how successful those ITNs at a given time at killing or repelling mosquitoes. These factors can be parameterised using the `set_bednets()` function.
 
@@ -91,7 +91,7 @@ legend("topright", legend = "ITN distributions", lty = 2, bty = "n")
 ```
 **Visualising discrete parameters**
 
-`set_bednets()` tracks the usage and average insecticide decay from each distribution event. These can be visualised using the intermediate functions `get_itn_usage_mat()` and `get_decay_mat()`. Because the model only has one compartment for each intervention, the model takes the total usage and mean decay at each time point when running the simulation. Below, we plot the input model assumptions.  
+`set_bednets()` tracks the usage and average insecticide decay from each distribution event. ITN usage can be visualised using the intermediate function `get_itn_usage_mat()`. Because the model only has one compartment for each intervention, the model takes the total usage at each time point when running the simulation. Below, we plot the input model assumptions.  
 
 ```{r, message = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=1}
 ## -------------  Return usage and decay matrices ----------------------
@@ -101,7 +101,7 @@ decay_mat <- get_decay_mat(itn_days, n_days, gamman_itn = gamman, intervention =
 ## -----------------------  Plot  --------------------------------
 t <- 1:n_days
 colours <- c("#1B9E77", "#D95F02", "#7570B3")
-par(mfrow = c(2, 1), mar = c(4, 4, 2, 1), cex = 0.8) 
+#par(mfrow = c(1, mar = c(4, 4, 2, 1), cex = 0.8) 
 
 #Usage plot
 matplot(t, usage_mat[, 1:length(itn_days)], type = "l", lty = 1, col = colours, ylim = c(0,1),
@@ -115,17 +115,6 @@ legend("topleft",
        lwd = c(1, 1, 1, 2),
        bty = "n") 
 
-#Decay plot
-matplot(t, decay_mat[, 1:length(itn_days)], type = "l", lty = 1, col = colours, ylim = c(0,1),
-        xlab = "Time", ylab = "Insecticide Efficacy", main = "ITN Decay by Distribution Event")
-lines(1:(n_days+1), discrete_params$itn_decay_daily, col = "red", lwd = 2, lty = 2)
-lines(t, get_daily_decay(usage_mat, decay_mat), col = "red", lwd = 2, lty = 2)
-legend("bottomright",
-       legend = c("Distribution event 1", "Distribution event 2", "Distribution event 3", "Mean ITN efficacy"),
-       col = c(colours, "red"),
-       lty = c(1, 1, 1, 2),
-       lwd = c(1, 1, 1, 2),
-       bty = "n") 
 ```
 
 ### 2. Continuous
@@ -164,8 +153,6 @@ Under the continuous assumption, insecticide decay is considered constant (equal
 par(cex = 0.8)
 plot(1:n_days, daily_continuous_cov, type = "l", xlab = "Time", ylab = "", ylim = c(0,1),
      lty = 2, lwd = 2)
-lines(1:n_days, continuous_params$itn_decay_daily[2:(n_days+1)], col = "red",
-      lty = 2, lwd = 2)
 legend("bottomright",
        legend = c("Total ITN usage", "Mean ITN efficacy"),
        col = c("black", "red"),

@@ -14,8 +14,8 @@ test_that("daily outputs are all the same length (continuous_distribution == TRU
             daily_continuous_cov = itn_coverage) |>
     set_equilibrium(init_EIR = 10)
 
-  expect_equal(length(params$itn_decay_daily),n_days+1)
-  expect_equal(length(params$itn_eff_cov_daily),n_days+1)
+  expect_equal(length(params$r_itn_daily),n_days+1)
+  expect_equal(length(params$s_itn_daily),n_days+1)
 
   cov_days <- 300
   n_days <- 500
@@ -35,8 +35,8 @@ test_that("daily outputs are all the same length (continuous_distribution == FAL
             coverages = itn_cov) |>
     set_equilibrium(init_EIR = 10)
 
-  expect_equal(length(params$itn_decay_daily),n_days+1)
-  expect_equal(length(params$itn_eff_cov_daily),n_days+1)
+  expect_equal(length(params$r_itn_daily),n_days+1)
+  expect_equal(length(params$s_itn_daily),n_days+1)
 
   n_days <- 300
   itn_days <- c(4,500)
@@ -52,6 +52,7 @@ test_that("Zero valued itn coverage does not result in NaN values",{
   params <- get_parameters(n_days = 100) |>
     set_bednets(days = 50, coverages = 0) |>
     set_equilibrium(init_EIR = 5)
-  expect_equal(sum(params$itn_eff_cov_daily), 0)
+  expect_equal(sum(params$r_itn_daily), 0)
+  expect_equal(mean(params$s_itn_daily), 1)
 })
 

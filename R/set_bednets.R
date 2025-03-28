@@ -37,10 +37,20 @@ set_bednets <- function(params,
                     dn0 = 0.41,
                     rn = 0.56,
                     rnm = 0.24){
+
+  #------------- Assume constant net/retention parameters if only one value given -----------------
+  n_dists <- length(days) #Number of distribution events
+
+
   #----------------------------------- Sanity Checks -----------------------------------------------
   if (params$equilibrium_set == 1) warning(message("Equilbrium must be set last"))
+  if(any(days %% 1 != 0)) stop(message("'days' must be integer values"))
 
   if (!continuous_distribution){
+    if(length(gamman) == 1) gamman <- rep(gamman, n_dists)
+    if(length(dn0) == 1) dn0 <- rep(dn0, n_dists)
+    if(length(rn) == 1) rn <- rep(rn, n_dists)
+    if(length(rnm) == 1) rnm <- rep(rnm, n_dists)
     if (max(coverages) > 1) stop(message("coverages cannot exceed 1"))
     if(is.null(days)) stop(message("days must be specific when continuous_distribution == FALSE"))
     if(is.null(coverages)) stop(message("coverages must be specific when continuous_distribution == FALSE"))
@@ -48,29 +58,35 @@ set_bednets <- function(params,
       days <- days[days >= params$n_days]
       coverages <- coverages[days >= params$n_days]
     }
-    if (length(days) != length(coverages)){
+    if (n_dists != length(coverages)){
       if(length(coverages) != 1){
         stop(message("days and coverages must be equal in length"))
       } else {
-        coverages <- rep(coverages,length(days))
+        coverages <- rep(coverages,n_dists)
       }}
+    if(length(gamman) != n_dists | length(dn0) != n_dists | length(rn) != n_dists | length(rnm) != n_dists){
+      stop(message("Net parameters must have either length = 1 or length = length(days)"))
+    }
+
   }
   if (continuous_distribution){
     if(is.null(daily_continuous_cov)) stop(message("daily_continuous_cov must be specified when continuous_distribution == TRUE"))
     if(length(daily_continuous_cov) < params$n_days) stop(message("n_days cannot exceed length(daily_continuous_cov)"))
     if(max(daily_continuous_cov) > 1) stop(message("daily_continuous_cov cannot exceed 1"))
     daily_continuous_cov <- daily_continuous_cov[1:params$n_days]
+    if(length(gamman) != 1 | length(retention) != 1 | length(dn0) != 1 | length(rn) != 1 | length(rnm) != 1) {
+      stop(message("Time varying net parameters are not currently supported for continuous distribution"))
+    }
   }
   #----------------------------------- Set Parameters -----------------------------------------------
-  params$dn0 = dn0
-  params$rn = rn
-  params$rnm = rnm
-
   if(continuous_distribution){
     params <- itn_continuous_distribution_params(params,
                                                  daily_continuous_cov = daily_continuous_cov,
                                                  gamman = gamman,
-                                                 retention = retention)
+                                                 retention = retention,
+                                                 dn0 = dn0,
+                                                 rn = rn,
+                                                 rnm = rnm)
   }
 
   if(!continuous_distribution){
@@ -78,10 +94,14 @@ set_bednets <- function(params,
                                                days = days,
                                                coverages = coverages,
                                                gamman = gamman,
-                                               retention = retention)
+                                               retention = retention,
+                                               dn0 = dn0,
+                                               rn = rn,
+                                               rnm = rnm)
   }
   params$itn_set <- 1
   params$equilibrium_set <- 0
+
   return(params)
 }
 
@@ -96,15 +116,14 @@ get_itn_usage_mat <- function(days,coverages,retention,n_days){
   n_dists <- length(coverages) #Number of ITN distribution events
 
   ##Matrix of the population prop. using a net from distribution event i (col number) on day t (row number)
-  #Final column is those with no bednet
-  itn_mat <- matrix(nrow = n_days, ncol = n_dists+1)
+  itn_mat <- matrix(nrow = n_days, ncol = n_dists+1) #Final column is those with no bednet
   itn_mat[1,] <- c(rep(0,n_dists),1) #Initialise no bednets
   for(i in 2:n_days){
     #People discard nets
     itn_mat[i,1:n_dists] <- itn_mat[(i-1),(1:n_dists)]*exp(-1/retention)
     itn_mat[i,(n_dists+1)] <- 1 - sum(itn_mat[i,(1:n_dists)])
 
-    #New nets are distributed on days
+    #New nets are distributed on 'days'
     if(i %in% days){
       dist_index <- which(days == i) #Which distribution event
       new_nets <- coverages[dist_index]
@@ -119,7 +138,10 @@ itn_discrete_distribution_params <- function(params,
                                              days,
                                              coverages,
                                              gamman, #ITN half life
-                                             retention #Average number of days a net is kept for
+                                             retention, #Average number of days a net is kept for
+                                             dn0,
+                                             rn,
+                                             rnm
 ){
   #Matrix of the proportion of individuals currently using a net from each distribution event
   usage_mat <- get_itn_usage_mat(days = days, coverages = coverages,
@@ -127,35 +149,49 @@ itn_discrete_distribution_params <- function(params,
 
   #Overall itn coverage
   daily_coverages <- get_daily_cov(usage_mat)
+  params$max_itn_cov <- max(daily_coverages)
 
   #The level of insecticide decay of the average net from each itn distribution event
   decay_mat <- get_decay_mat(days = days, gamman_itn = gamman,
                              n_days = params$n_days, intervention = "ITN")
 
-  #Decay level averaged over all itns currently in use
-  if (length(days) == 1){
-    daily_itn_decay <- usage_mat[ ,1] * decay_mat[ ,1]
-  } else {
-    daily_itn_decay <- get_daily_decay(usage_mat, decay_mat)
-  }
-
-  #Update parameters
-  params$itn_decay_daily <- c(0,daily_itn_decay)
-  params$max_itn_cov <- max(daily_coverages)
+  #itn_decay_daily <- c(0,daily_itn_decay)
   if(params$max_itn_cov == 0){
     params$itn_eff_cov_daily <- rep(0,params$n_days+1)
   } else {
     params$itn_eff_cov_daily <- c(0,daily_coverages / params$max_itn_cov)
   }
+
+  dn0 <- c(dn0,0)
+  rn <- c(rn,0)
+  rnm <- c(rnm,0)
+  d_itn_mat <- sweep(decay_mat, 2, dn0, "*")
+  r_itn_residual <- sweep(decay_mat, 2, rn - rnm, "*") #Decaying repellency from insecticide
+  r_itn_min <- matrix(rnm, nrow = nrow(r_itn_residual), ncol = length(rnm), byrow = TRUE) #Constant repellency from physical net
+  r_itn_mat <- r_itn_residual + r_itn_min #Total repellency effect
+
+  #Decay level averaged over all itns currently in use
+  if (length(days) == 1){
+    d_itn <- c(0,d_itn_mat[, 1]) * c(0,decay_mat[, 1]) * params$itn_eff_cov_daily
+    r_itn <- c(0,r_itn_mat[, 1]) * c(0,decay_mat[, 1]) * params$itn_eff_cov_daily
+  } else {
+    d_itn <- c(0,get_daily_decay(usage_mat, d_itn_mat)) * params$itn_eff_cov_daily
+    r_itn <- c(0,get_daily_decay(usage_mat, r_itn_mat)) * params$itn_eff_cov_daily
+  }
+
+  params$r_itn_daily <- r_itn
+  params$s_itn_daily <- 1 - d_itn - r_itn
   return(params)
 }
 
-itn_continuous_distribution_params <- function(params,daily_continuous_cov, gamman, retention){
+itn_continuous_distribution_params <- function(params,daily_continuous_cov, gamman, retention, dn0, rn, rnm){
   params$max_itn_cov <- max(daily_continuous_cov)
   params$itn_eff_cov_daily <- c(0,daily_continuous_cov/max(daily_continuous_cov))
   decay_rate <- log(2) / gamman
   mean_itn_decay <- mean(exp(-((1:retention)) * decay_rate))
-  params$itn_decay_daily <- rep(mean_itn_decay, params$n_days + 1)
+  d_itn <- dn0 * mean_itn_decay * params$itn_eff_cov_daily
+  params$r_itn_daily <- (rnm + (rn - rnm) * mean_itn_decay) * params$itn_eff_cov_daily
+  params$s_itn_daily <- 1 - params$r_itn - d_itn
   return(params)
 }
 

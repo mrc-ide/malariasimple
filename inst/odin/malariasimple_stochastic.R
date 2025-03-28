@@ -619,22 +619,13 @@ bites_Bed <- parameter()
 # d - probability of dying after hitting ITN
 # s - probability of successful feed after hitting ITN
 
-# The maximum (and then minimum) r and d values for ITN on day 0 before they decay
-rn <- parameter()
-dn0 <- parameter()
-rnm <- parameter()
+dim(r_itn_daily) <- n_days + 1 #Bednet insecticide decay
+dim(s_itn_daily) <- n_days + 1 #Proportion of individuals in the ITN compartment who currently have ITNs.= daily_ITN / max(daily_ITN)
+r_itn_daily <- parameter()
+s_itn_daily <- parameter()
 
-dim(itn_decay_daily) <- n_days + 1 #Bednet insecticide decay
-dim(itn_eff_cov_daily) <- n_days + 1 #Proportion of individuals in the ITN compartment who currently have ITNs.= daily_ITN / max(daily_ITN)
-itn_decay_daily <- parameter()
-itn_eff_cov_daily <- parameter()
-
-itn_eff_cov <- interpolate(days, itn_eff_cov_daily, "linear")
-itn_decay <- interpolate(days, itn_decay_daily, "linear")
-
-d_itn <- dn0*itn_decay*itn_eff_cov
-r_itn <- (rnm + (rn - rnm)*itn_decay)*itn_eff_cov#Bednet repellency does not decay to zero.
-s_itn <- 1 - d_itn - r_itn
+r_itn <- interpolate(days, r_itn_daily, "linear")
+s_itn <- interpolate(days, s_itn_daily, "linear")
 
 ################## GENERAL INTERVENTION PARAMETERS #######################
 num_int <- parameter()

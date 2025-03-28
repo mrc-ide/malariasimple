@@ -2,9 +2,9 @@ test_that("Deterministic demo run produces incidence and prevalence as expected"
   n_days <- 365
   init_EIR <- 10
 
-g0 = 0.28
-g = c(-0.3, -0.03, 0.17)
-h = c(-0.35, 0.33, -0.08)
+  g0 = 0.28
+  g = c(-0.3, -0.03, 0.17)
+  h = c(-0.35, 0.33, -0.08)
 
 
   params <- get_parameters(
