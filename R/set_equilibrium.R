@@ -232,17 +232,17 @@ set_equilibrium <- function(params, init_EIR)
   ##                        INITIAL VALUES FOR MOSQUITO STATES
   ##---------------------------------------------------------------------------------------
   FOIv_eq <- sum(FOIvij_eq)
-  init_Iv <- FOIv_eq * params$Surv0/(FOIv_eq + params$mu0)
-  init_Sv <- params$mu0 * init_Iv/(FOIv_eq * params$Surv0)
+  init_Iv <- FOIv_eq * params$Surv0/(FOIv_eq + params$mum)
+  init_Sv <- params$mum * init_Iv/(FOIv_eq * params$Surv0)
   init_Pv <- 1 - init_Sv - init_Iv
 
   # mosquito density needed to give this EIR
   mv0 <- omega * EIRd_eq/(init_Iv * params$av0)
 
   # larval states
-  K0 <- 2 * mv0 * params$dLL * params$mu0 * (1 + params$dPL * params$muPL) * params$gammaL * (params$lambda + 1)/(params$lambda/(params$muLL *
+  K0 <- 2 * mv0 * params$dLL * params$mum * (1 + params$dPL * params$muPL) * params$gammaL * (params$lambda + 1)/(params$lambda/(params$muLL *
                                                                                                                                    params$dEL) - 1/(params$muLL * params$dLL) - 1)
-  init_PL <- 2 * params$dPL * params$mu0 * mv0
+  init_PL <- 2 * params$dPL * params$mum * mv0
   init_LL <- params$dLL * (params$muPL + 1/params$dPL) * init_PL
   init_EL <- (init_LL/params$dLL + params$muLL* init_LL * (1 + params$gammaL * init_LL/K0))/(1/params$dEL - params$muLL * params$gammaL * init_LL/K0)
 

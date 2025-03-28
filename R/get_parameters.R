@@ -53,13 +53,13 @@
 #' @param PM New-born immunity relative to mothers
 #' @param dCM Inverse of decay rate of maternal immunity
 #' @param delayMos Extrinsic incubation period
-#' @param tau1 Duration of host seeking, assumed to be constant between species
-#' @param tau2 Duration of mosquito resting after feed
-#' @param mu0 Daily mortality of adult mosquitoes
+#' @param foraging_time Duration of host seeking, assumed to be constant between species
+#' @param gonotrophic_cycle Duration of mosquito resting after feed
+#' @param mum Daily mortality of adult mosquitoes
 #' @param Q0 Anthrophagy probability
 #' @param chi Endophily probability
-#' @param bites_Bed Percentage of bites indoors and in bed
-#' @param bites_Indoors Percentage of bites indoors
+#' @param phi_bednets Percentage of bites indoors and in bed
+#' @param phi_indoors Percentage of bites indoors
 #' @param muEL Per capita daily mortality rate of early stage larvae (low density)
 #' @param muLL Per capita daily mortality rate of late stage larvae (low density)
 #' @param muPL Per capita daily mortality rate of pupae
@@ -140,13 +140,13 @@ get_parameters <- function(
     dCM = 67.6952,
     # entomological parameters
     delayMos = 10,
-    tau1 = 0.69,
-    tau2 = 2.31,
-    mu0 = 0.132,
+    foraging_time = 0.69,
+    gonotrophic_cycle = 2.31,
+    mum = 0.132,
     Q0 = 0.92,
     chi = 0.86,
-    bites_Bed = 0.89,
-    bites_Indoors = 0.97,
+    phi_bednets = 0.85,
+    phi_indoors = 0.9,
     # larval parameters daily density dependent mortality rate of egg
     muEL = 0.0338,
     muLL = 0.0348,
@@ -271,17 +271,17 @@ get_parameters <- function(
 
   # entomological parameters
   params$delayMos <- delayMos
-  params$tau1 <- tau1
-  params$tau2 <- tau2
-  params$mu0 <- mu0
+  params$foraging_time <- foraging_time
+  params$gonotrophic_cycle <- gonotrophic_cycle
+  params$mum <- mum
   params$Q0 <- Q0
-  params$bites_Bed <- bites_Bed
-  params$bites_Indoors <- bites_Indoors
-  params$fv0 <- 1 / (tau1 + tau2)
+  params$phi_bednets <- phi_bednets
+  params$phi_indoors <- phi_indoors
+  params$fv0 <- 1 / (foraging_time + gonotrophic_cycle)
   params$av0 <- Q0 * params$fv0 # daily feeeding rate on humans
-  params$Surv0 <- exp(-mu0 * delayMos) # probability of surviving incubation period
-  params$p10 <- exp(-mu0 * tau1)  # probability of surviving one feeding cycle
-  params$p2 <- exp(-mu0 * tau2)  # probability of surviving one resting cycle
+  params$Surv0 <- exp(-mum * delayMos) # probability of surviving incubation period
+  params$p10 <- exp(-mum * foraging_time)  # probability of surviving one feeding cycle
+  params$p2 <- exp(-mum * gonotrophic_cycle)  # probability of surviving one resting cycle
 
   # larval parameters
   params$muEL <- muEL
@@ -293,10 +293,10 @@ get_parameters <- function(
   params$gammaL <- gammaL
   params$betaL <- betaL
   # {White et al. 2011 Parasites and Vectors}
-  params$eov <- betaL/mu0 * (exp(mu0/params$fv0) - 1)
+  params$eov <- betaL/mum * (exp(mum/params$fv0) - 1)
   params$b_lambda <- (gammaL * muLL/muEL - dEL/dLL + (gammaL - 1) * muLL * dEL)
   params$lambda <- -0.5 * params$b_lambda +
-    sqrt(0.25 * params$b_lambda^2 + gammaL * betaL * muLL * dEL/(2 * muEL * mu0 * dLL * (1 + dPL * muPL)))
+    sqrt(0.25 * params$b_lambda^2 + gammaL * betaL * muLL * dEL/(2 * muEL * mum * dLL * (1 + dPL * muPL)))
 
 
   #Additional parameters for dust model

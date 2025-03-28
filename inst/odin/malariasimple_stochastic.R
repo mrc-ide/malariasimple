@@ -530,26 +530,26 @@ gammaL <- parameter()
 
 # fitted entomological parameters:
 mv0 <- parameter()
-mu0 <- parameter()
-tau1 <- parameter()
-tau2 <- parameter()
+mum <- parameter()
+foraging_time <- parameter()
+gonotrophic_cycle <- parameter()
 betaL <- parameter()
 
 # Entomological variables:
-mu0_use <- mu0
-p10 <- exp(-mu0_use * tau1)  # probability of surviving one feeding cycle
-p2 <- exp(-mu0_use * tau2)  # probability of surviving one resting cycle
+mum_use <- mum
+p10 <- exp(-mum_use * foraging_time)  # probability of surviving one feeding cycle
+p2 <- exp(-mum_use * gonotrophic_cycle)  # probability of surviving one resting cycle
 eov <- betaL/mu*(exp(mu/fv)-1)
 beta_larval <- eov*mu*exp(-mu/fv)/(1-exp(-mu/fv)) # Number of eggs laid per day
 b_lambda <- (gammaL*muLL/muEL-dEL/dLL+(gammaL-1)*muLL*dEL)
-lambda <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval*muLL*dEL/(2*muEL*mu0_use*dLL*(1+dPL*muPL)))
-K0 <- 2*mv0*dLL*mu0_use*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dLL)-1)
+lambda <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval*muLL*dEL/(2*muEL*mum_use*dLL*(1+dPL*muPL)))
+K0 <- 2*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dLL)-1)
 
 # Seasonal carrying capacity KL = base carrying capacity K0 * effect for time of year:
 rain_input <- interpolate(days, daily_rain_input, "linear")
 
 KL <- K0*rain_input
-fv <- 1/( tau1/(1-zbar) + tau2 ) # mosquito feeding rate (zbar from intervention param.)
+fv <- 1/( foraging_time/(1-zbar) + gonotrophic_cycle ) # mosquito feeding rate (zbar from intervention param.)
 mu <- -fv*log(p1*p2) # mosquito death rate
 
 # finding equilibrium and initial values for EL, LL & PL
@@ -612,7 +612,7 @@ max_itn_cov <- parameter()
 
 
 Q0 <- parameter()
-bites_Bed <- parameter()
+phi_bednets <- parameter()
 
 # General intervention model terminology:
 # r - probability of trying to repeat feed after hitting ITN
@@ -642,18 +642,18 @@ dim(cov) <- num_int
 # probability that mosquito bites and survives for each intervention category
 dim(w_) <- 4
 w_[1] <- 1
-w_[2] <- 1 - bites_Bed + bites_Bed*s_itn
+w_[2] <- 1 - phi_bednets + phi_bednets*s_itn
 w_[3] <- 1
-w_[4] <- 1 - bites_Bed + bites_Bed*s_itn
+w_[4] <- 1 - phi_bednets + phi_bednets*s_itn
 w[] <- w_[i]
 dim(w) <- num_int
 
 # probability that mosquito is repelled during a single attempt for each int. cat.
 dim(z_) <- 4
 z_[1] <- 0
-z_[2] <- bites_Bed*r_itn
+z_[2] <- phi_bednets*r_itn
 z_[3] <- 0
-z_[4] <- bites_Bed*r_itn
+z_[4] <- phi_bednets*r_itn
 z[] <- z_[i]
 dim(z) <- num_int
 

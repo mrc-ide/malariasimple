@@ -80,9 +80,9 @@
 // [[dust2::parameter(muPL, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(gammaL, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(mv0, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
-// [[dust2::parameter(mu0, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
-// [[dust2::parameter(tau1, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
-// [[dust2::parameter(tau2, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(mum, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(foraging_time, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(gonotrophic_cycle, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(betaL, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(init_PL, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(init_LL, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
@@ -95,7 +95,7 @@
 // [[dust2::parameter(rel_c_days, type = "real_type", rank = 1, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(max_itn_cov, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(Q0, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
-// [[dust2::parameter(bites_Bed, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(phi_bednets, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(r_itn_daily, type = "real_type", rank = 1, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(s_itn_daily, type = "real_type", rank = 1, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(num_int, type = "int", rank = 0, required = TRUE, constant = TRUE)]]
@@ -295,9 +295,9 @@ public:
     real_type muPL;
     real_type gammaL;
     real_type mv0;
-    real_type mu0;
-    real_type tau1;
-    real_type tau2;
+    real_type mum;
+    real_type foraging_time;
+    real_type gonotrophic_cycle;
     real_type betaL;
     real_type init_PL;
     real_type init_LL;
@@ -305,12 +305,12 @@ public:
     real_type max_smc_cov;
     real_type max_itn_cov;
     real_type Q0;
-    real_type bites_Bed;
+    real_type phi_bednets;
     int num_int;
     int prev_dim;
     int inc_dim;
     real_type delayMos_use;
-    real_type mu0_use;
+    real_type mum_use;
     real_type b_lambda;
     std::vector<real_type> alpha_smc_times;
     std::vector<real_type> alpha_smc_set;
@@ -488,9 +488,9 @@ public:
     const real_type muPL = dust2::r::read_real(parameters, "muPL");
     const real_type gammaL = dust2::r::read_real(parameters, "gammaL");
     const real_type mv0 = dust2::r::read_real(parameters, "mv0");
-    const real_type mu0 = dust2::r::read_real(parameters, "mu0");
-    const real_type tau1 = dust2::r::read_real(parameters, "tau1");
-    const real_type tau2 = dust2::r::read_real(parameters, "tau2");
+    const real_type mum = dust2::r::read_real(parameters, "mum");
+    const real_type foraging_time = dust2::r::read_real(parameters, "foraging_time");
+    const real_type gonotrophic_cycle = dust2::r::read_real(parameters, "gonotrophic_cycle");
     const real_type betaL = dust2::r::read_real(parameters, "betaL");
     const real_type init_PL = dust2::r::read_real(parameters, "init_PL");
     const real_type init_LL = dust2::r::read_real(parameters, "init_LL");
@@ -499,7 +499,7 @@ public:
     dim.alpha_smc_times = dust2::r::read_dimensions<1>(parameters, "alpha_smc_times");
     const real_type max_itn_cov = dust2::r::read_real(parameters, "max_itn_cov");
     const real_type Q0 = dust2::r::read_real(parameters, "Q0");
-    const real_type bites_Bed = dust2::r::read_real(parameters, "bites_Bed");
+    const real_type phi_bednets = dust2::r::read_real(parameters, "phi_bednets");
     const int num_int = dust2::r::read_int(parameters, "num_int");
     dim.cov_.set({static_cast<size_t>(4)});
     dim.w_.set({static_cast<size_t>(4)});
@@ -587,7 +587,7 @@ public:
     dim.FOIvijk.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int)});
     dim.ince_delay.set({static_cast<size_t>(lag_ratesMos)});
     const real_type delayMos_use = delayMos;
-    const real_type mu0_use = mu0;
+    const real_type mum_use = mum;
     const real_type b_lambda = (gammaL * muLL / muEL - dEL / dLL + (gammaL - 1) * muLL * dEL);
     std::vector<real_type> alpha_smc_times(dim.alpha_smc_times.size);
     dust2::r::read_real_array(parameters, dim.alpha_smc_times, alpha_smc_times.data(), "alpha_smc_times", true);
@@ -669,8 +669,8 @@ public:
     dust2::r::read_real_array(parameters, dim.init_ID, init_ID.data(), "init_ID", true);
     std::vector<real_type> age_vector(dim.age_vector.size);
     dust2::r::read_real_array(parameters, dim.age_vector, age_vector.data(), "age_vector", true);
-    const real_type p10 = monty::math::exp(-mu0_use * tau1);
-    const real_type p2 = monty::math::exp(-mu0_use * tau2);
+    const real_type p10 = monty::math::exp(-mum_use * foraging_time);
+    const real_type p2 = monty::math::exp(-mum_use * gonotrophic_cycle);
     const auto interpolate_alpha_smc = dust2::interpolate::InterpolateConstant(alpha_smc_times, alpha_smc_set, "alpha_smc_times", "alpha_smc_set");
     std::vector<real_type> P_smc_daily(dim.P_smc_daily.size);
     dust2::r::read_real_array(parameters, dim.P_smc_daily, P_smc_daily.data(), "P_smc_daily", true);
@@ -744,7 +744,7 @@ public:
       {"n_ud_inc", std::vector<size_t>(dim.n_ud_inc.dim.begin(), dim.n_ud_inc.dim.end())}
     };
     odin.packing.state.copy_offset(odin.offset.state.begin());
-    return shared_state{odin, dim, n_days, na, nh, ft, eta, rA, rT, rD, rU, rP, dE, lag_rates, dCM, uCA, dCA, dB, uB, dID, uD, age20l, age20u, age_20_factor, PM, phi0, phi1, IC0, kC, b0, b1, kB, IB0, aD, fD0, gammaD, d1, ID0, kD, init_Sv, init_Pv, init_Iv, cU, cD, cT, gamma1, lag_ratesMos, FOIv_eq, omega, delayGam, delayMos, dLL, dPL, dEL, muLL, muEL, muPL, gammaL, mv0, mu0, tau1, tau2, betaL, init_PL, init_LL, init_EL, max_smc_cov, max_itn_cov, Q0, bites_Bed, num_int, prev_dim, inc_dim, delayMos_use, mu0_use, b_lambda, alpha_smc_times, alpha_smc_set, cov_, daily_rain_input, days, age_rate, het_wt, init_S, init_T, init_D, init_A, init_U, init_P, FOI_eq, foi_age, rel_foi, x_I, init_ICM, init_ICA, init_IB, init_ID, age_vector, p10, p2, interpolate_alpha_smc, P_smc_daily, smc_mask, rel_c_days, r_itn_daily, s_itn_daily, cov, min_age_prev, max_age_prev, min_age_inc, max_age_inc, fd, interpolate_rain_input, interpolate_P_smc, interpolate_rel_c, interpolate_r_itn, interpolate_s_itn};
+    return shared_state{odin, dim, n_days, na, nh, ft, eta, rA, rT, rD, rU, rP, dE, lag_rates, dCM, uCA, dCA, dB, uB, dID, uD, age20l, age20u, age_20_factor, PM, phi0, phi1, IC0, kC, b0, b1, kB, IB0, aD, fD0, gammaD, d1, ID0, kD, init_Sv, init_Pv, init_Iv, cU, cD, cT, gamma1, lag_ratesMos, FOIv_eq, omega, delayGam, delayMos, dLL, dPL, dEL, muLL, muEL, muPL, gammaL, mv0, mum, foraging_time, gonotrophic_cycle, betaL, init_PL, init_LL, init_EL, max_smc_cov, max_itn_cov, Q0, phi_bednets, num_int, prev_dim, inc_dim, delayMos_use, mum_use, b_lambda, alpha_smc_times, alpha_smc_set, cov_, daily_rain_input, days, age_rate, het_wt, init_S, init_T, init_D, init_A, init_U, init_P, FOI_eq, foi_age, rel_foi, x_I, init_ICM, init_ICA, init_IB, init_ID, age_vector, p10, p2, interpolate_alpha_smc, P_smc_daily, smc_mask, rel_c_days, r_itn_daily, s_itn_daily, cov, min_age_prev, max_age_prev, min_age_inc, max_age_inc, fd, interpolate_rain_input, interpolate_P_smc, interpolate_rel_c, interpolate_r_itn, interpolate_s_itn};
   }
   static internal_state build_internal(const shared_state& shared) {
     std::vector<real_type> S_death(shared.dim.S_death.size);
@@ -871,9 +871,9 @@ public:
     shared.muPL = dust2::r::read_real(parameters, "muPL", shared.muPL);
     shared.gammaL = dust2::r::read_real(parameters, "gammaL", shared.gammaL);
     shared.mv0 = dust2::r::read_real(parameters, "mv0", shared.mv0);
-    shared.mu0 = dust2::r::read_real(parameters, "mu0", shared.mu0);
-    shared.tau1 = dust2::r::read_real(parameters, "tau1", shared.tau1);
-    shared.tau2 = dust2::r::read_real(parameters, "tau2", shared.tau2);
+    shared.mum = dust2::r::read_real(parameters, "mum", shared.mum);
+    shared.foraging_time = dust2::r::read_real(parameters, "foraging_time", shared.foraging_time);
+    shared.gonotrophic_cycle = dust2::r::read_real(parameters, "gonotrophic_cycle", shared.gonotrophic_cycle);
     shared.betaL = dust2::r::read_real(parameters, "betaL", shared.betaL);
     shared.init_PL = dust2::r::read_real(parameters, "init_PL", shared.init_PL);
     shared.init_LL = dust2::r::read_real(parameters, "init_LL", shared.init_LL);
@@ -881,9 +881,9 @@ public:
     shared.max_smc_cov = dust2::r::read_real(parameters, "max_smc_cov", shared.max_smc_cov);
     shared.max_itn_cov = dust2::r::read_real(parameters, "max_itn_cov", shared.max_itn_cov);
     shared.Q0 = dust2::r::read_real(parameters, "Q0", shared.Q0);
-    shared.bites_Bed = dust2::r::read_real(parameters, "bites_Bed", shared.bites_Bed);
+    shared.phi_bednets = dust2::r::read_real(parameters, "phi_bednets", shared.phi_bednets);
     shared.delayMos_use = shared.delayMos;
-    shared.mu0_use = shared.mu0;
+    shared.mum_use = shared.mum;
     shared.b_lambda = (shared.gammaL * shared.muLL / shared.muEL - shared.dEL / shared.dLL + (shared.gammaL - 1) * shared.muLL * shared.dEL);
     shared.cov_[0] = (1 - shared.max_itn_cov) * (1 - shared.max_smc_cov);
     shared.cov_[1] = shared.max_itn_cov * (1 - shared.max_smc_cov);
@@ -908,8 +908,8 @@ public:
     dust2::r::read_real_array(parameters, shared.dim.init_IB, shared.init_IB.data(), "init_IB", false);
     dust2::r::read_real_array(parameters, shared.dim.init_ID, shared.init_ID.data(), "init_ID", false);
     dust2::r::read_real_array(parameters, shared.dim.age_vector, shared.age_vector.data(), "age_vector", false);
-    shared.p10 = monty::math::exp(-shared.mu0_use * shared.tau1);
-    shared.p2 = monty::math::exp(-shared.mu0_use * shared.tau2);
+    shared.p10 = monty::math::exp(-shared.mum_use * shared.foraging_time);
+    shared.p2 = monty::math::exp(-shared.mum_use * shared.gonotrophic_cycle);
     dust2::r::read_real_array(parameters, shared.dim.P_smc_daily, shared.P_smc_daily.data(), "P_smc_daily", false);
     dust2::r::read_real_array(parameters, shared.dim.smc_mask, shared.smc_mask.data(), "smc_mask", false);
     dust2::r::read_real_array(parameters, shared.dim.rel_c_days, shared.rel_c_days.data(), "rel_c_days", false);
@@ -1352,13 +1352,13 @@ public:
       }
     }
     internal.w_[0] = 1;
-    internal.w_[1] = 1 - shared.bites_Bed + shared.bites_Bed * s_itn;
+    internal.w_[1] = 1 - shared.phi_bednets + shared.phi_bednets * s_itn;
     internal.w_[2] = 1;
-    internal.w_[3] = 1 - shared.bites_Bed + shared.bites_Bed * s_itn;
+    internal.w_[3] = 1 - shared.phi_bednets + shared.phi_bednets * s_itn;
     internal.z_[0] = 0;
-    internal.z_[1] = shared.bites_Bed * r_itn;
+    internal.z_[1] = shared.phi_bednets * r_itn;
     internal.z_[2] = 0;
-    internal.z_[3] = shared.bites_Bed * r_itn;
+    internal.z_[3] = shared.phi_bednets * r_itn;
     for (size_t i = 1; i <= shared.dim.detect_prev_full.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.detect_prev_full.dim[1]; ++j) {
         for (size_t k = 1; k <= shared.dim.detect_prev_full.dim[2]; ++k) {
@@ -1504,7 +1504,7 @@ public:
     }
     const real_type zbar = shared.Q0 * zh;
     const real_type wbar = 1 - shared.Q0 + shared.Q0 * wh;
-    const real_type fv = 1 / (shared.tau1 / (1 - zbar) + shared.tau2);
+    const real_type fv = 1 / (shared.foraging_time / (1 - zbar) + shared.gonotrophic_cycle);
     const real_type p1 = wbar * shared.p10 / (1 - zbar * shared.p10);
     const real_type Q = 1 - (1 - shared.Q0) / wbar;
     const real_type mu = -fv * monty::math::log(p1 * shared.p2);
@@ -1538,7 +1538,7 @@ public:
       }
     }
     const real_type lag_FOIv = dust2::array::sum<real_type>(internal.FOIvijk.data(), shared.dim.FOIvijk);
-    const real_type lambda = -static_cast<real_type>(0.5) * shared.b_lambda + monty::math::sqrt(static_cast<real_type>(0.25) * monty::math::pow(shared.b_lambda, 2) + shared.gammaL * beta_larval * shared.muLL * shared.dEL / (2 * shared.muEL * shared.mu0_use * shared.dLL * (1 + shared.dPL * shared.muPL)));
+    const real_type lambda = -static_cast<real_type>(0.5) * shared.b_lambda + monty::math::sqrt(static_cast<real_type>(0.25) * monty::math::pow(shared.b_lambda, 2) + shared.gammaL * beta_larval * shared.muLL * shared.dEL / (2 * shared.muEL * shared.mum_use * shared.dLL * (1 + shared.dPL * shared.muPL)));
     for (size_t i = 1; i <= shared.dim.epsilon_0.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.epsilon_0.dim[1]; ++j) {
         for (size_t k = 1; k <= shared.dim.epsilon_0.dim[2]; ++k) {
@@ -1546,7 +1546,7 @@ public:
         }
       }
     }
-    const real_type K0 = 2 * shared.mv0 * shared.dLL * shared.mu0_use * (1 + shared.dPL * shared.muPL) * shared.gammaL * (lambda + 1) / (lambda / (shared.muLL * shared.dEL) - 1 / (shared.muLL * shared.dLL) - 1);
+    const real_type K0 = 2 * shared.mv0 * shared.dLL * shared.mum_use * (1 + shared.dPL * shared.muPL) * shared.gammaL * (lambda + 1) / (lambda / (shared.muLL * shared.dEL) - 1 / (shared.muLL * shared.dLL) - 1);
     const real_type KL = K0 * rain_input;
     {
       const size_t i = 1;
