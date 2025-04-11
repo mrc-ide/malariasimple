@@ -1,4 +1,4 @@
-#' Set ITN parameters
+#' @title Set ITN parameters
 #' @export
 #' @param params malariasimple parameters
 #' @param continuous_distribution Is ITN distribution continuous? If FALSE, distribution is assumed to occur in discrete events.
@@ -155,7 +155,6 @@ itn_discrete_distribution_params <- function(params,
   decay_mat <- get_decay_mat(days = days, gamman_itn = gamman,
                              n_days = params$n_days, intervention = "ITN")
 
-  #itn_decay_daily <- c(0,daily_itn_decay)
   if(params$max_itn_cov == 0){
     params$itn_eff_cov_daily <- rep(0,params$n_days+1)
   } else {
@@ -172,13 +171,13 @@ itn_discrete_distribution_params <- function(params,
 
   #Decay level averaged over all itns currently in use
   if (length(days) == 1){
-    d_itn <- c(0,d_itn_mat[, 1]) * c(0,decay_mat[, 1]) * params$itn_eff_cov_daily
-    r_itn <- c(0,r_itn_mat[, 1]) * c(0,decay_mat[, 1]) * params$itn_eff_cov_daily
+    d_itn <- c(0,d_itn_mat[, 1])
+    r_itn <- c(0,r_itn_mat[, 1])
   } else {
-    d_itn <- c(0,get_daily_decay(usage_mat, d_itn_mat)) * params$itn_eff_cov_daily
-    r_itn <- c(0,get_daily_decay(usage_mat, r_itn_mat)) * params$itn_eff_cov_daily
+    d_itn <- c(0,get_daily_decay(usage_mat, d_itn_mat))
+    r_itn <- c(0,get_daily_decay(usage_mat, r_itn_mat))
   }
-
+  params$d_itn <- d_itn
   params$r_itn_daily <- r_itn
   params$s_itn_daily <- 1 - d_itn - r_itn
   return(params)
@@ -190,8 +189,11 @@ itn_continuous_distribution_params <- function(params,daily_continuous_cov, gamm
   decay_rate <- log(2) / gamman
   mean_itn_decay <- mean(exp(-((1:retention)) * decay_rate))
   d_itn <- dn0 * mean_itn_decay * params$itn_eff_cov_daily
+  d_itn_raw <- dn0 * mean_itn_decay
   params$r_itn_daily <- (rnm + (rn - rnm) * mean_itn_decay) * params$itn_eff_cov_daily
-  params$s_itn_daily <- 1 - params$r_itn - d_itn
+  params$s_itn_daily <- 1 - params$r_itn_daily - d_itn
+  params$r_itn_daily_raw <- (rnm + (rn - rnm) * mean_itn_decay)
+  params$s_itn_daily_raw <- 1 - params$r_itn_daily_raw - d_itn_raw
   return(params)
 }
 

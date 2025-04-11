@@ -1,7 +1,6 @@
 #' @title Run deterministic malariasimple
 #' @description Generates and runs the deterministic malariasimple model
 #' @param params List of model parameters generated using get_parameters() and other helper functions
-#' @param n_particles Number of simulations to perform
 #' @param full_output Boolean variable stating whether model should output model outputs, or a selected few.
 #' @examples
 #' params <- get_parameters() |>
@@ -9,33 +8,25 @@
 #' simulation_output <- run_simulation(params)
 #' @export
 
-run_simulation <- function(params, n_particles = 1, full_output = FALSE){
-  if(!params$stochastic){
-    gen <- malariasimple_deterministic
-  } else if(params$stochastic){
-    gen <- malariasimple_stochastic
-  }
-  sys <- dust2::dust_system_create(gen(), params, n_particles = n_particles, dt = 1/params$tsd)
+run_simulation <- function(params, full_output = FALSE){
+  gen <- malariasimple_deterministic_ITN_IRS
+
+  sys <- dust2::dust_system_create(gen(), params, n_particles = 1, dt = 1/params$tsd)
 
   dust2::dust_system_set_state_initial(sys)
   time <- 0:params$n_days
   out <- dust2::dust_system_simulate(sys, time)
 
-  if(n_particles > 1){
-    out <- aperm(out, perm = c(3, 1, 2))
-    out <- out[-1,,]
-  } else{
-    out <- aperm(out,c(2,1))
-    out <- out[-1,]
-  }
+  out <- aperm(out,c(2,1))
+  out <- out[-1,]
+
   #Add time to output
   time <- 1:params$n_days
-  time_slice <- array(time, dim = c(1, length(time), n_particles)) |> drop()
-  out <- abind::abind(out, time_slice, along = 2)  # Add "time" as the last column of the second dimension
+  out <- cbind(time,out)
 
   #Add colnames to output
   colnames <- get_output_colnames(sys, params)
-  dimnames(out)[[2]] <- c(colnames,"time")
+  dimnames(out)[[2]] <- c("time",colnames)
 
   #Only output select variables (unless requested otherwise)
   if(!full_output){
@@ -43,12 +34,8 @@ run_simulation <- function(params, n_particles = 1, full_output = FALSE){
                        grep("_count$", colnames(out), value = TRUE),
                        "ica_mean","icm_mean","ib_mean", "id_mean",
                        grep("^n_", colnames(out), value = TRUE),
-                       "EL","LL","PL","Sv","Pv","Iv","mv")
-    if(n_particles == 1){
-      out <- out[,selected_cols]
-    } else {
-      out <- out[,selected_cols,]
-    }
+                       "EL","LL","PL","total_M")
+  out <- out[,selected_cols]
 
   }
   return(out)

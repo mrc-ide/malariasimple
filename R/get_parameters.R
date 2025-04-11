@@ -60,6 +60,7 @@
 #' @param chi Endophily probability
 #' @param phi_bednets Percentage of bites indoors and in bed
 #' @param phi_indoors Percentage of bites indoors
+#' @param k0 Proportion of females bloodfed with no net
 #' @param muEL Per capita daily mortality rate of early stage larvae (low density)
 #' @param muLL Per capita daily mortality rate of late stage larvae (low density)
 #' @param muPL Per capita daily mortality rate of pupae
@@ -107,8 +108,8 @@ get_parameters <- function(
     dE  = 12,
     delayGam = 12.5,
     # human infectiousness to mosquitoes
-    cD  = 0.0676909,
-    cT  =  0.322 * cD,
+    cD  = 0.068,
+    cT  =  0.021896,
     cU  = 0.006203,
     gamma1  = 1.82425,
     #  Immunity reducing probability of detection
@@ -147,6 +148,7 @@ get_parameters <- function(
     chi = 0.86,
     phi_bednets = 0.85,
     phi_indoors = 0.9,
+    k0 = 0.699,
     # larval parameters daily density dependent mortality rate of egg
     muEL = 0.0338,
     muLL = 0.0348,
@@ -282,6 +284,7 @@ get_parameters <- function(
   params$Surv0 <- exp(-mum * delayMos) # probability of surviving incubation period
   params$p10 <- exp(-mum * foraging_time)  # probability of surviving one feeding cycle
   params$p2 <- exp(-mum * gonotrophic_cycle)  # probability of surviving one resting cycle
+  params$k0 <- k0
 
   # larval parameters
   params$muEL <- muEL
@@ -315,6 +318,7 @@ get_parameters <- function(
   #Track which parameters have been set so far.
   params$smc_set <- 0
   params$itn_set <- 0
+  params$irs_set <- 0
   params$equilibrium_set <- 0
   params$seasonality_set <- 0
 

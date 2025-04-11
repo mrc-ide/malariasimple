@@ -1,0 +1,138 @@
+---
+title: "Indoor Residual Spraying"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Indoor Residual Spraying}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{css, echo=FALSE}
+img {
+  border: none;
+}
+```
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  dpi = 300,
+  fig.width = 7
+)
+```
+
+```{r setup}
+library(malariasimple)
+```
+
+Indoor Residual Spraying (IRS) can be introduced into a simulation using the `set_spraying()` function. 
+
+## Introduction
+In `malariasimple`, IRS interrupts the feeding cycle of mosquitoes. Upon encountering a home protected by IRS, three things can occur:
+
+- The mosquito successfully feeds and continues to oviposit (probability = $s_{s}$)
+- The mosquito enters the home, but is killed by the IRS (probability = $d_{s}$)
+- The mosquito is repelled and does not enter the home (probability = $r_{s}$)
+
+Hence, the effectiveness of an IRS intervention depends on how many homes are currently protected by IRS and how successful the residual spray is at a given time at killing or repelling mosquitoes. These factors can be parameterised using the `set_spraying()` function.
+
+Further information regarding how IRS is incorporated into the model can be found in the supplementary materials of [Sherrard-Smith et al. 2018](https://www.nature.com/articles/s41467-018-07357-w#Sec22).
+
+## IRS Parameters
+In the current model version, IRS must be defined in the model as discrete 'distribution' events. Efficacy of each IRS distribution event is assumed to wane over time as the insecticide decays. 
+
+An IRS distribution can be fully parameterised using 3 pairs of parameters.
+
+- `ls_theta` Proportion of mosquitoes dying following entering a hut (initial value)
+- `ls_gamma` Change in ls over time
+
+- `ks_theta` Proportion of mosquitoes successfully feeding (initial value) 
+- `ks_gamma` Change in ks over time
+
+- `ms_theta` Proportion of mosquitoes repelled from a home
+- `ms_gamma` Change in ms over time
+
+## Running a simulation with IRS
+
+```{r, message = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=0.6}
+## -------------  Define scenario ----------------------
+n_days <- 2*365
+irs_days <- c(50, 300, 500) #Days on which IRS distributions should occur
+irs_cov <- c(0.7, 0.8, 0.5) #IRS coverage on each distribution day
+init_EIR <- 20
+
+#IRS parameters
+ls_theta <- 2.025 #Initial efficacy
+ls_gamma <- -0.009 #How efficacy changes over time
+ks_theta <- -2.222 #Initial proportion of mosquitoes successfully feeding
+ks_gamma <- -1.232 #Change in successful feeding
+ms_theta <- -1.232 #Initial repellency
+ms_gamma <- -0.009 #Change in repellency
+
+## -------------  Set up malariasimple parameters ----------------------
+irs_params <- malariasimple::get_parameters(n_days = n_days) |>
+  malariasimple::set_spraying(
+    days = irs_days,
+    coverages = irs_cov,
+    distribution_type = "random",
+    ls_theta = ls_theta,
+    ls_gamma = ls_gamma,
+    ks_theta = ks_theta,
+    ks_gamma = ks_gamma,
+    ms_theta = ms_theta,
+    ms_gamma = ms_gamma
+  ) |>
+  malariasimple::set_equilibrium(init_EIR = init_EIR)
+
+## ---------------------- Run simulation ------------------------------
+irs_out <- malariasimple::run_simulation(irs_params) |> as.data.frame()
+
+## -----------------------  Plot  -------------------------------------
+plot(irs_out$time , irs_out$n_detect_730_3650/irs_out$n_730_3650,
+     type = "l", lwd = 2,
+     xlab = "Day", ylab =  expression(paste(italic(Pf),"PR"[2-10])))
+abline(v = irs_days, lty = 2)
+legend("topright", legend = "IRS distributions", lty = 2, bty = "n")
+```
+
+## 'Random' vs. 'Cohort' distribution types.
+
+In `malariasimulation`, you can adjust the 'correlation' of an intervention to determine whether having previously received the intervention makes an individual more/less/equally likely to receive the same intervention in the future. This functionality currently does not exist in `malariasimple`, however we can set two extremes: 'Random' distribution (corr = 0), or 'Cohort' distribution (corr = 1).  
+
+
+**Visualising distribution types**
+
+`set_spraying()` tracks the coverage over time of an IRS spray from each distribution event. IRS usage can be visualised using the intermediate function `get_irs_usage_mat()`.
+
+
+```{r, message = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=0.8}
+random_irs_usage <- get_irs_usage_mat(irs_days, irs_cov, n_days = n_days, distribution_type = "random")
+matplot(random_irs_usage[,1:3], type = "l", col = 2:4, lty = 1, ylim = c(0,1), xlab = "Time", ylab = "Proportion covered by IRS distribution")
+lines(rowSums(random_irs_usage[,1:3]), col = "black", lty = 2, lwd = 2)
+legend("topleft",
+       legend = c("Distribution event 1", "Distribution event 2", "Distribution event 3", "Total IRS usage"),
+       col = c(2:4, "black"),
+       lty = c(1, 1, 1, 2),
+       lwd = c(1, 1, 1, 2),
+       bty = "n") 
+```
+```{r, message = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=0.8}
+cohort_irs_usage <- get_irs_usage_mat(irs_days, irs_cov, n_days = n_days, distribution_type = "cohort")
+matplot(cohort_irs_usage[,1:3], type = "l", col = 2:4, lty = 1, ylim = c(0,1), xlab = "Time", ylab = "Proportion covered by IRS distribution")
+lines(rowSums(cohort_irs_usage[,1:3]), col = "black", lty = 2, lwd = 2)
+legend("topleft",
+       legend = c("Distribution event 1", "Distribution event 2", "Distribution event 3", "Total IRS usage"),
+       col = c(2:4, "black"),
+       lty = c(1, 1, 1, 2),
+       lwd = c(1, 1, 1, 2),
+       bty = "n") 
+```
+
+
+
+
+
+
+
+

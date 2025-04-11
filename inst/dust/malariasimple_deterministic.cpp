@@ -25,8 +25,8 @@
 // [[dust2::parameter(dE, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(lag_rates, type = "int", rank = 0, required = TRUE, constant = TRUE)]]
 // [[dust2::parameter(FOI_eq, type = "real_type", rank = 2, required = TRUE, constant = FALSE)]]
-// [[dust2::parameter(foi_age, type = "real_type", rank = 1, required = TRUE, constant = FALSE)]]
-// [[dust2::parameter(rel_foi, type = "real_type", rank = 1, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(psi, type = "real_type", rank = 1, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(zeta, type = "real_type", rank = 1, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(dCM, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(uCA, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(dCA, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
@@ -114,7 +114,7 @@ public:
         dust2::packing state;
       } packing;
       struct {
-        std::array<size_t, 37> state;
+        std::array<size_t, 42> state;
       } offset;
     } odin;
     struct dim_type {
@@ -175,8 +175,8 @@ public:
       dust2::array::dimensions<2> FOI_eq;
       dust2::array::dimensions<4> FOI_XL;
       dust2::array::dimensions<3> FOI;
-      dust2::array::dimensions<1> foi_age;
-      dust2::array::dimensions<1> rel_foi;
+      dust2::array::dimensions<1> psi;
+      dust2::array::dimensions<1> zeta;
       dust2::array::dimensions<3> EIR;
       dust2::array::dimensions<1> x_I;
       dust2::array::dimensions<3> init_ICM;
@@ -324,8 +324,8 @@ public:
     std::vector<real_type> init_U;
     std::vector<real_type> init_P;
     std::vector<real_type> FOI_eq;
-    std::vector<real_type> foi_age;
-    std::vector<real_type> rel_foi;
+    std::vector<real_type> psi;
+    std::vector<real_type> zeta;
     std::vector<real_type> x_I;
     std::vector<real_type> init_ICM;
     std::vector<real_type> init_ICA;
@@ -561,8 +561,8 @@ public:
     dim.FOI_eq.set({static_cast<size_t>(na), static_cast<size_t>(nh)});
     dim.FOI_XL.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int), static_cast<size_t>(lag_rates)});
     dim.FOI.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int)});
-    dim.foi_age.set({static_cast<size_t>(na)});
-    dim.rel_foi.set({static_cast<size_t>(nh)});
+    dim.psi.set({static_cast<size_t>(na)});
+    dim.zeta.set({static_cast<size_t>(nh)});
     dim.EIR.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int)});
     dim.x_I.set({static_cast<size_t>(na)});
     dim.init_ICM.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int)});
@@ -651,10 +651,10 @@ public:
     dust2::r::read_real_array(parameters, dim.init_P, init_P.data(), "init_P", true);
     std::vector<real_type> FOI_eq(dim.FOI_eq.size);
     dust2::r::read_real_array(parameters, dim.FOI_eq, FOI_eq.data(), "FOI_eq", true);
-    std::vector<real_type> foi_age(dim.foi_age.size);
-    dust2::r::read_real_array(parameters, dim.foi_age, foi_age.data(), "foi_age", true);
-    std::vector<real_type> rel_foi(dim.rel_foi.size);
-    dust2::r::read_real_array(parameters, dim.rel_foi, rel_foi.data(), "rel_foi", true);
+    std::vector<real_type> psi(dim.psi.size);
+    dust2::r::read_real_array(parameters, dim.psi, psi.data(), "psi", true);
+    std::vector<real_type> zeta(dim.zeta.size);
+    dust2::r::read_real_array(parameters, dim.zeta, zeta.data(), "zeta", true);
     std::vector<real_type> x_I(dim.x_I.size);
     dust2::r::read_real_array(parameters, dim.x_I, x_I.data(), "x_I", true);
     std::vector<real_type> init_ICM(dim.init_ICM.size);
@@ -724,6 +724,11 @@ public:
       {"natural_deaths", {}},
       {"EIR_mean", {}},
       {"mu_mosq", {}},
+      {"blood_meal_rate_out", {}},
+      {"p1_out", {}},
+      {"p2_out", {}},
+      {"wbar_out", {}},
+      {"zbar_out", {}},
       {"S", std::vector<size_t>(dim.S.dim.begin(), dim.S.dim.end())},
       {"T", std::vector<size_t>(dim.T.dim.begin(), dim.T.dim.end())},
       {"D", std::vector<size_t>(dim.D.dim.begin(), dim.D.dim.end())},
@@ -742,7 +747,7 @@ public:
       {"n_ud_inc", std::vector<size_t>(dim.n_ud_inc.dim.begin(), dim.n_ud_inc.dim.end())}
     };
     odin.packing.state.copy_offset(odin.offset.state.begin());
-    return shared_state{odin, dim, n_days, na, nh, ft, eta, rA, rT, rD, rU, rP, dE, lag_rates, dCM, uCA, dCA, dB, uB, dID, uD, age20l, age20u, age_20_factor, PM, phi0, phi1, IC0, kC, b0, b1, kB, IB0, aD, fD0, gammaD, d1, ID0, kD, init_Sv, init_Pv, init_Iv, cU, cD, cT, gamma1, lag_ratesMos, FOIv_eq, omega, delayGam, delayMos, dLL, dPL, dEL, muLL, muEL, muPL, gammaL, mv0, mum, foraging_time, gonotrophic_cycle, betaL, init_PL, init_LL, init_EL, max_smc_cov, max_itn_cov, Q0, phi_bednets, num_int, prev_dim, inc_dim, delayMos_use, mum_use, b_lambda, alpha_smc_times, alpha_smc_set, cov_, daily_rain_input, days, age_rate, het_wt, init_S, init_T, init_D, init_A, init_U, init_P, FOI_eq, foi_age, rel_foi, x_I, init_ICM, init_ICA, init_IB, init_ID, age_vector, p10, p2, interpolate_alpha_smc, P_smc_daily, smc_mask, rel_c_days, r_itn_daily, s_itn_daily, cov, min_age_prev, max_age_prev, min_age_inc, max_age_inc, fd, interpolate_rain_input, interpolate_P_smc, interpolate_rel_c, interpolate_r_itn, interpolate_s_itn};
+    return shared_state{odin, dim, n_days, na, nh, ft, eta, rA, rT, rD, rU, rP, dE, lag_rates, dCM, uCA, dCA, dB, uB, dID, uD, age20l, age20u, age_20_factor, PM, phi0, phi1, IC0, kC, b0, b1, kB, IB0, aD, fD0, gammaD, d1, ID0, kD, init_Sv, init_Pv, init_Iv, cU, cD, cT, gamma1, lag_ratesMos, FOIv_eq, omega, delayGam, delayMos, dLL, dPL, dEL, muLL, muEL, muPL, gammaL, mv0, mum, foraging_time, gonotrophic_cycle, betaL, init_PL, init_LL, init_EL, max_smc_cov, max_itn_cov, Q0, phi_bednets, num_int, prev_dim, inc_dim, delayMos_use, mum_use, b_lambda, alpha_smc_times, alpha_smc_set, cov_, daily_rain_input, days, age_rate, het_wt, init_S, init_T, init_D, init_A, init_U, init_P, FOI_eq, psi, zeta, x_I, init_ICM, init_ICA, init_IB, init_ID, age_vector, p10, p2, interpolate_alpha_smc, P_smc_daily, smc_mask, rel_c_days, r_itn_daily, s_itn_daily, cov, min_age_prev, max_age_prev, min_age_inc, max_age_inc, fd, interpolate_rain_input, interpolate_P_smc, interpolate_rel_c, interpolate_r_itn, interpolate_s_itn};
   }
   static internal_state build_internal(const shared_state& shared) {
     std::vector<real_type> S_death(shared.dim.S_death.size);
@@ -898,8 +903,8 @@ public:
     dust2::r::read_real_array(parameters, shared.dim.init_U, shared.init_U.data(), "init_U", false);
     dust2::r::read_real_array(parameters, shared.dim.init_P, shared.init_P.data(), "init_P", false);
     dust2::r::read_real_array(parameters, shared.dim.FOI_eq, shared.FOI_eq.data(), "FOI_eq", false);
-    dust2::r::read_real_array(parameters, shared.dim.foi_age, shared.foi_age.data(), "foi_age", false);
-    dust2::r::read_real_array(parameters, shared.dim.rel_foi, shared.rel_foi.data(), "rel_foi", false);
+    dust2::r::read_real_array(parameters, shared.dim.psi, shared.psi.data(), "psi", false);
+    dust2::r::read_real_array(parameters, shared.dim.zeta, shared.zeta.data(), "zeta", false);
     dust2::r::read_real_array(parameters, shared.dim.x_I, shared.x_I.data(), "x_I", false);
     dust2::r::read_real_array(parameters, shared.dim.init_ICM, shared.init_ICM.data(), "init_ICM", false);
     dust2::r::read_real_array(parameters, shared.dim.init_ICA, shared.init_ICA.data(), "init_ICA", false);
@@ -935,42 +940,42 @@ public:
     for (size_t i = 1; i <= shared.dim.S.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.S.dim[1]; ++j) {
         for (size_t k = 1; k <= shared.dim.S.dim[2]; ++k) {
-          state[i - 1 + (j - 1) * shared.dim.S.mult[1] + (k - 1) * shared.dim.S.mult[2] + 21] = shared.init_S[i - 1 + (j - 1) * shared.dim.init_S.mult[1] + (k - 1) * shared.dim.init_S.mult[2]];
+          state[i - 1 + (j - 1) * shared.dim.S.mult[1] + (k - 1) * shared.dim.S.mult[2] + 26] = shared.init_S[i - 1 + (j - 1) * shared.dim.init_S.mult[1] + (k - 1) * shared.dim.init_S.mult[2]];
         }
       }
     }
     for (size_t i = 1; i <= shared.dim.T.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.T.dim[1]; ++j) {
         for (size_t k = 1; k <= shared.dim.T.dim[2]; ++k) {
-          state[i - 1 + (j - 1) * shared.dim.T.mult[1] + (k - 1) * shared.dim.T.mult[2] + shared.odin.offset.state[22]] = shared.init_T[i - 1 + (j - 1) * shared.dim.init_T.mult[1] + (k - 1) * shared.dim.init_T.mult[2]];
+          state[i - 1 + (j - 1) * shared.dim.T.mult[1] + (k - 1) * shared.dim.T.mult[2] + shared.odin.offset.state[27]] = shared.init_T[i - 1 + (j - 1) * shared.dim.init_T.mult[1] + (k - 1) * shared.dim.init_T.mult[2]];
         }
       }
     }
     for (size_t i = 1; i <= shared.dim.D.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.D.dim[1]; ++j) {
         for (size_t k = 1; k <= shared.dim.D.dim[2]; ++k) {
-          state[i - 1 + (j - 1) * shared.dim.D.mult[1] + (k - 1) * shared.dim.D.mult[2] + shared.odin.offset.state[23]] = shared.init_D[i - 1 + (j - 1) * shared.dim.init_D.mult[1] + (k - 1) * shared.dim.init_D.mult[2]];
+          state[i - 1 + (j - 1) * shared.dim.D.mult[1] + (k - 1) * shared.dim.D.mult[2] + shared.odin.offset.state[28]] = shared.init_D[i - 1 + (j - 1) * shared.dim.init_D.mult[1] + (k - 1) * shared.dim.init_D.mult[2]];
         }
       }
     }
     for (size_t i = 1; i <= shared.dim.A.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.A.dim[1]; ++j) {
         for (size_t k = 1; k <= shared.dim.A.dim[2]; ++k) {
-          state[i - 1 + (j - 1) * shared.dim.A.mult[1] + (k - 1) * shared.dim.A.mult[2] + shared.odin.offset.state[24]] = shared.init_A[i - 1 + (j - 1) * shared.dim.init_A.mult[1] + (k - 1) * shared.dim.init_A.mult[2]];
+          state[i - 1 + (j - 1) * shared.dim.A.mult[1] + (k - 1) * shared.dim.A.mult[2] + shared.odin.offset.state[29]] = shared.init_A[i - 1 + (j - 1) * shared.dim.init_A.mult[1] + (k - 1) * shared.dim.init_A.mult[2]];
         }
       }
     }
     for (size_t i = 1; i <= shared.dim.U.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.U.dim[1]; ++j) {
         for (size_t k = 1; k <= shared.dim.U.dim[2]; ++k) {
-          state[i - 1 + (j - 1) * shared.dim.U.mult[1] + (k - 1) * shared.dim.U.mult[2] + shared.odin.offset.state[25]] = shared.init_U[i - 1 + (j - 1) * shared.dim.init_U.mult[1] + (k - 1) * shared.dim.init_U.mult[2]];
+          state[i - 1 + (j - 1) * shared.dim.U.mult[1] + (k - 1) * shared.dim.U.mult[2] + shared.odin.offset.state[30]] = shared.init_U[i - 1 + (j - 1) * shared.dim.init_U.mult[1] + (k - 1) * shared.dim.init_U.mult[2]];
         }
       }
     }
     for (size_t i = 1; i <= shared.dim.P.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.P.dim[1]; ++j) {
         for (size_t k = 1; k <= shared.dim.P.dim[2]; ++k) {
-          state[i - 1 + (j - 1) * shared.dim.P.mult[1] + (k - 1) * shared.dim.P.mult[2] + shared.odin.offset.state[26]] = shared.init_P[i - 1 + (j - 1) * shared.dim.init_P.mult[1] + (k - 1) * shared.dim.init_P.mult[2]];
+          state[i - 1 + (j - 1) * shared.dim.P.mult[1] + (k - 1) * shared.dim.P.mult[2] + shared.odin.offset.state[31]] = shared.init_P[i - 1 + (j - 1) * shared.dim.init_P.mult[1] + (k - 1) * shared.dim.init_P.mult[2]];
         }
       }
     }
@@ -978,7 +983,7 @@ public:
       for (size_t j = 1; j <= shared.dim.FOI_XL.dim[1]; ++j) {
         for (size_t k = 1; k <= shared.dim.FOI_XL.dim[2]; ++k) {
           for (size_t l = 1; l <= shared.dim.FOI_XL.dim[3]; ++l) {
-            state[i - 1 + (j - 1) * shared.dim.FOI_XL.mult[1] + (k - 1) * shared.dim.FOI_XL.mult[2] + (l - 1) * shared.dim.FOI_XL.mult[3] + shared.odin.offset.state[27]] = shared.FOI_eq[i - 1 + (j - 1) * shared.dim.FOI_eq.mult[1]];
+            state[i - 1 + (j - 1) * shared.dim.FOI_XL.mult[1] + (k - 1) * shared.dim.FOI_XL.mult[2] + (l - 1) * shared.dim.FOI_XL.mult[3] + shared.odin.offset.state[32]] = shared.FOI_eq[i - 1 + (j - 1) * shared.dim.FOI_eq.mult[1]];
           }
         }
       }
@@ -986,28 +991,28 @@ public:
     for (size_t i = 1; i <= shared.dim.ICM.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.ICM.dim[1]; ++j) {
         for (size_t k = 1; k <= shared.dim.ICM.dim[2]; ++k) {
-          state[i - 1 + (j - 1) * shared.dim.ICM.mult[1] + (k - 1) * shared.dim.ICM.mult[2] + shared.odin.offset.state[28]] = shared.init_ICM[i - 1 + (j - 1) * shared.dim.init_ICM.mult[1] + (k - 1) * shared.dim.init_ICM.mult[2]];
+          state[i - 1 + (j - 1) * shared.dim.ICM.mult[1] + (k - 1) * shared.dim.ICM.mult[2] + shared.odin.offset.state[33]] = shared.init_ICM[i - 1 + (j - 1) * shared.dim.init_ICM.mult[1] + (k - 1) * shared.dim.init_ICM.mult[2]];
         }
       }
     }
     for (size_t i = 1; i <= shared.dim.ICA.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.ICA.dim[1]; ++j) {
         for (size_t k = 1; k <= shared.dim.ICA.dim[2]; ++k) {
-          state[i - 1 + (j - 1) * shared.dim.ICA.mult[1] + (k - 1) * shared.dim.ICA.mult[2] + shared.odin.offset.state[29]] = shared.init_ICA[i - 1 + (j - 1) * shared.dim.init_ICA.mult[1] + (k - 1) * shared.dim.init_ICA.mult[2]];
+          state[i - 1 + (j - 1) * shared.dim.ICA.mult[1] + (k - 1) * shared.dim.ICA.mult[2] + shared.odin.offset.state[34]] = shared.init_ICA[i - 1 + (j - 1) * shared.dim.init_ICA.mult[1] + (k - 1) * shared.dim.init_ICA.mult[2]];
         }
       }
     }
     for (size_t i = 1; i <= shared.dim.IB.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.IB.dim[1]; ++j) {
         for (size_t k = 1; k <= shared.dim.IB.dim[2]; ++k) {
-          state[i - 1 + (j - 1) * shared.dim.IB.mult[1] + (k - 1) * shared.dim.IB.mult[2] + shared.odin.offset.state[30]] = shared.init_IB[i - 1 + (j - 1) * shared.dim.init_IB.mult[1] + (k - 1) * shared.dim.init_IB.mult[2]];
+          state[i - 1 + (j - 1) * shared.dim.IB.mult[1] + (k - 1) * shared.dim.IB.mult[2] + shared.odin.offset.state[35]] = shared.init_IB[i - 1 + (j - 1) * shared.dim.init_IB.mult[1] + (k - 1) * shared.dim.init_IB.mult[2]];
         }
       }
     }
     for (size_t i = 1; i <= shared.dim.ID.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.ID.dim[1]; ++j) {
         for (size_t k = 1; k <= shared.dim.ID.dim[2]; ++k) {
-          state[i - 1 + (j - 1) * shared.dim.ID.mult[1] + (k - 1) * shared.dim.ID.mult[2] + shared.odin.offset.state[31]] = shared.init_ID[i - 1 + (j - 1) * shared.dim.init_ID.mult[1] + (k - 1) * shared.dim.init_ID.mult[2]];
+          state[i - 1 + (j - 1) * shared.dim.ID.mult[1] + (k - 1) * shared.dim.ID.mult[2] + shared.odin.offset.state[36]] = shared.init_ID[i - 1 + (j - 1) * shared.dim.init_ID.mult[1] + (k - 1) * shared.dim.init_ID.mult[2]];
         }
       }
     }
@@ -1015,23 +1020,23 @@ public:
     state[1] = shared.init_Pv * shared.mv0;
     state[2] = shared.init_Iv * shared.mv0;
     for (size_t i = 1; i <= shared.dim.FOIv.size; ++i) {
-      state[i - 1 + shared.odin.offset.state[32]] = shared.FOIv_eq * shared.delayGam / shared.lag_ratesMos;
+      state[i - 1 + shared.odin.offset.state[37]] = shared.FOIv_eq * shared.delayGam / shared.lag_ratesMos;
     }
     for (size_t i = 1; i <= shared.dim.ince_delay.size; ++i) {
-      state[i - 1 + shared.odin.offset.state[33]] = shared.FOIv_eq * shared.init_Sv * shared.mv0 * shared.delayMos_use / shared.lag_ratesMos;
+      state[i - 1 + shared.odin.offset.state[38]] = shared.FOIv_eq * shared.init_Sv * shared.mv0 * shared.delayMos_use / shared.lag_ratesMos;
     }
     state[3] = 0;
     state[4] = shared.init_PL;
     state[5] = shared.init_LL;
     state[6] = shared.init_EL;
     for (size_t i = 1; i <= shared.dim.n_ud_prev.size; ++i) {
-      state[i - 1 + shared.odin.offset.state[34]] = shared.min_age_prev[i - 1];
+      state[i - 1 + shared.odin.offset.state[39]] = shared.min_age_prev[i - 1];
     }
     for (size_t i = 1; i <= shared.dim.n_ud_detect_prev.size; ++i) {
-      state[i - 1 + shared.odin.offset.state[35]] = shared.min_age_prev[i - 1];
+      state[i - 1 + shared.odin.offset.state[40]] = shared.min_age_prev[i - 1];
     }
     for (size_t i = 1; i <= shared.dim.n_ud_inc.size; ++i) {
-      state[i - 1 + shared.odin.offset.state[36]] = shared.min_age_inc[i - 1];
+      state[i - 1 + shared.odin.offset.state[41]] = shared.min_age_inc[i - 1];
     }
     state[7] = 0;
     state[8] = 0;
@@ -1047,24 +1052,29 @@ public:
     state[18] = 0;
     state[19] = 0;
     state[20] = 0;
+    state[21] = 0;
+    state[22] = 0;
+    state[23] = 0;
+    state[24] = 0;
+    state[25] = 0;
   }
   static void update(real_type time, real_type dt, const real_type* state, const shared_state& shared, internal_state& internal, rng_state_type& rng_state, real_type* state_next) {
-    const auto * S = state + 21;
-    const auto * T = state + shared.odin.offset.state[22];
-    const auto * D = state + shared.odin.offset.state[23];
-    const auto * A = state + shared.odin.offset.state[24];
-    const auto * U = state + shared.odin.offset.state[25];
-    const auto * P = state + shared.odin.offset.state[26];
-    const auto * FOI_XL = state + shared.odin.offset.state[27];
-    const auto * ICM = state + shared.odin.offset.state[28];
-    const auto * ICA = state + shared.odin.offset.state[29];
-    const auto * IB = state + shared.odin.offset.state[30];
-    const auto * ID = state + shared.odin.offset.state[31];
+    const auto * S = state + 26;
+    const auto * T = state + shared.odin.offset.state[27];
+    const auto * D = state + shared.odin.offset.state[28];
+    const auto * A = state + shared.odin.offset.state[29];
+    const auto * U = state + shared.odin.offset.state[30];
+    const auto * P = state + shared.odin.offset.state[31];
+    const auto * FOI_XL = state + shared.odin.offset.state[32];
+    const auto * ICM = state + shared.odin.offset.state[33];
+    const auto * ICA = state + shared.odin.offset.state[34];
+    const auto * IB = state + shared.odin.offset.state[35];
+    const auto * ID = state + shared.odin.offset.state[36];
     const auto Sv = state[0];
     const auto Pv = state[1];
     const auto Iv = state[2];
-    const auto * FOIv = state + shared.odin.offset.state[32];
-    const auto * ince_delay = state + shared.odin.offset.state[33];
+    const auto * FOIv = state + shared.odin.offset.state[37];
+    const auto * ince_delay = state + shared.odin.offset.state[38];
     const auto mv = state[3];
     const auto PL = state[4];
     const auto LL = state[5];
@@ -1502,32 +1512,32 @@ public:
     }
     const real_type zbar = shared.Q0 * zh;
     const real_type wbar = 1 - shared.Q0 + shared.Q0 * wh;
-    const real_type fv = 1 / (shared.foraging_time / (1 - zbar) + shared.gonotrophic_cycle);
+    const real_type blood_meal_rate = 1 / (shared.foraging_time / (1 - zbar) + shared.gonotrophic_cycle);
     const real_type p1 = wbar * shared.p10 / (1 - zbar * shared.p10);
     const real_type Q = 1 - (1 - shared.Q0) / wbar;
-    const real_type mu = -fv * monty::math::log(p1 * shared.p2);
-    const real_type av = fv * Q;
+    const real_type mu = -blood_meal_rate * monty::math::log(p1 * shared.p2);
+    const real_type av = blood_meal_rate * Q;
     const real_type surv = monty::math::exp(-mu * shared.delayMos_use);
-    const real_type eov = shared.betaL / mu * (monty::math::exp(mu / fv) - 1);
+    const real_type eov = shared.betaL / mu * (monty::math::exp(mu / blood_meal_rate) - 1);
     for (size_t i = 1; i <= static_cast<size_t>(shared.num_int); ++i) {
       internal.av_mosq[i - 1] = av * internal.w[i - 1] / wh;
     }
     for (size_t i = 1; i <= shared.dim.EIR.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.EIR.dim[1]; ++j) {
         for (size_t k = 1; k <= shared.dim.EIR.dim[2]; ++k) {
-          internal.EIR[i - 1 + (j - 1) * shared.dim.EIR.mult[1] + (k - 1) * shared.dim.EIR.mult[2]] = internal.av_mosq[k - 1] * shared.rel_foi[j - 1] * shared.foi_age[i - 1] * Iv / shared.omega;
+          internal.EIR[i - 1 + (j - 1) * shared.dim.EIR.mult[1] + (k - 1) * shared.dim.EIR.mult[2]] = internal.av_mosq[k - 1] * shared.zeta[j - 1] * shared.psi[i - 1] * Iv / shared.omega;
         }
       }
     }
     for (size_t i = 1; i <= static_cast<size_t>(shared.na); ++i) {
       for (size_t j = 1; j <= static_cast<size_t>(shared.nh); ++j) {
         for (size_t k = 1; k <= static_cast<size_t>(shared.num_int); ++k) {
-          internal.FOIvijk[i - 1 + (j - 1) * shared.dim.FOIvijk.mult[1] + (k - 1) * shared.dim.FOIvijk.mult[2]] = ((shared.cT * internal.smc_rel_c_mask[i - 1 + (j - 1) * shared.dim.smc_rel_c_mask.mult[1] + (k - 1) * shared.dim.smc_rel_c_mask.mult[2]] * T[i - 1 + (j - 1) * shared.dim.T.mult[1] + (k - 1) * shared.dim.T.mult[2]] + shared.cD * internal.smc_rel_c_mask[i - 1 + (j - 1) * shared.dim.smc_rel_c_mask.mult[1] + (k - 1) * shared.dim.smc_rel_c_mask.mult[2]] * D[i - 1 + (j - 1) * shared.dim.D.mult[1] + (k - 1) * shared.dim.D.mult[2]] + internal.cA[i - 1 + (j - 1) * shared.dim.cA.mult[1] + (k - 1) * shared.dim.cA.mult[2]] * internal.smc_rel_c_mask[i - 1 + (j - 1) * shared.dim.smc_rel_c_mask.mult[1] + (k - 1) * shared.dim.smc_rel_c_mask.mult[2]] * A[i - 1 + (j - 1) * shared.dim.A.mult[1] + (k - 1) * shared.dim.A.mult[2]] + shared.cU * internal.smc_rel_c_mask[i - 1 + (j - 1) * shared.dim.smc_rel_c_mask.mult[1] + (k - 1) * shared.dim.smc_rel_c_mask.mult[2]] * U[i - 1 + (j - 1) * shared.dim.U.mult[1] + (k - 1) * shared.dim.U.mult[2]]) / H) * shared.rel_foi[j - 1] * internal.av_mosq[k - 1] * shared.foi_age[i - 1] / shared.omega;
+          internal.FOIvijk[i - 1 + (j - 1) * shared.dim.FOIvijk.mult[1] + (k - 1) * shared.dim.FOIvijk.mult[2]] = ((shared.cT * internal.smc_rel_c_mask[i - 1 + (j - 1) * shared.dim.smc_rel_c_mask.mult[1] + (k - 1) * shared.dim.smc_rel_c_mask.mult[2]] * T[i - 1 + (j - 1) * shared.dim.T.mult[1] + (k - 1) * shared.dim.T.mult[2]] + shared.cD * internal.smc_rel_c_mask[i - 1 + (j - 1) * shared.dim.smc_rel_c_mask.mult[1] + (k - 1) * shared.dim.smc_rel_c_mask.mult[2]] * D[i - 1 + (j - 1) * shared.dim.D.mult[1] + (k - 1) * shared.dim.D.mult[2]] + internal.cA[i - 1 + (j - 1) * shared.dim.cA.mult[1] + (k - 1) * shared.dim.cA.mult[2]] * internal.smc_rel_c_mask[i - 1 + (j - 1) * shared.dim.smc_rel_c_mask.mult[1] + (k - 1) * shared.dim.smc_rel_c_mask.mult[2]] * A[i - 1 + (j - 1) * shared.dim.A.mult[1] + (k - 1) * shared.dim.A.mult[2]] + shared.cU * internal.smc_rel_c_mask[i - 1 + (j - 1) * shared.dim.smc_rel_c_mask.mult[1] + (k - 1) * shared.dim.smc_rel_c_mask.mult[2]] * U[i - 1 + (j - 1) * shared.dim.U.mult[1] + (k - 1) * shared.dim.U.mult[2]]) / H) * shared.zeta[j - 1] * internal.av_mosq[k - 1] * shared.psi[i - 1] / shared.omega;
         }
       }
     }
     const real_type incv = ince_delay[shared.lag_ratesMos - 1] * shared.lag_ratesMos / shared.delayMos_use * surv;
-    const real_type beta_larval = eov * mu * monty::math::exp(-mu / fv) / (1 - monty::math::exp(-mu / fv));
+    const real_type beta_larval = eov * mu * monty::math::exp(-mu / blood_meal_rate) / (1 - monty::math::exp(-mu / blood_meal_rate));
     for (size_t i = 1; i <= static_cast<size_t>(shared.na); ++i) {
       for (size_t j = 1; j <= static_cast<size_t>(shared.nh); ++j) {
         for (size_t k = 1; k <= static_cast<size_t>(shared.num_int); ++k) {
@@ -1540,7 +1550,7 @@ public:
     for (size_t i = 1; i <= shared.dim.epsilon_0.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.epsilon_0.dim[1]; ++j) {
         for (size_t k = 1; k <= shared.dim.epsilon_0.dim[2]; ++k) {
-          internal.epsilon_0[i - 1 + (j - 1) * shared.dim.epsilon_0.mult[1] + (k - 1) * shared.dim.epsilon_0.mult[2]] = (internal.all[i - 1 + (j - 1) * shared.dim.all.mult[1] + (k - 1) * shared.dim.all.mult[2]] * internal.EIR[i - 1 + (j - 1) * shared.dim.EIR.mult[1] + (k - 1) * shared.dim.EIR.mult[2]]) / shared.foi_age[i - 1];
+          internal.epsilon_0[i - 1 + (j - 1) * shared.dim.epsilon_0.mult[1] + (k - 1) * shared.dim.epsilon_0.mult[2]] = (internal.all[i - 1 + (j - 1) * shared.dim.all.mult[1] + (k - 1) * shared.dim.all.mult[2]] * internal.EIR[i - 1 + (j - 1) * shared.dim.EIR.mult[1] + (k - 1) * shared.dim.EIR.mult[2]]) / shared.psi[i - 1];
         }
       }
     }
@@ -1550,14 +1560,14 @@ public:
       const size_t i = 1;
       for (size_t j = 1; j <= static_cast<size_t>(shared.nh); ++j) {
         for (size_t k = 1; k <= static_cast<size_t>(shared.num_int); ++k) {
-          state_next[(j - 1) * shared.dim.S.mult[1] + (k - 1) * shared.dim.S.mult[2] + 21] = S[i - 1 + (j - 1) * shared.dim.S.mult[1] + (k - 1) * shared.dim.S.mult[2]] + internal.PS_trans[i - 1 + (j - 1) * shared.dim.PS_trans.mult[1] + (k - 1) * shared.dim.PS_trans.mult[2]] + internal.US_trans[i - 1 + (j - 1) * shared.dim.US_trans.mult[1] + (k - 1) * shared.dim.US_trans.mult[2]] + internal.US_trans_SMC[i - 1 + (j - 1) * shared.dim.US_trans_SMC.mult[1] + (k - 1) * shared.dim.US_trans_SMC.mult[2]] + internal.AS_trans[i - 1 + (j - 1) * shared.dim.AS_trans.mult[1] + (k - 1) * shared.dim.AS_trans.mult[2]] + internal.DS_trans[i - 1 + (j - 1) * shared.dim.DS_trans.mult[1] + (k - 1) * shared.dim.DS_trans.mult[2]] - internal.ST_trans[i - 1 + (j - 1) * shared.dim.ST_trans.mult[1] + (k - 1) * shared.dim.ST_trans.mult[2]] - internal.SD_trans[i - 1 + (j - 1) * shared.dim.SD_trans.mult[1] + (k - 1) * shared.dim.SD_trans.mult[2]] - internal.SA_trans[i - 1 + (j - 1) * shared.dim.SA_trans.mult[1] + (k - 1) * shared.dim.SA_trans.mult[2]] - internal.S_death[i - 1 + (j - 1) * shared.dim.S_death.mult[1] + (k - 1) * shared.dim.S_death.mult[2]] - internal.S_age[i - 1 + (j - 1) * shared.dim.S_age.mult[1] + (k - 1) * shared.dim.S_age.mult[2]] + internal.births[(j - 1) * shared.dim.births.mult[1] + (k - 1) * shared.dim.births.mult[2]];
+          state_next[(j - 1) * shared.dim.S.mult[1] + (k - 1) * shared.dim.S.mult[2] + 26] = S[i - 1 + (j - 1) * shared.dim.S.mult[1] + (k - 1) * shared.dim.S.mult[2]] + internal.PS_trans[i - 1 + (j - 1) * shared.dim.PS_trans.mult[1] + (k - 1) * shared.dim.PS_trans.mult[2]] + internal.US_trans[i - 1 + (j - 1) * shared.dim.US_trans.mult[1] + (k - 1) * shared.dim.US_trans.mult[2]] + internal.US_trans_SMC[i - 1 + (j - 1) * shared.dim.US_trans_SMC.mult[1] + (k - 1) * shared.dim.US_trans_SMC.mult[2]] + internal.AS_trans[i - 1 + (j - 1) * shared.dim.AS_trans.mult[1] + (k - 1) * shared.dim.AS_trans.mult[2]] + internal.DS_trans[i - 1 + (j - 1) * shared.dim.DS_trans.mult[1] + (k - 1) * shared.dim.DS_trans.mult[2]] - internal.ST_trans[i - 1 + (j - 1) * shared.dim.ST_trans.mult[1] + (k - 1) * shared.dim.ST_trans.mult[2]] - internal.SD_trans[i - 1 + (j - 1) * shared.dim.SD_trans.mult[1] + (k - 1) * shared.dim.SD_trans.mult[2]] - internal.SA_trans[i - 1 + (j - 1) * shared.dim.SA_trans.mult[1] + (k - 1) * shared.dim.SA_trans.mult[2]] - internal.S_death[i - 1 + (j - 1) * shared.dim.S_death.mult[1] + (k - 1) * shared.dim.S_death.mult[2]] - internal.S_age[i - 1 + (j - 1) * shared.dim.S_age.mult[1] + (k - 1) * shared.dim.S_age.mult[2]] + internal.births[(j - 1) * shared.dim.births.mult[1] + (k - 1) * shared.dim.births.mult[2]];
         }
       }
     }
     for (size_t i = 2; i <= static_cast<size_t>(shared.na); ++i) {
       for (size_t j = 1; j <= static_cast<size_t>(shared.nh); ++j) {
         for (size_t k = 1; k <= static_cast<size_t>(shared.num_int); ++k) {
-          state_next[i - 1 + (j - 1) * shared.dim.S.mult[1] + (k - 1) * shared.dim.S.mult[2] + 21] = S[i - 1 + (j - 1) * shared.dim.S.mult[1] + (k - 1) * shared.dim.S.mult[2]] + internal.PS_trans[i - 1 + (j - 1) * shared.dim.PS_trans.mult[1] + (k - 1) * shared.dim.PS_trans.mult[2]] + internal.US_trans[i - 1 + (j - 1) * shared.dim.US_trans.mult[1] + (k - 1) * shared.dim.US_trans.mult[2]] + internal.US_trans_SMC[i - 1 + (j - 1) * shared.dim.US_trans_SMC.mult[1] + (k - 1) * shared.dim.US_trans_SMC.mult[2]] + internal.AS_trans[i - 1 + (j - 1) * shared.dim.AS_trans.mult[1] + (k - 1) * shared.dim.AS_trans.mult[2]] + internal.DS_trans[i - 1 + (j - 1) * shared.dim.DS_trans.mult[1] + (k - 1) * shared.dim.DS_trans.mult[2]] - internal.ST_trans[i - 1 + (j - 1) * shared.dim.ST_trans.mult[1] + (k - 1) * shared.dim.ST_trans.mult[2]] - internal.SD_trans[i - 1 + (j - 1) * shared.dim.SD_trans.mult[1] + (k - 1) * shared.dim.SD_trans.mult[2]] - internal.SA_trans[i - 1 + (j - 1) * shared.dim.SA_trans.mult[1] + (k - 1) * shared.dim.SA_trans.mult[2]] - internal.S_death[i - 1 + (j - 1) * shared.dim.S_death.mult[1] + (k - 1) * shared.dim.S_death.mult[2]] - internal.S_age[i - 1 + (j - 1) * shared.dim.S_age.mult[1] + (k - 1) * shared.dim.S_age.mult[2]] + internal.S_age[i - 1 - 1 + (j - 1) * shared.dim.S_age.mult[1] + (k - 1) * shared.dim.S_age.mult[2]];
+          state_next[i - 1 + (j - 1) * shared.dim.S.mult[1] + (k - 1) * shared.dim.S.mult[2] + 26] = S[i - 1 + (j - 1) * shared.dim.S.mult[1] + (k - 1) * shared.dim.S.mult[2]] + internal.PS_trans[i - 1 + (j - 1) * shared.dim.PS_trans.mult[1] + (k - 1) * shared.dim.PS_trans.mult[2]] + internal.US_trans[i - 1 + (j - 1) * shared.dim.US_trans.mult[1] + (k - 1) * shared.dim.US_trans.mult[2]] + internal.US_trans_SMC[i - 1 + (j - 1) * shared.dim.US_trans_SMC.mult[1] + (k - 1) * shared.dim.US_trans_SMC.mult[2]] + internal.AS_trans[i - 1 + (j - 1) * shared.dim.AS_trans.mult[1] + (k - 1) * shared.dim.AS_trans.mult[2]] + internal.DS_trans[i - 1 + (j - 1) * shared.dim.DS_trans.mult[1] + (k - 1) * shared.dim.DS_trans.mult[2]] - internal.ST_trans[i - 1 + (j - 1) * shared.dim.ST_trans.mult[1] + (k - 1) * shared.dim.ST_trans.mult[2]] - internal.SD_trans[i - 1 + (j - 1) * shared.dim.SD_trans.mult[1] + (k - 1) * shared.dim.SD_trans.mult[2]] - internal.SA_trans[i - 1 + (j - 1) * shared.dim.SA_trans.mult[1] + (k - 1) * shared.dim.SA_trans.mult[2]] - internal.S_death[i - 1 + (j - 1) * shared.dim.S_death.mult[1] + (k - 1) * shared.dim.S_death.mult[2]] - internal.S_age[i - 1 + (j - 1) * shared.dim.S_age.mult[1] + (k - 1) * shared.dim.S_age.mult[2]] + internal.S_age[i - 1 - 1 + (j - 1) * shared.dim.S_age.mult[1] + (k - 1) * shared.dim.S_age.mult[2]];
         }
       }
     }
@@ -1565,14 +1575,14 @@ public:
       const size_t i = 1;
       for (size_t j = 1; j <= static_cast<size_t>(shared.nh); ++j) {
         for (size_t k = 1; k <= static_cast<size_t>(shared.num_int); ++k) {
-          state_next[(j - 1) * shared.dim.T.mult[1] + (k - 1) * shared.dim.T.mult[2] + shared.odin.offset.state[22]] = T[i - 1 + (j - 1) * shared.dim.T.mult[1] + (k - 1) * shared.dim.T.mult[2]] + internal.AT_trans[i - 1 + (j - 1) * shared.dim.AT_trans.mult[1] + (k - 1) * shared.dim.AT_trans.mult[2]] + internal.ST_trans[i - 1 + (j - 1) * shared.dim.ST_trans.mult[1] + (k - 1) * shared.dim.ST_trans.mult[2]] + internal.UT_trans[i - 1 + (j - 1) * shared.dim.UT_trans.mult[1] + (k - 1) * shared.dim.UT_trans.mult[2]] - internal.TP_trans[i - 1 + (j - 1) * shared.dim.TP_trans.mult[1] + (k - 1) * shared.dim.TP_trans.mult[2]] - internal.T_age[i - 1 + (j - 1) * shared.dim.T_age.mult[1] + (k - 1) * shared.dim.T_age.mult[2]] - internal.T_death[i - 1 + (j - 1) * shared.dim.T_death.mult[1] + (k - 1) * shared.dim.T_death.mult[2]];
+          state_next[(j - 1) * shared.dim.T.mult[1] + (k - 1) * shared.dim.T.mult[2] + shared.odin.offset.state[27]] = T[i - 1 + (j - 1) * shared.dim.T.mult[1] + (k - 1) * shared.dim.T.mult[2]] + internal.AT_trans[i - 1 + (j - 1) * shared.dim.AT_trans.mult[1] + (k - 1) * shared.dim.AT_trans.mult[2]] + internal.ST_trans[i - 1 + (j - 1) * shared.dim.ST_trans.mult[1] + (k - 1) * shared.dim.ST_trans.mult[2]] + internal.UT_trans[i - 1 + (j - 1) * shared.dim.UT_trans.mult[1] + (k - 1) * shared.dim.UT_trans.mult[2]] - internal.TP_trans[i - 1 + (j - 1) * shared.dim.TP_trans.mult[1] + (k - 1) * shared.dim.TP_trans.mult[2]] - internal.T_age[i - 1 + (j - 1) * shared.dim.T_age.mult[1] + (k - 1) * shared.dim.T_age.mult[2]] - internal.T_death[i - 1 + (j - 1) * shared.dim.T_death.mult[1] + (k - 1) * shared.dim.T_death.mult[2]];
         }
       }
     }
     for (size_t i = 2; i <= static_cast<size_t>(shared.na); ++i) {
       for (size_t j = 1; j <= static_cast<size_t>(shared.nh); ++j) {
         for (size_t k = 1; k <= static_cast<size_t>(shared.num_int); ++k) {
-          state_next[i - 1 + (j - 1) * shared.dim.T.mult[1] + (k - 1) * shared.dim.T.mult[2] + shared.odin.offset.state[22]] = T[i - 1 + (j - 1) * shared.dim.T.mult[1] + (k - 1) * shared.dim.T.mult[2]] + internal.AT_trans[i - 1 + (j - 1) * shared.dim.AT_trans.mult[1] + (k - 1) * shared.dim.AT_trans.mult[2]] + internal.ST_trans[i - 1 + (j - 1) * shared.dim.ST_trans.mult[1] + (k - 1) * shared.dim.ST_trans.mult[2]] + internal.UT_trans[i - 1 + (j - 1) * shared.dim.UT_trans.mult[1] + (k - 1) * shared.dim.UT_trans.mult[2]] - internal.TP_trans[i - 1 + (j - 1) * shared.dim.TP_trans.mult[1] + (k - 1) * shared.dim.TP_trans.mult[2]] - internal.T_age[i - 1 + (j - 1) * shared.dim.T_age.mult[1] + (k - 1) * shared.dim.T_age.mult[2]] - internal.T_death[i - 1 + (j - 1) * shared.dim.T_death.mult[1] + (k - 1) * shared.dim.T_death.mult[2]] + internal.T_age[i - 1 - 1 + (j - 1) * shared.dim.T_age.mult[1] + (k - 1) * shared.dim.T_age.mult[2]];
+          state_next[i - 1 + (j - 1) * shared.dim.T.mult[1] + (k - 1) * shared.dim.T.mult[2] + shared.odin.offset.state[27]] = T[i - 1 + (j - 1) * shared.dim.T.mult[1] + (k - 1) * shared.dim.T.mult[2]] + internal.AT_trans[i - 1 + (j - 1) * shared.dim.AT_trans.mult[1] + (k - 1) * shared.dim.AT_trans.mult[2]] + internal.ST_trans[i - 1 + (j - 1) * shared.dim.ST_trans.mult[1] + (k - 1) * shared.dim.ST_trans.mult[2]] + internal.UT_trans[i - 1 + (j - 1) * shared.dim.UT_trans.mult[1] + (k - 1) * shared.dim.UT_trans.mult[2]] - internal.TP_trans[i - 1 + (j - 1) * shared.dim.TP_trans.mult[1] + (k - 1) * shared.dim.TP_trans.mult[2]] - internal.T_age[i - 1 + (j - 1) * shared.dim.T_age.mult[1] + (k - 1) * shared.dim.T_age.mult[2]] - internal.T_death[i - 1 + (j - 1) * shared.dim.T_death.mult[1] + (k - 1) * shared.dim.T_death.mult[2]] + internal.T_age[i - 1 - 1 + (j - 1) * shared.dim.T_age.mult[1] + (k - 1) * shared.dim.T_age.mult[2]];
         }
       }
     }
@@ -1580,14 +1590,14 @@ public:
       const size_t i = 1;
       for (size_t j = 1; j <= static_cast<size_t>(shared.nh); ++j) {
         for (size_t k = 1; k <= static_cast<size_t>(shared.num_int); ++k) {
-          state_next[(j - 1) * shared.dim.D.mult[1] + (k - 1) * shared.dim.D.mult[2] + shared.odin.offset.state[23]] = D[i - 1 + (j - 1) * shared.dim.D.mult[1] + (k - 1) * shared.dim.D.mult[2]] + internal.SD_trans[i - 1 + (j - 1) * shared.dim.SD_trans.mult[1] + (k - 1) * shared.dim.SD_trans.mult[2]] + internal.AD_trans[i - 1 + (j - 1) * shared.dim.AD_trans.mult[1] + (k - 1) * shared.dim.AD_trans.mult[2]] + internal.UD_trans[i - 1 + (j - 1) * shared.dim.UD_trans.mult[1] + (k - 1) * shared.dim.UD_trans.mult[2]] - internal.DA_trans[i - 1 + (j - 1) * shared.dim.DA_trans.mult[1] + (k - 1) * shared.dim.DA_trans.mult[2]] - internal.DS_trans[i - 1 + (j - 1) * shared.dim.DS_trans.mult[1] + (k - 1) * shared.dim.DS_trans.mult[2]] - internal.D_death[i - 1 + (j - 1) * shared.dim.D_death.mult[1] + (k - 1) * shared.dim.D_death.mult[2]] - internal.D_age[i - 1 + (j - 1) * shared.dim.D_age.mult[1] + (k - 1) * shared.dim.D_age.mult[2]];
+          state_next[(j - 1) * shared.dim.D.mult[1] + (k - 1) * shared.dim.D.mult[2] + shared.odin.offset.state[28]] = D[i - 1 + (j - 1) * shared.dim.D.mult[1] + (k - 1) * shared.dim.D.mult[2]] + internal.SD_trans[i - 1 + (j - 1) * shared.dim.SD_trans.mult[1] + (k - 1) * shared.dim.SD_trans.mult[2]] + internal.AD_trans[i - 1 + (j - 1) * shared.dim.AD_trans.mult[1] + (k - 1) * shared.dim.AD_trans.mult[2]] + internal.UD_trans[i - 1 + (j - 1) * shared.dim.UD_trans.mult[1] + (k - 1) * shared.dim.UD_trans.mult[2]] - internal.DA_trans[i - 1 + (j - 1) * shared.dim.DA_trans.mult[1] + (k - 1) * shared.dim.DA_trans.mult[2]] - internal.DS_trans[i - 1 + (j - 1) * shared.dim.DS_trans.mult[1] + (k - 1) * shared.dim.DS_trans.mult[2]] - internal.D_death[i - 1 + (j - 1) * shared.dim.D_death.mult[1] + (k - 1) * shared.dim.D_death.mult[2]] - internal.D_age[i - 1 + (j - 1) * shared.dim.D_age.mult[1] + (k - 1) * shared.dim.D_age.mult[2]];
         }
       }
     }
     for (size_t i = 2; i <= static_cast<size_t>(shared.na); ++i) {
       for (size_t j = 1; j <= static_cast<size_t>(shared.nh); ++j) {
         for (size_t k = 1; k <= static_cast<size_t>(shared.num_int); ++k) {
-          state_next[i - 1 + (j - 1) * shared.dim.D.mult[1] + (k - 1) * shared.dim.D.mult[2] + shared.odin.offset.state[23]] = D[i - 1 + (j - 1) * shared.dim.D.mult[1] + (k - 1) * shared.dim.D.mult[2]] + internal.SD_trans[i - 1 + (j - 1) * shared.dim.SD_trans.mult[1] + (k - 1) * shared.dim.SD_trans.mult[2]] + internal.AD_trans[i - 1 + (j - 1) * shared.dim.AD_trans.mult[1] + (k - 1) * shared.dim.AD_trans.mult[2]] + internal.UD_trans[i - 1 + (j - 1) * shared.dim.UD_trans.mult[1] + (k - 1) * shared.dim.UD_trans.mult[2]] - internal.DA_trans[i - 1 + (j - 1) * shared.dim.DA_trans.mult[1] + (k - 1) * shared.dim.DA_trans.mult[2]] - internal.DS_trans[i - 1 + (j - 1) * shared.dim.DS_trans.mult[1] + (k - 1) * shared.dim.DS_trans.mult[2]] - internal.D_death[i - 1 + (j - 1) * shared.dim.D_death.mult[1] + (k - 1) * shared.dim.D_death.mult[2]] - internal.D_age[i - 1 + (j - 1) * shared.dim.D_age.mult[1] + (k - 1) * shared.dim.D_age.mult[2]] + internal.D_age[i - 1 - 1 + (j - 1) * shared.dim.D_age.mult[1] + (k - 1) * shared.dim.D_age.mult[2]];
+          state_next[i - 1 + (j - 1) * shared.dim.D.mult[1] + (k - 1) * shared.dim.D.mult[2] + shared.odin.offset.state[28]] = D[i - 1 + (j - 1) * shared.dim.D.mult[1] + (k - 1) * shared.dim.D.mult[2]] + internal.SD_trans[i - 1 + (j - 1) * shared.dim.SD_trans.mult[1] + (k - 1) * shared.dim.SD_trans.mult[2]] + internal.AD_trans[i - 1 + (j - 1) * shared.dim.AD_trans.mult[1] + (k - 1) * shared.dim.AD_trans.mult[2]] + internal.UD_trans[i - 1 + (j - 1) * shared.dim.UD_trans.mult[1] + (k - 1) * shared.dim.UD_trans.mult[2]] - internal.DA_trans[i - 1 + (j - 1) * shared.dim.DA_trans.mult[1] + (k - 1) * shared.dim.DA_trans.mult[2]] - internal.DS_trans[i - 1 + (j - 1) * shared.dim.DS_trans.mult[1] + (k - 1) * shared.dim.DS_trans.mult[2]] - internal.D_death[i - 1 + (j - 1) * shared.dim.D_death.mult[1] + (k - 1) * shared.dim.D_death.mult[2]] - internal.D_age[i - 1 + (j - 1) * shared.dim.D_age.mult[1] + (k - 1) * shared.dim.D_age.mult[2]] + internal.D_age[i - 1 - 1 + (j - 1) * shared.dim.D_age.mult[1] + (k - 1) * shared.dim.D_age.mult[2]];
         }
       }
     }
@@ -1595,14 +1605,14 @@ public:
       const size_t i = 1;
       for (size_t j = 1; j <= static_cast<size_t>(shared.nh); ++j) {
         for (size_t k = 1; k <= static_cast<size_t>(shared.num_int); ++k) {
-          state_next[(j - 1) * shared.dim.A.mult[1] + (k - 1) * shared.dim.A.mult[2] + shared.odin.offset.state[24]] = A[i - 1 + (j - 1) * shared.dim.A.mult[1] + (k - 1) * shared.dim.A.mult[2]] + internal.SA_trans[i - 1 + (j - 1) * shared.dim.SA_trans.mult[1] + (k - 1) * shared.dim.SA_trans.mult[2]] + internal.DA_trans[i - 1 + (j - 1) * shared.dim.DA_trans.mult[1] + (k - 1) * shared.dim.DA_trans.mult[2]] + internal.UA_trans[i - 1 + (j - 1) * shared.dim.UA_trans.mult[1] + (k - 1) * shared.dim.UA_trans.mult[2]] - internal.AT_trans[i - 1 + (j - 1) * shared.dim.AT_trans.mult[1] + (k - 1) * shared.dim.AT_trans.mult[2]] - internal.AD_trans[i - 1 + (j - 1) * shared.dim.AD_trans.mult[1] + (k - 1) * shared.dim.AD_trans.mult[2]] - internal.AU_trans[i - 1 + (j - 1) * shared.dim.AU_trans.mult[1] + (k - 1) * shared.dim.AU_trans.mult[2]] - internal.AS_trans[i - 1 + (j - 1) * shared.dim.AS_trans.mult[1] + (k - 1) * shared.dim.AS_trans.mult[2]] - internal.A_death[i - 1 + (j - 1) * shared.dim.A_death.mult[1] + (k - 1) * shared.dim.A_death.mult[2]] - internal.A_age[i - 1 + (j - 1) * shared.dim.A_age.mult[1] + (k - 1) * shared.dim.A_age.mult[2]];
+          state_next[(j - 1) * shared.dim.A.mult[1] + (k - 1) * shared.dim.A.mult[2] + shared.odin.offset.state[29]] = A[i - 1 + (j - 1) * shared.dim.A.mult[1] + (k - 1) * shared.dim.A.mult[2]] + internal.SA_trans[i - 1 + (j - 1) * shared.dim.SA_trans.mult[1] + (k - 1) * shared.dim.SA_trans.mult[2]] + internal.DA_trans[i - 1 + (j - 1) * shared.dim.DA_trans.mult[1] + (k - 1) * shared.dim.DA_trans.mult[2]] + internal.UA_trans[i - 1 + (j - 1) * shared.dim.UA_trans.mult[1] + (k - 1) * shared.dim.UA_trans.mult[2]] - internal.AT_trans[i - 1 + (j - 1) * shared.dim.AT_trans.mult[1] + (k - 1) * shared.dim.AT_trans.mult[2]] - internal.AD_trans[i - 1 + (j - 1) * shared.dim.AD_trans.mult[1] + (k - 1) * shared.dim.AD_trans.mult[2]] - internal.AU_trans[i - 1 + (j - 1) * shared.dim.AU_trans.mult[1] + (k - 1) * shared.dim.AU_trans.mult[2]] - internal.AS_trans[i - 1 + (j - 1) * shared.dim.AS_trans.mult[1] + (k - 1) * shared.dim.AS_trans.mult[2]] - internal.A_death[i - 1 + (j - 1) * shared.dim.A_death.mult[1] + (k - 1) * shared.dim.A_death.mult[2]] - internal.A_age[i - 1 + (j - 1) * shared.dim.A_age.mult[1] + (k - 1) * shared.dim.A_age.mult[2]];
         }
       }
     }
     for (size_t i = 2; i <= static_cast<size_t>(shared.na); ++i) {
       for (size_t j = 1; j <= static_cast<size_t>(shared.nh); ++j) {
         for (size_t k = 1; k <= static_cast<size_t>(shared.num_int); ++k) {
-          state_next[i - 1 + (j - 1) * shared.dim.A.mult[1] + (k - 1) * shared.dim.A.mult[2] + shared.odin.offset.state[24]] = A[i - 1 + (j - 1) * shared.dim.A.mult[1] + (k - 1) * shared.dim.A.mult[2]] + internal.SA_trans[i - 1 + (j - 1) * shared.dim.SA_trans.mult[1] + (k - 1) * shared.dim.SA_trans.mult[2]] + internal.DA_trans[i - 1 + (j - 1) * shared.dim.DA_trans.mult[1] + (k - 1) * shared.dim.DA_trans.mult[2]] + internal.UA_trans[i - 1 + (j - 1) * shared.dim.UA_trans.mult[1] + (k - 1) * shared.dim.UA_trans.mult[2]] - internal.AT_trans[i - 1 + (j - 1) * shared.dim.AT_trans.mult[1] + (k - 1) * shared.dim.AT_trans.mult[2]] - internal.AD_trans[i - 1 + (j - 1) * shared.dim.AD_trans.mult[1] + (k - 1) * shared.dim.AD_trans.mult[2]] - internal.AU_trans[i - 1 + (j - 1) * shared.dim.AU_trans.mult[1] + (k - 1) * shared.dim.AU_trans.mult[2]] - internal.AS_trans[i - 1 + (j - 1) * shared.dim.AS_trans.mult[1] + (k - 1) * shared.dim.AS_trans.mult[2]] - internal.A_death[i - 1 + (j - 1) * shared.dim.A_death.mult[1] + (k - 1) * shared.dim.A_death.mult[2]] - internal.A_age[i - 1 + (j - 1) * shared.dim.A_age.mult[1] + (k - 1) * shared.dim.A_age.mult[2]] + internal.A_age[i - 1 - 1 + (j - 1) * shared.dim.A_age.mult[1] + (k - 1) * shared.dim.A_age.mult[2]];
+          state_next[i - 1 + (j - 1) * shared.dim.A.mult[1] + (k - 1) * shared.dim.A.mult[2] + shared.odin.offset.state[29]] = A[i - 1 + (j - 1) * shared.dim.A.mult[1] + (k - 1) * shared.dim.A.mult[2]] + internal.SA_trans[i - 1 + (j - 1) * shared.dim.SA_trans.mult[1] + (k - 1) * shared.dim.SA_trans.mult[2]] + internal.DA_trans[i - 1 + (j - 1) * shared.dim.DA_trans.mult[1] + (k - 1) * shared.dim.DA_trans.mult[2]] + internal.UA_trans[i - 1 + (j - 1) * shared.dim.UA_trans.mult[1] + (k - 1) * shared.dim.UA_trans.mult[2]] - internal.AT_trans[i - 1 + (j - 1) * shared.dim.AT_trans.mult[1] + (k - 1) * shared.dim.AT_trans.mult[2]] - internal.AD_trans[i - 1 + (j - 1) * shared.dim.AD_trans.mult[1] + (k - 1) * shared.dim.AD_trans.mult[2]] - internal.AU_trans[i - 1 + (j - 1) * shared.dim.AU_trans.mult[1] + (k - 1) * shared.dim.AU_trans.mult[2]] - internal.AS_trans[i - 1 + (j - 1) * shared.dim.AS_trans.mult[1] + (k - 1) * shared.dim.AS_trans.mult[2]] - internal.A_death[i - 1 + (j - 1) * shared.dim.A_death.mult[1] + (k - 1) * shared.dim.A_death.mult[2]] - internal.A_age[i - 1 + (j - 1) * shared.dim.A_age.mult[1] + (k - 1) * shared.dim.A_age.mult[2]] + internal.A_age[i - 1 - 1 + (j - 1) * shared.dim.A_age.mult[1] + (k - 1) * shared.dim.A_age.mult[2]];
         }
       }
     }
@@ -1610,14 +1620,14 @@ public:
       const size_t i = 1;
       for (size_t j = 1; j <= static_cast<size_t>(shared.nh); ++j) {
         for (size_t k = 1; k <= static_cast<size_t>(shared.num_int); ++k) {
-          state_next[(j - 1) * shared.dim.U.mult[1] + (k - 1) * shared.dim.U.mult[2] + shared.odin.offset.state[25]] = U[i - 1 + (j - 1) * shared.dim.U.mult[1] + (k - 1) * shared.dim.U.mult[2]] + internal.AU_trans[i - 1 + (j - 1) * shared.dim.AU_trans.mult[1] + (k - 1) * shared.dim.AU_trans.mult[2]] - internal.UD_trans[i - 1 + (j - 1) * shared.dim.UD_trans.mult[1] + (k - 1) * shared.dim.UD_trans.mult[2]] - internal.UT_trans[i - 1 + (j - 1) * shared.dim.UT_trans.mult[1] + (k - 1) * shared.dim.UT_trans.mult[2]] - internal.US_trans[i - 1 + (j - 1) * shared.dim.US_trans.mult[1] + (k - 1) * shared.dim.US_trans.mult[2]] - internal.US_trans_SMC[i - 1 + (j - 1) * shared.dim.US_trans_SMC.mult[1] + (k - 1) * shared.dim.US_trans_SMC.mult[2]] - internal.UA_trans[i - 1 + (j - 1) * shared.dim.UA_trans.mult[1] + (k - 1) * shared.dim.UA_trans.mult[2]] - internal.U_age[i - 1 + (j - 1) * shared.dim.U_age.mult[1] + (k - 1) * shared.dim.U_age.mult[2]] - internal.U_death[i - 1 + (j - 1) * shared.dim.U_death.mult[1] + (k - 1) * shared.dim.U_death.mult[2]];
+          state_next[(j - 1) * shared.dim.U.mult[1] + (k - 1) * shared.dim.U.mult[2] + shared.odin.offset.state[30]] = U[i - 1 + (j - 1) * shared.dim.U.mult[1] + (k - 1) * shared.dim.U.mult[2]] + internal.AU_trans[i - 1 + (j - 1) * shared.dim.AU_trans.mult[1] + (k - 1) * shared.dim.AU_trans.mult[2]] - internal.UD_trans[i - 1 + (j - 1) * shared.dim.UD_trans.mult[1] + (k - 1) * shared.dim.UD_trans.mult[2]] - internal.UT_trans[i - 1 + (j - 1) * shared.dim.UT_trans.mult[1] + (k - 1) * shared.dim.UT_trans.mult[2]] - internal.US_trans[i - 1 + (j - 1) * shared.dim.US_trans.mult[1] + (k - 1) * shared.dim.US_trans.mult[2]] - internal.US_trans_SMC[i - 1 + (j - 1) * shared.dim.US_trans_SMC.mult[1] + (k - 1) * shared.dim.US_trans_SMC.mult[2]] - internal.UA_trans[i - 1 + (j - 1) * shared.dim.UA_trans.mult[1] + (k - 1) * shared.dim.UA_trans.mult[2]] - internal.U_age[i - 1 + (j - 1) * shared.dim.U_age.mult[1] + (k - 1) * shared.dim.U_age.mult[2]] - internal.U_death[i - 1 + (j - 1) * shared.dim.U_death.mult[1] + (k - 1) * shared.dim.U_death.mult[2]];
         }
       }
     }
     for (size_t i = 2; i <= static_cast<size_t>(shared.na); ++i) {
       for (size_t j = 1; j <= static_cast<size_t>(shared.nh); ++j) {
         for (size_t k = 1; k <= static_cast<size_t>(shared.num_int); ++k) {
-          state_next[i - 1 + (j - 1) * shared.dim.U.mult[1] + (k - 1) * shared.dim.U.mult[2] + shared.odin.offset.state[25]] = U[i - 1 + (j - 1) * shared.dim.U.mult[1] + (k - 1) * shared.dim.U.mult[2]] + internal.AU_trans[i - 1 + (j - 1) * shared.dim.AU_trans.mult[1] + (k - 1) * shared.dim.AU_trans.mult[2]] - internal.UD_trans[i - 1 + (j - 1) * shared.dim.UD_trans.mult[1] + (k - 1) * shared.dim.UD_trans.mult[2]] - internal.UT_trans[i - 1 + (j - 1) * shared.dim.UT_trans.mult[1] + (k - 1) * shared.dim.UT_trans.mult[2]] - internal.US_trans[i - 1 + (j - 1) * shared.dim.US_trans.mult[1] + (k - 1) * shared.dim.US_trans.mult[2]] - internal.US_trans_SMC[i - 1 + (j - 1) * shared.dim.US_trans_SMC.mult[1] + (k - 1) * shared.dim.US_trans_SMC.mult[2]] - internal.UA_trans[i - 1 + (j - 1) * shared.dim.UA_trans.mult[1] + (k - 1) * shared.dim.UA_trans.mult[2]] - internal.U_age[i - 1 + (j - 1) * shared.dim.U_age.mult[1] + (k - 1) * shared.dim.U_age.mult[2]] - internal.U_death[i - 1 + (j - 1) * shared.dim.U_death.mult[1] + (k - 1) * shared.dim.U_death.mult[2]] + internal.U_age[i - 1 - 1 + (j - 1) * shared.dim.U_age.mult[1] + (k - 1) * shared.dim.U_age.mult[2]];
+          state_next[i - 1 + (j - 1) * shared.dim.U.mult[1] + (k - 1) * shared.dim.U.mult[2] + shared.odin.offset.state[30]] = U[i - 1 + (j - 1) * shared.dim.U.mult[1] + (k - 1) * shared.dim.U.mult[2]] + internal.AU_trans[i - 1 + (j - 1) * shared.dim.AU_trans.mult[1] + (k - 1) * shared.dim.AU_trans.mult[2]] - internal.UD_trans[i - 1 + (j - 1) * shared.dim.UD_trans.mult[1] + (k - 1) * shared.dim.UD_trans.mult[2]] - internal.UT_trans[i - 1 + (j - 1) * shared.dim.UT_trans.mult[1] + (k - 1) * shared.dim.UT_trans.mult[2]] - internal.US_trans[i - 1 + (j - 1) * shared.dim.US_trans.mult[1] + (k - 1) * shared.dim.US_trans.mult[2]] - internal.US_trans_SMC[i - 1 + (j - 1) * shared.dim.US_trans_SMC.mult[1] + (k - 1) * shared.dim.US_trans_SMC.mult[2]] - internal.UA_trans[i - 1 + (j - 1) * shared.dim.UA_trans.mult[1] + (k - 1) * shared.dim.UA_trans.mult[2]] - internal.U_age[i - 1 + (j - 1) * shared.dim.U_age.mult[1] + (k - 1) * shared.dim.U_age.mult[2]] - internal.U_death[i - 1 + (j - 1) * shared.dim.U_death.mult[1] + (k - 1) * shared.dim.U_death.mult[2]] + internal.U_age[i - 1 - 1 + (j - 1) * shared.dim.U_age.mult[1] + (k - 1) * shared.dim.U_age.mult[2]];
         }
       }
     }
@@ -1625,21 +1635,21 @@ public:
       const size_t i = 1;
       for (size_t j = 1; j <= static_cast<size_t>(shared.nh); ++j) {
         for (size_t k = 1; k <= static_cast<size_t>(shared.num_int); ++k) {
-          state_next[(j - 1) * shared.dim.P.mult[1] + (k - 1) * shared.dim.P.mult[2] + shared.odin.offset.state[26]] = P[i - 1 + (j - 1) * shared.dim.P.mult[1] + (k - 1) * shared.dim.P.mult[2]] + internal.TP_trans[i - 1 + (j - 1) * shared.dim.TP_trans.mult[1] + (k - 1) * shared.dim.TP_trans.mult[2]] - internal.PS_trans[i - 1 + (j - 1) * shared.dim.PS_trans.mult[1] + (k - 1) * shared.dim.PS_trans.mult[2]] - internal.P_death[i - 1 + (j - 1) * shared.dim.P_death.mult[1] + (k - 1) * shared.dim.P_death.mult[2]] - internal.P_age[i - 1 + (j - 1) * shared.dim.P_age.mult[1] + (k - 1) * shared.dim.P_age.mult[2]];
+          state_next[(j - 1) * shared.dim.P.mult[1] + (k - 1) * shared.dim.P.mult[2] + shared.odin.offset.state[31]] = P[i - 1 + (j - 1) * shared.dim.P.mult[1] + (k - 1) * shared.dim.P.mult[2]] + internal.TP_trans[i - 1 + (j - 1) * shared.dim.TP_trans.mult[1] + (k - 1) * shared.dim.TP_trans.mult[2]] - internal.PS_trans[i - 1 + (j - 1) * shared.dim.PS_trans.mult[1] + (k - 1) * shared.dim.PS_trans.mult[2]] - internal.P_death[i - 1 + (j - 1) * shared.dim.P_death.mult[1] + (k - 1) * shared.dim.P_death.mult[2]] - internal.P_age[i - 1 + (j - 1) * shared.dim.P_age.mult[1] + (k - 1) * shared.dim.P_age.mult[2]];
         }
       }
     }
     for (size_t i = 2; i <= static_cast<size_t>(shared.na); ++i) {
       for (size_t j = 1; j <= static_cast<size_t>(shared.nh); ++j) {
         for (size_t k = 1; k <= static_cast<size_t>(shared.num_int); ++k) {
-          state_next[i - 1 + (j - 1) * shared.dim.P.mult[1] + (k - 1) * shared.dim.P.mult[2] + shared.odin.offset.state[26]] = P[i - 1 + (j - 1) * shared.dim.P.mult[1] + (k - 1) * shared.dim.P.mult[2]] + internal.TP_trans[i - 1 + (j - 1) * shared.dim.TP_trans.mult[1] + (k - 1) * shared.dim.TP_trans.mult[2]] - internal.PS_trans[i - 1 + (j - 1) * shared.dim.PS_trans.mult[1] + (k - 1) * shared.dim.PS_trans.mult[2]] - internal.P_death[i - 1 + (j - 1) * shared.dim.P_death.mult[1] + (k - 1) * shared.dim.P_death.mult[2]] - internal.P_age[i - 1 + (j - 1) * shared.dim.P_age.mult[1] + (k - 1) * shared.dim.P_age.mult[2]] + internal.P_age[i - 1 - 1 + (j - 1) * shared.dim.P_age.mult[1] + (k - 1) * shared.dim.P_age.mult[2]];
+          state_next[i - 1 + (j - 1) * shared.dim.P.mult[1] + (k - 1) * shared.dim.P.mult[2] + shared.odin.offset.state[31]] = P[i - 1 + (j - 1) * shared.dim.P.mult[1] + (k - 1) * shared.dim.P.mult[2]] + internal.TP_trans[i - 1 + (j - 1) * shared.dim.TP_trans.mult[1] + (k - 1) * shared.dim.TP_trans.mult[2]] - internal.PS_trans[i - 1 + (j - 1) * shared.dim.PS_trans.mult[1] + (k - 1) * shared.dim.PS_trans.mult[2]] - internal.P_death[i - 1 + (j - 1) * shared.dim.P_death.mult[1] + (k - 1) * shared.dim.P_death.mult[2]] - internal.P_age[i - 1 + (j - 1) * shared.dim.P_age.mult[1] + (k - 1) * shared.dim.P_age.mult[2]] + internal.P_age[i - 1 - 1 + (j - 1) * shared.dim.P_age.mult[1] + (k - 1) * shared.dim.P_age.mult[2]];
         }
       }
     }
     for (size_t i = 1; i <= shared.dim.FOI_XL.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.FOI_XL.dim[1]; ++j) {
         for (size_t k = 1; k <= shared.dim.FOI_XL.dim[2]; ++k) {
-          state_next[i - 1 + (j - 1) * shared.dim.FOI_XL.mult[1] + (k - 1) * shared.dim.FOI_XL.mult[2] + shared.odin.offset.state[27]] = FOI_XL[i - 1 + (j - 1) * shared.dim.FOI_XL.mult[1] + (k - 1) * shared.dim.FOI_XL.mult[2]] + dt * ((shared.lag_rates / shared.dE) * internal.FOI_lag[i - 1 + (j - 1) * shared.dim.FOI_lag.mult[1] + (k - 1) * shared.dim.FOI_lag.mult[2]] - (shared.lag_rates / shared.dE) * FOI_XL[i - 1 + (j - 1) * shared.dim.FOI_XL.mult[1] + (k - 1) * shared.dim.FOI_XL.mult[2]]);
+          state_next[i - 1 + (j - 1) * shared.dim.FOI_XL.mult[1] + (k - 1) * shared.dim.FOI_XL.mult[2] + shared.odin.offset.state[32]] = FOI_XL[i - 1 + (j - 1) * shared.dim.FOI_XL.mult[1] + (k - 1) * shared.dim.FOI_XL.mult[2]] + dt * ((shared.lag_rates / shared.dE) * internal.FOI_lag[i - 1 + (j - 1) * shared.dim.FOI_lag.mult[1] + (k - 1) * shared.dim.FOI_lag.mult[2]] - (shared.lag_rates / shared.dE) * FOI_XL[i - 1 + (j - 1) * shared.dim.FOI_XL.mult[1] + (k - 1) * shared.dim.FOI_XL.mult[2]]);
         }
       }
     }
@@ -1647,7 +1657,7 @@ public:
       for (size_t j = 1; j <= shared.dim.FOI_XL.dim[1]; ++j) {
         for (size_t k = 1; k <= shared.dim.FOI_XL.dim[2]; ++k) {
           for (size_t l = 2; l <= static_cast<size_t>(shared.lag_rates); ++l) {
-            state_next[i - 1 + (j - 1) * shared.dim.FOI_XL.mult[1] + (k - 1) * shared.dim.FOI_XL.mult[2] + (l - 1) * shared.dim.FOI_XL.mult[3] + shared.odin.offset.state[27]] = FOI_XL[i - 1 + (j - 1) * shared.dim.FOI_XL.mult[1] + (k - 1) * shared.dim.FOI_XL.mult[2] + (l - 1) * shared.dim.FOI_XL.mult[3]] + dt * ((shared.lag_rates / shared.dE) * FOI_XL[i - 1 + (j - 1) * shared.dim.FOI_XL.mult[1] + (k - 1) * shared.dim.FOI_XL.mult[2] + (l - 1 - 1) * shared.dim.FOI_XL.mult[3]] - (shared.lag_rates / shared.dE) * FOI_XL[i - 1 + (j - 1) * shared.dim.FOI_XL.mult[1] + (k - 1) * shared.dim.FOI_XL.mult[2] + (l - 1) * shared.dim.FOI_XL.mult[3]]);
+            state_next[i - 1 + (j - 1) * shared.dim.FOI_XL.mult[1] + (k - 1) * shared.dim.FOI_XL.mult[2] + (l - 1) * shared.dim.FOI_XL.mult[3] + shared.odin.offset.state[32]] = FOI_XL[i - 1 + (j - 1) * shared.dim.FOI_XL.mult[1] + (k - 1) * shared.dim.FOI_XL.mult[2] + (l - 1) * shared.dim.FOI_XL.mult[3]] + dt * ((shared.lag_rates / shared.dE) * FOI_XL[i - 1 + (j - 1) * shared.dim.FOI_XL.mult[1] + (k - 1) * shared.dim.FOI_XL.mult[2] + (l - 1 - 1) * shared.dim.FOI_XL.mult[3]] - (shared.lag_rates / shared.dE) * FOI_XL[i - 1 + (j - 1) * shared.dim.FOI_XL.mult[1] + (k - 1) * shared.dim.FOI_XL.mult[2] + (l - 1) * shared.dim.FOI_XL.mult[3]]);
           }
         }
       }
@@ -1656,14 +1666,14 @@ public:
       const size_t i = 1;
       for (size_t j = 1; j <= static_cast<size_t>(shared.nh); ++j) {
         for (size_t k = 1; k <= static_cast<size_t>(shared.num_int); ++k) {
-          state_next[(j - 1) * shared.dim.ICM.mult[1] + (k - 1) * shared.dim.ICM.mult[2] + shared.odin.offset.state[28]] = ICM[i - 1 + (j - 1) * shared.dim.ICM.mult[1] + (k - 1) * shared.dim.ICM.mult[2]] + dt * (-1 / shared.dCM * ICM[i - 1 + (j - 1) * shared.dim.ICM.mult[1] + (k - 1) * shared.dim.ICM.mult[2]] + (internal.init_ICM_pre[j - 1 + (k - 1) * shared.dim.init_ICM_pre.mult[1]] - ICM[i - 1 + (j - 1) * shared.dim.ICM.mult[1] + (k - 1) * shared.dim.ICM.mult[2]]) / shared.x_I[i - 1]);
+          state_next[(j - 1) * shared.dim.ICM.mult[1] + (k - 1) * shared.dim.ICM.mult[2] + shared.odin.offset.state[33]] = ICM[i - 1 + (j - 1) * shared.dim.ICM.mult[1] + (k - 1) * shared.dim.ICM.mult[2]] + dt * (-1 / shared.dCM * ICM[i - 1 + (j - 1) * shared.dim.ICM.mult[1] + (k - 1) * shared.dim.ICM.mult[2]] + (internal.init_ICM_pre[j - 1 + (k - 1) * shared.dim.init_ICM_pre.mult[1]] - ICM[i - 1 + (j - 1) * shared.dim.ICM.mult[1] + (k - 1) * shared.dim.ICM.mult[2]]) / shared.x_I[i - 1]);
         }
       }
     }
     for (size_t i = 2; i <= static_cast<size_t>(shared.na); ++i) {
       for (size_t j = 1; j <= static_cast<size_t>(shared.nh); ++j) {
         for (size_t k = 1; k <= static_cast<size_t>(shared.num_int); ++k) {
-          state_next[i - 1 + (j - 1) * shared.dim.ICM.mult[1] + (k - 1) * shared.dim.ICM.mult[2] + shared.odin.offset.state[28]] = ICM[i - 1 + (j - 1) * shared.dim.ICM.mult[1] + (k - 1) * shared.dim.ICM.mult[2]] + dt * (-1 / shared.dCM * ICM[i - 1 + (j - 1) * shared.dim.ICM.mult[1] + (k - 1) * shared.dim.ICM.mult[2]] - (ICM[i - 1 + (j - 1) * shared.dim.ICM.mult[1] + (k - 1) * shared.dim.ICM.mult[2]] - ICM[i - 1 - 1 + (j - 1) * shared.dim.ICM.mult[1] + (k - 1) * shared.dim.ICM.mult[2]]) / shared.x_I[i - 1]);
+          state_next[i - 1 + (j - 1) * shared.dim.ICM.mult[1] + (k - 1) * shared.dim.ICM.mult[2] + shared.odin.offset.state[33]] = ICM[i - 1 + (j - 1) * shared.dim.ICM.mult[1] + (k - 1) * shared.dim.ICM.mult[2]] + dt * (-1 / shared.dCM * ICM[i - 1 + (j - 1) * shared.dim.ICM.mult[1] + (k - 1) * shared.dim.ICM.mult[2]] - (ICM[i - 1 + (j - 1) * shared.dim.ICM.mult[1] + (k - 1) * shared.dim.ICM.mult[2]] - ICM[i - 1 - 1 + (j - 1) * shared.dim.ICM.mult[1] + (k - 1) * shared.dim.ICM.mult[2]]) / shared.x_I[i - 1]);
         }
       }
     }
@@ -1671,14 +1681,14 @@ public:
       const size_t i = 1;
       for (size_t j = 1; j <= static_cast<size_t>(shared.nh); ++j) {
         for (size_t k = 1; k <= static_cast<size_t>(shared.num_int); ++k) {
-          state_next[(j - 1) * shared.dim.ICA.mult[1] + (k - 1) * shared.dim.ICA.mult[2] + shared.odin.offset.state[29]] = ICA[i - 1 + (j - 1) * shared.dim.ICA.mult[1] + (k - 1) * shared.dim.ICA.mult[2]] + dt * (internal.FOI_smc[i - 1 + (j - 1) * shared.dim.FOI_smc.mult[1] + (k - 1) * shared.dim.FOI_smc.mult[2]] / (internal.FOI_smc[i - 1 + (j - 1) * shared.dim.FOI_smc.mult[1] + (k - 1) * shared.dim.FOI_smc.mult[2]] * shared.uCA + 1) - 1 / shared.dCA * ICA[i - 1 + (j - 1) * shared.dim.ICA.mult[1] + (k - 1) * shared.dim.ICA.mult[2]] - ICA[i - 1 + (j - 1) * shared.dim.ICA.mult[1] + (k - 1) * shared.dim.ICA.mult[2]] / shared.x_I[i - 1]);
+          state_next[(j - 1) * shared.dim.ICA.mult[1] + (k - 1) * shared.dim.ICA.mult[2] + shared.odin.offset.state[34]] = ICA[i - 1 + (j - 1) * shared.dim.ICA.mult[1] + (k - 1) * shared.dim.ICA.mult[2]] + dt * (internal.FOI_smc[i - 1 + (j - 1) * shared.dim.FOI_smc.mult[1] + (k - 1) * shared.dim.FOI_smc.mult[2]] / (internal.FOI_smc[i - 1 + (j - 1) * shared.dim.FOI_smc.mult[1] + (k - 1) * shared.dim.FOI_smc.mult[2]] * shared.uCA + 1) - 1 / shared.dCA * ICA[i - 1 + (j - 1) * shared.dim.ICA.mult[1] + (k - 1) * shared.dim.ICA.mult[2]] - ICA[i - 1 + (j - 1) * shared.dim.ICA.mult[1] + (k - 1) * shared.dim.ICA.mult[2]] / shared.x_I[i - 1]);
         }
       }
     }
     for (size_t i = 2; i <= static_cast<size_t>(shared.na); ++i) {
       for (size_t j = 1; j <= static_cast<size_t>(shared.nh); ++j) {
         for (size_t k = 1; k <= static_cast<size_t>(shared.num_int); ++k) {
-          state_next[i - 1 + (j - 1) * shared.dim.ICA.mult[1] + (k - 1) * shared.dim.ICA.mult[2] + shared.odin.offset.state[29]] = ICA[i - 1 + (j - 1) * shared.dim.ICA.mult[1] + (k - 1) * shared.dim.ICA.mult[2]] + dt * (internal.FOI_smc[i - 1 + (j - 1) * shared.dim.FOI_smc.mult[1] + (k - 1) * shared.dim.FOI_smc.mult[2]] / (internal.FOI_smc[i - 1 + (j - 1) * shared.dim.FOI_smc.mult[1] + (k - 1) * shared.dim.FOI_smc.mult[2]] * shared.uCA + 1) - 1 / shared.dCA * ICA[i - 1 + (j - 1) * shared.dim.ICA.mult[1] + (k - 1) * shared.dim.ICA.mult[2]] - (ICA[i - 1 + (j - 1) * shared.dim.ICA.mult[1] + (k - 1) * shared.dim.ICA.mult[2]] - ICA[i - 1 - 1 + (j - 1) * shared.dim.ICA.mult[1] + (k - 1) * shared.dim.ICA.mult[2]]) / shared.x_I[i - 1]);
+          state_next[i - 1 + (j - 1) * shared.dim.ICA.mult[1] + (k - 1) * shared.dim.ICA.mult[2] + shared.odin.offset.state[34]] = ICA[i - 1 + (j - 1) * shared.dim.ICA.mult[1] + (k - 1) * shared.dim.ICA.mult[2]] + dt * (internal.FOI_smc[i - 1 + (j - 1) * shared.dim.FOI_smc.mult[1] + (k - 1) * shared.dim.FOI_smc.mult[2]] / (internal.FOI_smc[i - 1 + (j - 1) * shared.dim.FOI_smc.mult[1] + (k - 1) * shared.dim.FOI_smc.mult[2]] * shared.uCA + 1) - 1 / shared.dCA * ICA[i - 1 + (j - 1) * shared.dim.ICA.mult[1] + (k - 1) * shared.dim.ICA.mult[2]] - (ICA[i - 1 + (j - 1) * shared.dim.ICA.mult[1] + (k - 1) * shared.dim.ICA.mult[2]] - ICA[i - 1 - 1 + (j - 1) * shared.dim.ICA.mult[1] + (k - 1) * shared.dim.ICA.mult[2]]) / shared.x_I[i - 1]);
         }
       }
     }
@@ -1686,14 +1696,14 @@ public:
       const size_t i = 1;
       for (size_t j = 1; j <= static_cast<size_t>(shared.nh); ++j) {
         for (size_t k = 1; k <= static_cast<size_t>(shared.num_int); ++k) {
-          state_next[(j - 1) * shared.dim.IB.mult[1] + (k - 1) * shared.dim.IB.mult[2] + shared.odin.offset.state[30]] = IB[i - 1 + (j - 1) * shared.dim.IB.mult[1] + (k - 1) * shared.dim.IB.mult[2]] + dt * (internal.EIR[i - 1 + (j - 1) * shared.dim.EIR.mult[1] + (k - 1) * shared.dim.EIR.mult[2]] / (internal.EIR[i - 1 + (j - 1) * shared.dim.EIR.mult[1] + (k - 1) * shared.dim.EIR.mult[2]] * shared.uB + 1) - IB[i - 1 + (j - 1) * shared.dim.IB.mult[1] + (k - 1) * shared.dim.IB.mult[2]] / shared.dB - IB[i - 1 + (j - 1) * shared.dim.IB.mult[1] + (k - 1) * shared.dim.IB.mult[2]] / shared.x_I[i - 1]);
+          state_next[(j - 1) * shared.dim.IB.mult[1] + (k - 1) * shared.dim.IB.mult[2] + shared.odin.offset.state[35]] = IB[i - 1 + (j - 1) * shared.dim.IB.mult[1] + (k - 1) * shared.dim.IB.mult[2]] + dt * (internal.EIR[i - 1 + (j - 1) * shared.dim.EIR.mult[1] + (k - 1) * shared.dim.EIR.mult[2]] / (internal.EIR[i - 1 + (j - 1) * shared.dim.EIR.mult[1] + (k - 1) * shared.dim.EIR.mult[2]] * shared.uB + 1) - IB[i - 1 + (j - 1) * shared.dim.IB.mult[1] + (k - 1) * shared.dim.IB.mult[2]] / shared.dB - IB[i - 1 + (j - 1) * shared.dim.IB.mult[1] + (k - 1) * shared.dim.IB.mult[2]] / shared.x_I[i - 1]);
         }
       }
     }
     for (size_t i = 2; i <= static_cast<size_t>(shared.na); ++i) {
       for (size_t j = 1; j <= static_cast<size_t>(shared.nh); ++j) {
         for (size_t k = 1; k <= static_cast<size_t>(shared.num_int); ++k) {
-          state_next[i - 1 + (j - 1) * shared.dim.IB.mult[1] + (k - 1) * shared.dim.IB.mult[2] + shared.odin.offset.state[30]] = IB[i - 1 + (j - 1) * shared.dim.IB.mult[1] + (k - 1) * shared.dim.IB.mult[2]] + dt * (internal.EIR[i - 1 + (j - 1) * shared.dim.EIR.mult[1] + (k - 1) * shared.dim.EIR.mult[2]] / (internal.EIR[i - 1 + (j - 1) * shared.dim.EIR.mult[1] + (k - 1) * shared.dim.EIR.mult[2]] * shared.uB + 1) - IB[i - 1 + (j - 1) * shared.dim.IB.mult[1] + (k - 1) * shared.dim.IB.mult[2]] / shared.dB - (IB[i - 1 + (j - 1) * shared.dim.IB.mult[1] + (k - 1) * shared.dim.IB.mult[2]] - IB[i - 1 - 1 + (j - 1) * shared.dim.IB.mult[1] + (k - 1) * shared.dim.IB.mult[2]]) / shared.x_I[i - 1]);
+          state_next[i - 1 + (j - 1) * shared.dim.IB.mult[1] + (k - 1) * shared.dim.IB.mult[2] + shared.odin.offset.state[35]] = IB[i - 1 + (j - 1) * shared.dim.IB.mult[1] + (k - 1) * shared.dim.IB.mult[2]] + dt * (internal.EIR[i - 1 + (j - 1) * shared.dim.EIR.mult[1] + (k - 1) * shared.dim.EIR.mult[2]] / (internal.EIR[i - 1 + (j - 1) * shared.dim.EIR.mult[1] + (k - 1) * shared.dim.EIR.mult[2]] * shared.uB + 1) - IB[i - 1 + (j - 1) * shared.dim.IB.mult[1] + (k - 1) * shared.dim.IB.mult[2]] / shared.dB - (IB[i - 1 + (j - 1) * shared.dim.IB.mult[1] + (k - 1) * shared.dim.IB.mult[2]] - IB[i - 1 - 1 + (j - 1) * shared.dim.IB.mult[1] + (k - 1) * shared.dim.IB.mult[2]]) / shared.x_I[i - 1]);
         }
       }
     }
@@ -1701,24 +1711,24 @@ public:
       const size_t i = 1;
       for (size_t j = 1; j <= static_cast<size_t>(shared.nh); ++j) {
         for (size_t k = 1; k <= static_cast<size_t>(shared.num_int); ++k) {
-          state_next[(j - 1) * shared.dim.ID.mult[1] + (k - 1) * shared.dim.ID.mult[2] + shared.odin.offset.state[31]] = ID[i - 1 + (j - 1) * shared.dim.ID.mult[1] + (k - 1) * shared.dim.ID.mult[2]] + dt * (internal.FOI_smc[i - 1 + (j - 1) * shared.dim.FOI_smc.mult[1] + (k - 1) * shared.dim.FOI_smc.mult[2]] / (internal.FOI_smc[i - 1 + (j - 1) * shared.dim.FOI_smc.mult[1] + (k - 1) * shared.dim.FOI_smc.mult[2]] * shared.uD + 1) - ID[i - 1 + (j - 1) * shared.dim.ID.mult[1] + (k - 1) * shared.dim.ID.mult[2]] / shared.dID - ID[i - 1 + (j - 1) * shared.dim.ID.mult[1] + (k - 1) * shared.dim.ID.mult[2]] / shared.x_I[i - 1]);
+          state_next[(j - 1) * shared.dim.ID.mult[1] + (k - 1) * shared.dim.ID.mult[2] + shared.odin.offset.state[36]] = ID[i - 1 + (j - 1) * shared.dim.ID.mult[1] + (k - 1) * shared.dim.ID.mult[2]] + dt * (internal.FOI_smc[i - 1 + (j - 1) * shared.dim.FOI_smc.mult[1] + (k - 1) * shared.dim.FOI_smc.mult[2]] / (internal.FOI_smc[i - 1 + (j - 1) * shared.dim.FOI_smc.mult[1] + (k - 1) * shared.dim.FOI_smc.mult[2]] * shared.uD + 1) - ID[i - 1 + (j - 1) * shared.dim.ID.mult[1] + (k - 1) * shared.dim.ID.mult[2]] / shared.dID - ID[i - 1 + (j - 1) * shared.dim.ID.mult[1] + (k - 1) * shared.dim.ID.mult[2]] / shared.x_I[i - 1]);
         }
       }
     }
     for (size_t i = 2; i <= static_cast<size_t>(shared.na); ++i) {
       for (size_t j = 1; j <= static_cast<size_t>(shared.nh); ++j) {
         for (size_t k = 1; k <= static_cast<size_t>(shared.num_int); ++k) {
-          state_next[i - 1 + (j - 1) * shared.dim.ID.mult[1] + (k - 1) * shared.dim.ID.mult[2] + shared.odin.offset.state[31]] = ID[i - 1 + (j - 1) * shared.dim.ID.mult[1] + (k - 1) * shared.dim.ID.mult[2]] + dt * (internal.FOI_smc[i - 1 + (j - 1) * shared.dim.FOI_smc.mult[1] + (k - 1) * shared.dim.FOI_smc.mult[2]] / (internal.FOI_smc[i - 1 + (j - 1) * shared.dim.FOI_smc.mult[1] + (k - 1) * shared.dim.FOI_smc.mult[2]] * shared.uD + 1) - ID[i - 1 + (j - 1) * shared.dim.ID.mult[1] + (k - 1) * shared.dim.ID.mult[2]] / shared.dID - (ID[i - 1 + (j - 1) * shared.dim.ID.mult[1] + (k - 1) * shared.dim.ID.mult[2]] - ID[i - 1 - 1 + (j - 1) * shared.dim.ID.mult[1] + (k - 1) * shared.dim.ID.mult[2]]) / shared.x_I[i - 1]);
+          state_next[i - 1 + (j - 1) * shared.dim.ID.mult[1] + (k - 1) * shared.dim.ID.mult[2] + shared.odin.offset.state[36]] = ID[i - 1 + (j - 1) * shared.dim.ID.mult[1] + (k - 1) * shared.dim.ID.mult[2]] + dt * (internal.FOI_smc[i - 1 + (j - 1) * shared.dim.FOI_smc.mult[1] + (k - 1) * shared.dim.FOI_smc.mult[2]] / (internal.FOI_smc[i - 1 + (j - 1) * shared.dim.FOI_smc.mult[1] + (k - 1) * shared.dim.FOI_smc.mult[2]] * shared.uD + 1) - ID[i - 1 + (j - 1) * shared.dim.ID.mult[1] + (k - 1) * shared.dim.ID.mult[2]] / shared.dID - (ID[i - 1 + (j - 1) * shared.dim.ID.mult[1] + (k - 1) * shared.dim.ID.mult[2]] - ID[i - 1 - 1 + (j - 1) * shared.dim.ID.mult[1] + (k - 1) * shared.dim.ID.mult[2]]) / shared.x_I[i - 1]);
         }
       }
     }
-    state_next[shared.odin.offset.state[32]] = FOIv[0] + dt * (lag_FOIv - (shared.lag_ratesMos / shared.delayGam) * FOIv[0]);
+    state_next[shared.odin.offset.state[37]] = FOIv[0] + dt * (lag_FOIv - (shared.lag_ratesMos / shared.delayGam) * FOIv[0]);
     for (size_t i = 2; i <= static_cast<size_t>(shared.lag_ratesMos); ++i) {
-      state_next[i - 1 + shared.odin.offset.state[32]] = FOIv[i - 1] + dt * ((shared.lag_ratesMos / shared.delayGam) * FOIv[i - 1 - 1] - (shared.lag_ratesMos / shared.delayGam) * FOIv[i - 1]);
+      state_next[i - 1 + shared.odin.offset.state[37]] = FOIv[i - 1] + dt * ((shared.lag_ratesMos / shared.delayGam) * FOIv[i - 1 - 1] - (shared.lag_ratesMos / shared.delayGam) * FOIv[i - 1]);
     }
-    state_next[shared.odin.offset.state[33]] = ince_delay[0] + dt * (ince - (shared.lag_ratesMos / shared.delayMos_use) * ince_delay[0]);
+    state_next[shared.odin.offset.state[38]] = ince_delay[0] + dt * (ince - (shared.lag_ratesMos / shared.delayMos_use) * ince_delay[0]);
     for (size_t i = 2; i <= static_cast<size_t>(shared.lag_ratesMos); ++i) {
-      state_next[i - 1 + shared.odin.offset.state[33]] = ince_delay[i - 1] + dt * ((shared.lag_ratesMos / shared.delayMos_use) * ince_delay[i - 1 - 1] - (shared.lag_ratesMos / shared.delayMos_use) * ince_delay[i - 1]);
+      state_next[i - 1 + shared.odin.offset.state[38]] = ince_delay[i - 1] + dt * ((shared.lag_ratesMos / shared.delayMos_use) * ince_delay[i - 1 - 1] - (shared.lag_ratesMos / shared.delayMos_use) * ince_delay[i - 1]);
     }
     state_next[0] = (Sv + dt * (-ince - mu * Sv + betaa) < 0 ? 0 : Sv + dt * (-ince - mu * Sv + betaa));
     state_next[1] = (Pv + dt * (ince - incv - mu * Pv) < 0 ? 0 : Pv + dt * (ince - incv - mu * Pv));
@@ -1728,13 +1738,13 @@ public:
     state_next[5] = (LL + dt * (EL / shared.dEL - shared.muLL * (1 + shared.gammaL * (EL + LL) / KL) * LL - LL / shared.dLL) < 0 ? 0 : (LL + dt * (EL / shared.dEL - shared.muLL * (1 + shared.gammaL * (EL + LL) / KL) * LL - LL / shared.dLL)));
     state_next[4] = (PL + dt * (LL / shared.dLL - shared.muPL * PL - PL / shared.dPL) < 0 ? 0 : (PL + dt * (LL / shared.dLL - shared.muPL * PL - PL / shared.dPL)));
     for (size_t i = 1; i <= shared.dim.n_ud_prev.size; ++i) {
-      state_next[i - 1 + shared.odin.offset.state[34]] = internal.n_prev[i - 1];
+      state_next[i - 1 + shared.odin.offset.state[39]] = internal.n_prev[i - 1];
     }
     for (size_t i = 1; i <= shared.dim.n_ud_detect_prev.size; ++i) {
-      state_next[i - 1 + shared.odin.offset.state[35]] = internal.detect_prev[i - 1];
+      state_next[i - 1 + shared.odin.offset.state[40]] = internal.detect_prev[i - 1];
     }
     for (size_t i = 1; i <= shared.dim.n_ud_inc.size; ++i) {
-      state_next[i - 1 + shared.odin.offset.state[36]] = dust2::array::sum<real_type>(internal.clin_inc.data(), shared.dim.clin_inc, {shared.min_age_inc[i - 1] - 1, shared.max_age_inc[i - 1] - 1}, {0, shared.dim.clin_inc.dim[1] - 1}, {0, shared.dim.clin_inc.dim[2] - 1}) / dt;
+      state_next[i - 1 + shared.odin.offset.state[41]] = dust2::array::sum<real_type>(internal.clin_inc.data(), shared.dim.clin_inc, {shared.min_age_inc[i - 1] - 1, shared.max_age_inc[i - 1] - 1}, {0, shared.dim.clin_inc.dim[1] - 1}, {0, shared.dim.clin_inc.dim[2] - 1}) / dt;
     }
     state_next[7] = Sh;
     state_next[8] = Th;
@@ -1750,5 +1760,10 @@ public:
     state_next[18] = dust2::array::sum<real_type>(internal.all_deaths.data(), shared.dim.all_deaths);
     state_next[19] = dust2::array::sum<real_type>(internal.epsilon_0.data(), shared.dim.epsilon_0);
     state_next[20] = mu;
+    state_next[21] = blood_meal_rate;
+    state_next[22] = p1;
+    state_next[23] = shared.p2;
+    state_next[24] = wbar;
+    state_next[25] = zbar;
   }
 };

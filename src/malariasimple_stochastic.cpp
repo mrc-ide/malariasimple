@@ -27,8 +27,8 @@
 // [[dust2::parameter(dE, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(lag_rates, type = "int", rank = 0, required = TRUE, constant = TRUE)]]
 // [[dust2::parameter(FOI_eq, type = "real_type", rank = 2, required = TRUE, constant = FALSE)]]
-// [[dust2::parameter(foi_age, type = "real_type", rank = 1, required = TRUE, constant = FALSE)]]
-// [[dust2::parameter(rel_foi, type = "real_type", rank = 1, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(psi, type = "real_type", rank = 1, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(zeta, type = "real_type", rank = 1, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(dCM, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(uCA, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(dCA, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
@@ -201,8 +201,8 @@ public:
       dust2::array::dimensions<2> FOI_eq;
       dust2::array::dimensions<4> FOI_XL;
       dust2::array::dimensions<3> FOI;
-      dust2::array::dimensions<1> foi_age;
-      dust2::array::dimensions<1> rel_foi;
+      dust2::array::dimensions<1> psi;
+      dust2::array::dimensions<1> zeta;
       dust2::array::dimensions<3> EIR;
       dust2::array::dimensions<1> x_I;
       dust2::array::dimensions<3> init_ICM;
@@ -350,8 +350,8 @@ public:
     std::vector<real_type> init_U;
     std::vector<real_type> init_P;
     std::vector<real_type> FOI_eq;
-    std::vector<real_type> foi_age;
-    std::vector<real_type> rel_foi;
+    std::vector<real_type> psi;
+    std::vector<real_type> zeta;
     std::vector<real_type> x_I;
     std::vector<real_type> init_ICM;
     std::vector<real_type> init_ICA;
@@ -635,8 +635,8 @@ public:
     dim.FOI_eq.set({static_cast<size_t>(na), static_cast<size_t>(nh)});
     dim.FOI_XL.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int), static_cast<size_t>(lag_rates)});
     dim.FOI.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int)});
-    dim.foi_age.set({static_cast<size_t>(na)});
-    dim.rel_foi.set({static_cast<size_t>(nh)});
+    dim.psi.set({static_cast<size_t>(na)});
+    dim.zeta.set({static_cast<size_t>(nh)});
     dim.EIR.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int)});
     dim.x_I.set({static_cast<size_t>(na)});
     dim.init_ICM.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int)});
@@ -725,10 +725,10 @@ public:
     dust2::r::read_real_array(parameters, dim.init_P, init_P.data(), "init_P", true);
     std::vector<real_type> FOI_eq(dim.FOI_eq.size);
     dust2::r::read_real_array(parameters, dim.FOI_eq, FOI_eq.data(), "FOI_eq", true);
-    std::vector<real_type> foi_age(dim.foi_age.size);
-    dust2::r::read_real_array(parameters, dim.foi_age, foi_age.data(), "foi_age", true);
-    std::vector<real_type> rel_foi(dim.rel_foi.size);
-    dust2::r::read_real_array(parameters, dim.rel_foi, rel_foi.data(), "rel_foi", true);
+    std::vector<real_type> psi(dim.psi.size);
+    dust2::r::read_real_array(parameters, dim.psi, psi.data(), "psi", true);
+    std::vector<real_type> zeta(dim.zeta.size);
+    dust2::r::read_real_array(parameters, dim.zeta, zeta.data(), "zeta", true);
     std::vector<real_type> x_I(dim.x_I.size);
     dust2::r::read_real_array(parameters, dim.x_I, x_I.data(), "x_I", true);
     std::vector<real_type> init_ICM(dim.init_ICM.size);
@@ -852,7 +852,7 @@ public:
       {"n_ud_inc", std::vector<size_t>(dim.n_ud_inc.dim.begin(), dim.n_ud_inc.dim.end())}
     };
     odin.packing.state.copy_offset(odin.offset.state.begin());
-    return shared_state{odin, dim, n_days, na, nh, ft, eta, rA, rT, rD, rU, rP, dE, lag_rates, dCM, uCA, dCA, dB, uB, dID, uD, age20l, age20u, age_20_factor, PM, phi0, phi1, IC0, kC, b0, b1, kB, IB0, aD, fD0, gammaD, d1, ID0, kD, init_Sv, init_Pv, init_Iv, cU, cD, cT, gamma1, lag_ratesMos, FOIv_eq, omega, delayGam, delayMos, dLL, dPL, dEL, muLL, muEL, muPL, gammaL, mv0, mum, foraging_time, gonotrophic_cycle, betaL, init_PL, init_LL, init_EL, max_smc_cov, max_itn_cov, Q0, phi_bednets, num_int, prev_dim, inc_dim, delayMos_use, mum_use, b_lambda, alpha_smc_times, alpha_smc_set, cov_, daily_rain_input, days, age_rate, het_wt, init_S, init_T, init_D, init_A, init_U, init_P, FOI_eq, foi_age, rel_foi, x_I, init_ICM, init_ICA, init_IB, init_ID, age_vector, p10, p2, interpolate_alpha_smc, P_smc_daily, smc_mask, rel_c_days, r_itn_daily, s_itn_daily, cov, min_age_prev, max_age_prev, min_age_inc, max_age_inc, birth_rate, T_rates, fd, interpolate_rain_input, interpolate_P_smc, interpolate_rel_c, interpolate_r_itn, interpolate_s_itn, T_leave_rate};
+    return shared_state{odin, dim, n_days, na, nh, ft, eta, rA, rT, rD, rU, rP, dE, lag_rates, dCM, uCA, dCA, dB, uB, dID, uD, age20l, age20u, age_20_factor, PM, phi0, phi1, IC0, kC, b0, b1, kB, IB0, aD, fD0, gammaD, d1, ID0, kD, init_Sv, init_Pv, init_Iv, cU, cD, cT, gamma1, lag_ratesMos, FOIv_eq, omega, delayGam, delayMos, dLL, dPL, dEL, muLL, muEL, muPL, gammaL, mv0, mum, foraging_time, gonotrophic_cycle, betaL, init_PL, init_LL, init_EL, max_smc_cov, max_itn_cov, Q0, phi_bednets, num_int, prev_dim, inc_dim, delayMos_use, mum_use, b_lambda, alpha_smc_times, alpha_smc_set, cov_, daily_rain_input, days, age_rate, het_wt, init_S, init_T, init_D, init_A, init_U, init_P, FOI_eq, psi, zeta, x_I, init_ICM, init_ICA, init_IB, init_ID, age_vector, p10, p2, interpolate_alpha_smc, P_smc_daily, smc_mask, rel_c_days, r_itn_daily, s_itn_daily, cov, min_age_prev, max_age_prev, min_age_inc, max_age_inc, birth_rate, T_rates, fd, interpolate_rain_input, interpolate_P_smc, interpolate_rel_c, interpolate_r_itn, interpolate_s_itn, T_leave_rate};
   }
   static internal_state build_internal(const shared_state& shared) {
     std::vector<real_type> FOI(shared.dim.FOI.size);
@@ -1029,8 +1029,8 @@ public:
     dust2::r::read_real_array(parameters, shared.dim.init_U, shared.init_U.data(), "init_U", false);
     dust2::r::read_real_array(parameters, shared.dim.init_P, shared.init_P.data(), "init_P", false);
     dust2::r::read_real_array(parameters, shared.dim.FOI_eq, shared.FOI_eq.data(), "FOI_eq", false);
-    dust2::r::read_real_array(parameters, shared.dim.foi_age, shared.foi_age.data(), "foi_age", false);
-    dust2::r::read_real_array(parameters, shared.dim.rel_foi, shared.rel_foi.data(), "rel_foi", false);
+    dust2::r::read_real_array(parameters, shared.dim.psi, shared.psi.data(), "psi", false);
+    dust2::r::read_real_array(parameters, shared.dim.zeta, shared.zeta.data(), "zeta", false);
     dust2::r::read_real_array(parameters, shared.dim.x_I, shared.x_I.data(), "x_I", false);
     dust2::r::read_real_array(parameters, shared.dim.init_ICM, shared.init_ICM.data(), "init_ICM", false);
     dust2::r::read_real_array(parameters, shared.dim.init_ICA, shared.init_ICA.data(), "init_ICA", false);
@@ -1858,7 +1858,7 @@ public:
         }
       }
     }
-    const real_type fv = 1 / (shared.foraging_time / (1 - zbar) + shared.gonotrophic_cycle);
+    const real_type blood_meal_rate = 1 / (shared.foraging_time / (1 - zbar) + shared.gonotrophic_cycle);
     const real_type p1 = wbar * shared.p10 / (1 - zbar * shared.p10);
     const real_type Q = 1 - (1 - shared.Q0) / wbar;
     for (size_t i = 1; i <= shared.dim.SA_trans.dim[0]; ++i) {
@@ -1973,10 +1973,10 @@ public:
         }
       }
     }
-    const real_type mu = -fv * monty::math::log(p1 * shared.p2);
-    const real_type av = fv * Q;
+    const real_type mu = -blood_meal_rate * monty::math::log(p1 * shared.p2);
+    const real_type av = blood_meal_rate * Q;
     const real_type surv = monty::math::exp(-mu * shared.delayMos_use);
-    const real_type eov = shared.betaL / mu * (monty::math::exp(mu / fv) - 1);
+    const real_type eov = shared.betaL / mu * (monty::math::exp(mu / blood_meal_rate) - 1);
     for (size_t i = 1; i <= static_cast<size_t>(shared.num_int); ++i) {
       internal.av_mosq[i - 1] = av * internal.w[i - 1] / wh;
     }
@@ -1997,19 +1997,19 @@ public:
     for (size_t i = 1; i <= shared.dim.EIR.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.EIR.dim[1]; ++j) {
         for (size_t k = 1; k <= shared.dim.EIR.dim[2]; ++k) {
-          internal.EIR[i - 1 + (j - 1) * shared.dim.EIR.mult[1] + (k - 1) * shared.dim.EIR.mult[2]] = internal.av_mosq[k - 1] * shared.rel_foi[j - 1] * shared.foi_age[i - 1] * Iv / shared.omega;
+          internal.EIR[i - 1 + (j - 1) * shared.dim.EIR.mult[1] + (k - 1) * shared.dim.EIR.mult[2]] = internal.av_mosq[k - 1] * shared.zeta[j - 1] * shared.psi[i - 1] * Iv / shared.omega;
         }
       }
     }
     for (size_t i = 1; i <= static_cast<size_t>(shared.na); ++i) {
       for (size_t j = 1; j <= static_cast<size_t>(shared.nh); ++j) {
         for (size_t k = 1; k <= static_cast<size_t>(shared.num_int); ++k) {
-          internal.FOIvijk[i - 1 + (j - 1) * shared.dim.FOIvijk.mult[1] + (k - 1) * shared.dim.FOIvijk.mult[2]] = ((shared.cT * internal.smc_rel_c_mask[i - 1 + (j - 1) * shared.dim.smc_rel_c_mask.mult[1] + (k - 1) * shared.dim.smc_rel_c_mask.mult[2]] * T[i - 1 + (j - 1) * shared.dim.T.mult[1] + (k - 1) * shared.dim.T.mult[2]] + shared.cD * internal.smc_rel_c_mask[i - 1 + (j - 1) * shared.dim.smc_rel_c_mask.mult[1] + (k - 1) * shared.dim.smc_rel_c_mask.mult[2]] * D[i - 1 + (j - 1) * shared.dim.D.mult[1] + (k - 1) * shared.dim.D.mult[2]] + internal.cA[i - 1 + (j - 1) * shared.dim.cA.mult[1] + (k - 1) * shared.dim.cA.mult[2]] * internal.smc_rel_c_mask[i - 1 + (j - 1) * shared.dim.smc_rel_c_mask.mult[1] + (k - 1) * shared.dim.smc_rel_c_mask.mult[2]] * A[i - 1 + (j - 1) * shared.dim.A.mult[1] + (k - 1) * shared.dim.A.mult[2]] + shared.cU * internal.smc_rel_c_mask[i - 1 + (j - 1) * shared.dim.smc_rel_c_mask.mult[1] + (k - 1) * shared.dim.smc_rel_c_mask.mult[2]] * U[i - 1 + (j - 1) * shared.dim.U.mult[1] + (k - 1) * shared.dim.U.mult[2]]) / H) * shared.rel_foi[j - 1] * internal.av_mosq[k - 1] * shared.foi_age[i - 1] / shared.omega;
+          internal.FOIvijk[i - 1 + (j - 1) * shared.dim.FOIvijk.mult[1] + (k - 1) * shared.dim.FOIvijk.mult[2]] = ((shared.cT * internal.smc_rel_c_mask[i - 1 + (j - 1) * shared.dim.smc_rel_c_mask.mult[1] + (k - 1) * shared.dim.smc_rel_c_mask.mult[2]] * T[i - 1 + (j - 1) * shared.dim.T.mult[1] + (k - 1) * shared.dim.T.mult[2]] + shared.cD * internal.smc_rel_c_mask[i - 1 + (j - 1) * shared.dim.smc_rel_c_mask.mult[1] + (k - 1) * shared.dim.smc_rel_c_mask.mult[2]] * D[i - 1 + (j - 1) * shared.dim.D.mult[1] + (k - 1) * shared.dim.D.mult[2]] + internal.cA[i - 1 + (j - 1) * shared.dim.cA.mult[1] + (k - 1) * shared.dim.cA.mult[2]] * internal.smc_rel_c_mask[i - 1 + (j - 1) * shared.dim.smc_rel_c_mask.mult[1] + (k - 1) * shared.dim.smc_rel_c_mask.mult[2]] * A[i - 1 + (j - 1) * shared.dim.A.mult[1] + (k - 1) * shared.dim.A.mult[2]] + shared.cU * internal.smc_rel_c_mask[i - 1 + (j - 1) * shared.dim.smc_rel_c_mask.mult[1] + (k - 1) * shared.dim.smc_rel_c_mask.mult[2]] * U[i - 1 + (j - 1) * shared.dim.U.mult[1] + (k - 1) * shared.dim.U.mult[2]]) / H) * shared.zeta[j - 1] * internal.av_mosq[k - 1] * shared.psi[i - 1] / shared.omega;
         }
       }
     }
     const real_type incv = ince_delay[shared.lag_ratesMos - 1] * shared.lag_ratesMos / shared.delayMos_use * surv;
-    const real_type beta_larval = eov * mu * monty::math::exp(-mu / fv) / (1 - monty::math::exp(-mu / fv));
+    const real_type beta_larval = eov * mu * monty::math::exp(-mu / blood_meal_rate) / (1 - monty::math::exp(-mu / blood_meal_rate));
     for (size_t i = 1; i <= static_cast<size_t>(shared.na); ++i) {
       for (size_t j = 1; j <= static_cast<size_t>(shared.nh); ++j) {
         for (size_t k = 1; k <= static_cast<size_t>(shared.num_int); ++k) {
@@ -2022,7 +2022,7 @@ public:
     for (size_t i = 1; i <= shared.dim.epsilon_0.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.epsilon_0.dim[1]; ++j) {
         for (size_t k = 1; k <= shared.dim.epsilon_0.dim[2]; ++k) {
-          internal.epsilon_0[i - 1 + (j - 1) * shared.dim.epsilon_0.mult[1] + (k - 1) * shared.dim.epsilon_0.mult[2]] = (internal.all[i - 1 + (j - 1) * shared.dim.all.mult[1] + (k - 1) * shared.dim.all.mult[2]] * internal.EIR[i - 1 + (j - 1) * shared.dim.EIR.mult[1] + (k - 1) * shared.dim.EIR.mult[2]]) / shared.foi_age[i - 1];
+          internal.epsilon_0[i - 1 + (j - 1) * shared.dim.epsilon_0.mult[1] + (k - 1) * shared.dim.epsilon_0.mult[2]] = (internal.all[i - 1 + (j - 1) * shared.dim.all.mult[1] + (k - 1) * shared.dim.all.mult[2]] * internal.EIR[i - 1 + (j - 1) * shared.dim.EIR.mult[1] + (k - 1) * shared.dim.EIR.mult[2]]) / shared.psi[i - 1];
         }
       }
     }

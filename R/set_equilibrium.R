@@ -16,22 +16,37 @@ set_equilibrium <- function(params, init_EIR)
   ##---------------------------------------------------------------------------------------
   ##                                     SOME HOUSEKEEPING
   ##---------------------------------------------------------------------------------------
+  #Interventions
+  if(params$itn_set == 0){
+    params$max_itn_cov <- 0
+    params$r_itn_daily <- rep(0,(params$n_days+1))
+    params$s_itn_daily <- rep(1,(params$n_days+1))
+    params$itn_eff_cov_daily <- rep(0,(params$n_days+1))
+  }
+
+  if(params$irs_set == 0){
+    params$max_irs_cov <- 0
+    params$rs <- rep(0,(params$n_days+1))
+    params$ss <- rep(1,(params$n_days+1))
+    params$irs_eff_cov_daily <- rep(1,(params$n_days+1))
+  }
+
   #Set intervention group coverages
-  if(params$smc_set == 0 & params$itn_set == 0){
+  if(params$itn_set == 0 & params$irs_set == 0){
     num_int <- 1
     cov <- 1
-  } else if(params$itn_set == 1 & params$smc_set == 0){
+  } else if(params$itn_set == 1 & params$irs_set == 0){
     num_int <- 2
     cov <- c((1 - params$max_itn_cov), params$max_itn_cov)
-  } else if(params$itn_set == 0 & params$smc_set == 1){
+  } else if(params$itn_set == 0 & params$irs_set == 1){
     num_int <- 3
-    cov <- c((1 - params$max_smc_cov),0,params$max_smc_cov)
-  } else if(params$itn_set == 1 & params$itn_set == 1){
+    cov <- c((1 - params$max_irs_cov),0,params$max_irs_cov)
+  } else if(params$itn_set == 1 & params$irs_set == 1){
     num_int <- 4
-    cov <- c((1 - params$max_itn_cov) * (1 - params$max_smc_cov),
-             params$max_itn_cov * (1 - params$max_smc_cov),
-             (1 - params$max_itn_cov) * params$max_smc_cov,
-             params$max_itn_cov * params$max_smc_cov)
+    cov <- c((1 - params$max_itn_cov) * (1 - params$max_irs_cov),
+             params$max_itn_cov * (1 - params$max_irs_cov),
+             (1 - params$max_itn_cov) * params$max_irs_cov,
+             params$max_itn_cov * params$max_irs_cov)
   }
   params$cov <- cov
   params$num_int <- num_int
@@ -70,24 +85,24 @@ set_equilibrium <- function(params, init_EIR)
   ##                        HETEROGENEITIES IN TRANSMISSION PARAMETERS
   ##---------------------------------------------------------------------------------------
   ## force of infection
-  foi_age <- c()
+  psi <- c()
   for (i in 1:na)
   {
-    foi_age[i] <- 1 - (params$rho * exp(-age_vector[i]/params$a0))  #force of infection for each age group
+    psi[i] <- 1 - (params$rho * exp(-age_vector[i]/params$a0))  #force of infection for each age group
   }
-  fden <- foi_age * den
+  fden <- psi * den
   omega <- sum(fden)  #normalising constant
 
   ## heterogeneity
   het_x <- h$nodes
   het_wt <- h$weights
   den_het <- outer(den, het_wt)
-  rel_foi <- exp(-params$sigma2/2 + sqrt(params$sigma2) * het_x)/sum(het_wt * exp(-params$sigma2/2 + sqrt(params$sigma2) * het_x))
+  zeta <- exp(-params$sigma2/2 + sqrt(params$sigma2) * het_x)/sum(het_wt * exp(-params$sigma2/2 + sqrt(params$sigma2) * het_x))
 
   ## EIR
   EIRY_eq <- init_EIR  # initial annual EIR
   EIRd_eq <- EIRY_eq/params$DY
-  EIR_eq <- outer(foi_age, rel_foi) * EIRd_eq
+  EIR_eq <- outer(psi, zeta) * EIRd_eq
 
   ## Immunity and FOI
   x_I <- den[1]/params$eta
@@ -223,8 +238,8 @@ set_equilibrium <- function(params, init_EIR)
       init_U[i, j] <- (params$rA * init_A[i, j] + delta[i] * ifelse(i == 1,
                                                                     0, init_U[i - 1, j]))/betaU[i, j]
       init_S[i, j] <- init_Y[i, j] - init_A[i, j] - init_U[i, j]
-      FOIvij_eq[i, j] <- foi_age[i] * params$av0 * (params$cT * init_T[i, j] + params$cD *
-                                                      init_D[i, j] + cA_eq[i, j] * init_A[i, j] + params$cU * init_U[i, j]) * rel_foi[j]/omega
+      FOIvij_eq[i, j] <- psi[i] * params$av0 * (params$cT * init_T[i, j] + params$cD *
+                                                      init_D[i, j] + cA_eq[i, j] * init_A[i, j] + params$cU * init_U[i, j]) * zeta[j]/omega
     }
   }
 
@@ -318,27 +333,6 @@ set_equilibrium <- function(params, init_EIR)
   ##---------------------------------------------------------------------------------------
   ##                        UNUSED DEFAULT PARAMETERS
   ##---------------------------------------------------------------------------------------
-  #Interventions
-  if(params$itn_set == 0){
-    params$max_itn_cov <- 0
-    params$r_itn_daily <- rep(0,(params$n_days+1))
-    params$s_itn_daily <- rep(1,(params$n_days+1))
-  }
-
-  params$smc_mask <- array(0, dim = c(na,nh,num_int))
-  if(params$smc_set == 0){
-    params$max_smc_cov <- 0
-    params$eff_smc_prop <- rep(0,(params$n_days+1))
-    params$P_smc_daily <- rep(0,(params$n_days+1))
-    params$alpha_smc_set <- c(0,0)
-    params$alpha_smc_times <- c(0,2)
-    params$rel_c_days <- rep(1,(params$n_days+1))
-  }
-
-  ##SMC mask must be defined in set_equilibrium, because num_int must be defined
-  if(params$smc_set == 1){
-    params$smc_mask[which(params$age_vector %in% params$smc_age),1:nh,3:num_int] <- 1  #Produce an array which is 1 for compartments receiving SMC, else 0.
-  }
 
 
   params$equilibrium_set <- 1
@@ -389,7 +383,7 @@ set_equilibrium <- function(params, init_EIR)
   res <- list( init_Iv = init_Iv, init_Sv = init_Sv,
                init_Pv = init_Pv, init_PL = init_PL, init_LL = init_LL, init_EL = init_EL,
                age_rate = age_rate, het_wt = het_wt, het_x = het_x,
-               omega = omega, foi_age = foi_age, rel_foi = rel_foi, K0 = K0, mv0 = mv0, x_I = x_I,
+               omega = omega, psi = psi, zeta = zeta, K0 = K0, mv0 = mv0, x_I = x_I,
                FOI_eq = FOI_eq, EIR_eq = EIR_eq, cA_eq = cA_eq,
                den = den, FOIv_eq = FOIv_eq,
                betaS = betaS, betaA = betaA, betaU = betaU, FOIvij_eq=FOIvij_eq,

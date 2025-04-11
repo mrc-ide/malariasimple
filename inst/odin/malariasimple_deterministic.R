@@ -231,12 +231,12 @@ FOI[,,] <- FOI_XL[i,j,k,lag_rates]
 #------------ EIR -----------------
 # rate for age group * rate for biting category * FOI for age group * prop of
 # infectious mosquitoes
-dim(foi_age) <- na
-foi_age <- parameter()
-dim(rel_foi) <- nh
-rel_foi <- parameter()
+dim(psi) <- na
+psi <- parameter()
+dim(zeta) <- nh
+zeta <- parameter()
 dim(EIR) <- c(na,nh,num_int)
-EIR[,,] <- av_mosq[k] * rel_foi[j] * foi_age[i] * Iv/omega
+EIR[,,] <- av_mosq[k] * zeta[j] * psi[i] * Iv/omega
 
 ##------------------------------------------------------------------------------
 #####################
@@ -387,7 +387,7 @@ update(FOIv[2:lag_ratesMos]) <- FOIv[i] + dt*((lag_ratesMos/delayGam)*FOIv[i-1] 
 dim(FOIvijk) <- c(na,nh,num_int)
 omega <- parameter()
 FOIvijk[1:na, 1:nh, 1:num_int] <- ((cT*smc_rel_c_mask[i,j,k]*T[i,j,k] + cD*smc_rel_c_mask[i,j,k]*D[i,j,k] + cA[i,j,k]*smc_rel_c_mask[i,j,k]*A[i,j,k] + cU*smc_rel_c_mask[i,j,k]*U[i,j,k])/H) *
-  rel_foi[j] * av_mosq[k]*foi_age[i]/omega ## For discrete human compartments
+  zeta[j] * av_mosq[k]*psi[i]/omega ## For discrete human compartments
 lag_FOIv=sum(FOIvijk)
 
 ince <- FOIv[lag_ratesMos] * lag_ratesMos/delayGam * Sv
@@ -452,8 +452,8 @@ betaL <- parameter()
 mum_use <- mum
 p10 <- exp(-mum_use * foraging_time)  # probability of surviving one feeding cycle
 p2 <- exp(-mum_use * gonotrophic_cycle)  # probability of surviving one resting cycle
-eov <- betaL/mu*(exp(mu/fv)-1)
-beta_larval <- eov*mu*exp(-mu/fv)/(1-exp(-mu/fv)) # Number of eggs laid per day
+eov <- betaL/mu*(exp(mu/blood_meal_rate)-1)
+beta_larval <- eov*mu*exp(-mu/blood_meal_rate)/(1-exp(-mu/blood_meal_rate)) # Number of eggs laid per day
 b_lambda <- (gammaL*muLL/muEL-dEL/dLL+(gammaL-1)*muLL*dEL)
 lambda <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval*muLL*dEL/(2*muEL*mum_use*dLL*(1+dPL*muPL)))
 K0 <- 2*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dLL)-1)
@@ -462,8 +462,8 @@ K0 <- 2*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muL
 rain_input <- interpolate(days, daily_rain_input, "linear")
 
 KL <- K0 * rain_input
-fv <- 1/( foraging_time/(1-zbar) + gonotrophic_cycle ) # mosquito feeding rate (zbar from intervention param.)
-mu <- -fv*log(p1*p2) # mosquito death rate
+blood_meal_rate <- 1/( foraging_time/(1-zbar) + gonotrophic_cycle ) # mosquito feeding rate (zbar from intervention param.)
+mu <- -blood_meal_rate*log(p1*p2) # mosquito death rate
 
 # finding equilibrium and initial values for EL, LL & PL
 init_PL <- parameter()
@@ -584,7 +584,7 @@ wbar <- 1 - Q0 + Q0*wh
 # p1 is the updated p10 given that interventions are now in place:
 p1 <- wbar*p10/(1-zbar*p10)
 Q <- 1-(1-Q0)/wbar # updated anthropophagy given interventions
-av <- fv*Q # biting rate on humans
+av <- blood_meal_rate*Q # biting rate on humans
 dim(av_mosq) <- num_int
 av_mosq[1:num_int] <- av*w[i]/wh # rate at which mosquitoes bite each int. cat.
 
@@ -692,13 +692,27 @@ initial(natural_deaths) <- 0
 update(natural_deaths) <- sum(all_deaths[,,])
 
 dim(epsilon_0) <- c(na,nh,num_int)
-epsilon_0[,,] <- (all[i,j,k] * EIR[i,j,k]) / foi_age[i]
+epsilon_0[,,] <- (all[i,j,k] * EIR[i,j,k]) / psi[i]
 initial(EIR_mean) <- 0
 update(EIR_mean) <- sum(epsilon_0[,,])
 
 initial(mu_mosq) <- 0
 update(mu_mosq) <- mu
 
+initial(blood_meal_rate_out) <- 0
+update(blood_meal_rate_out) <- blood_meal_rate
+
+initial(p1_out) <- 0
+update(p1_out) <- p1
+
+initial(p2_out) <- 0
+update(p2_out) <- p2
+
+initial(wbar_out) <- 0
+update(wbar_out) <- wbar
+
+initial(zbar_out) <- 0
+update(zbar_out) <- zbar
 
 
 

@@ -17,8 +17,7 @@ Remotes:
     mrc-ide/malariasimulation
 Imports: 
     dust2,
-    statmod,
-    abind
+    statmod
 LinkingTo:
     cpp11,
     dust2,
