@@ -94,44 +94,6 @@ set_smc <- function(params,
   return(params)
 }
 
-#
-# get_smc_usage_mat <- function(days,coverages,n_days,distribution_type){
-#   n_dists <- length(coverages) #Number of SMC distribution events
-#
-#   ##Matrix of the population prop. protected by smc from distribution event i (col number) on day t (row number)
-#   smc_mat <- matrix(nrow = n_days, ncol = n_dists+1)
-#   smc_mat[1,] <- c(rep(0,n_dists),1) #Initialise no smc
-#   days_since_last_adm <- 0
-#   for(i in 2:n_days){
-#     smc_mat[i,1:n_dists] <- smc_mat[(i-1),(1:n_dists)]
-#     smc_mat[i,(n_dists+1)] <- 1 - sum(smc_mat[i,(1:n_dists)])
-#     days_since_last_adm <- days_since_last_adm + 1
-#
-#     if(distribution_type == "random"){
-#       ##After 100 days without an SMC administration, the system resets
-#       if(days_since_last_adm == 150){
-#         smc_mat[i,] <- c(rep(0,n_dists),1)
-#       }}
-#
-#     #New SMC are distributed on days
-#     if(i %in% days){
-#       dist_index <- which(days == i) #Which distribution event
-#       new_recipients <- coverages[dist_index] #Proportion which is now a 'new' recipient
-#       smc_mat[i,dist_index] <- new_recipients
-#       if(distribution_type == "random"){
-#         smc_mat[i,-dist_index] <- smc_mat[i,-dist_index] - new_recipients*smc_mat[i,-dist_index]
-#       } else if(distribution_type == "cohort"){
-#         smc_mat[i,-dist_index] <- 0
-#         smc_mat[i,ncol(smc_mat)] <- 1-new_recipients
-#       } else{
-#         stop(message("SMC distribution type must be either 'random' or 'cohort'"))
-#       }
-#       days_since_last_adm <- 0
-#     }
-#   }
-#   return(smc_mat)
-# }
-
 get_smc_usage_mat <- function(days,coverages,n_days,distribution_type){
   n_dists <- length(coverages) #Number of SMC distribution events
   ##Matrix of the population prop. protected by SMC from distribution event i (col number) on day t (row number)
