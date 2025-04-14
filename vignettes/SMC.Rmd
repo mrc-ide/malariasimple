@@ -36,7 +36,13 @@ Preset values are available for SP_AQ, AL, and DHA_PQP (see ?set_drug_params for
 The assumptions behind the SMC parameterisation in `malariasimple` are largely based on [Thompson,2022 - Supplementary Materials](https://ars.els-cdn.com/content/image/1-s2.0-S2214109X22004168-mmc1.pdf).
 
 ## Random Vs. Cohort
-In `malariasimulation`, you can adjust the 'correlation' of an intervention to determine whether having previously received the intervention makes an individual more/less/equally likely to receive the same intervention in the future. This functionality currently does not exist in `malariasimple`, however we can set two extremes: 'Random' distribution (corr = 0), or 'Cohort' distribution (corr = 1).  
+In `malariasimulation`, you can adjust the 'correlation' of an intervention to determine whether having previously received the intervention makes an individual more/less/equally likely to receive the same intervention in the future. This functionality currently does not exist in `malariasimple`, however we can set two extremes: 
+
+* *'Random' distribution*
+Each individual within the defined age category has an equal chance of receiving SMC at each distribution event regardless of whether they received a dose previously. Equivalent to correlation = 0. 
+
+* *'Cohort' distribution* 
+Assumes doses are given in cohorts. If a child receives SMC on the first distribution event, they will continue to receive further doses unless the coverage decreases. Equivalent to correlation = 1. 
 
 ## Using set_smc()
 To fully define an SMC intervention, we can specify:

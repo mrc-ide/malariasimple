@@ -54,13 +54,13 @@ get_parameters(
   PM = 0.774368,
   dCM = 67.6952,
   delayMos = 10,
-  tau1 = 0.69,
-  tau2 = 2.31,
-  mu0 = 0.132,
+  foraging_time = 0.69,
+  gonotrophic_cycle = 2.31,
+  mum = 0.132,
   Q0 = 0.92,
   chi = 0.86,
-  bites_Bed = 0.89,
-  bites_Indoors = 0.97,
+  phi_bednets = 0.85,
+  phi_indoors = 0.9,
   muEL = 0.0338,
   muLL = 0.0348,
   muPL = 0.249,
@@ -174,19 +174,19 @@ get_parameters(
 
 \item{delayMos}{Extrinsic incubation period}
 
-\item{tau1}{Duration of host seeking, assumed to be constant between species}
+\item{foraging_time}{Duration of host seeking, assumed to be constant between species}
 
-\item{tau2}{Duration of mosquito resting after feed}
+\item{gonotrophic_cycle}{Duration of mosquito resting after feed}
 
-\item{mu0}{Daily mortality of adult mosquitoes}
+\item{mum}{Daily mortality of adult mosquitoes}
 
 \item{Q0}{Anthrophagy probability}
 
 \item{chi}{Endophily probability}
 
-\item{bites_Bed}{Percentage of bites indoors and in bed}
+\item{phi_bednets}{Percentage of bites indoors and in bed}
 
-\item{bites_Indoors}{Percentage of bites indoors}
+\item{phi_indoors}{Percentage of bites indoors}
 
 \item{muEL}{Per capita daily mortality rate of early stage larvae (low density)}
 

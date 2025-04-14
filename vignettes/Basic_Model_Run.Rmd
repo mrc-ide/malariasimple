@@ -53,7 +53,7 @@ custom_params <- get_parameters(n_days = 200, #Length of simulation
 custom_out <- run_simulation(custom_params)
 ```
 
-#### Age Group Rendering
+## 3. Age Group Rendering
 
 From `get_parameters()`, we can define which age groups we want the model to output regarding clinical incidence and prevalence. It is essential that these align with the age compartments defined in age_vector (for default values, see ?get_parameters). All ages must be provided in *days*. To align with `malariasimulation`, prevalence is inferred from the proportion of detected infections (n_detect\_) and the population proportion within that age group (n\_)
 
@@ -101,7 +101,42 @@ legend("bottomright", legend = c("All ages", "Ages 2-10"),
        bty = "n", ncol = 1, cex = 0.8, lwd=2)
 ```
 
-## 3. Introducing seasonality
+## Plotting Age Distribution
+
+We can also use the age rendering function to plot the age distribution of certain outputs. Here we show an example of how to output the average age distribution of clinical incidence. 
+```{r, message = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=0.55}
+age_vector <- c(0:100) * 365
+min_age_render <- c(0:99) * 365
+max_age_render <- c(1:100) * 365
+
+## --------------------- Set up model parameters --------------------
+params_ages <- get_parameters(
+  n_days = 100,
+  age_vector = age_vector,
+  clin_inc_rendering_min_ages = min_age_render,
+  clin_inc_rendering_max_ages = max_age_render,
+  prevalence_rendering_min_ages = min_age_render,
+  prevalence_rendering_max_ages = max_age_render
+) |>
+  set_equilibrium(init_EIR = 10)
+
+## -------------------------- Run model --------------------------
+out_ages <- run_simulation(params_ages) |> 
+  as.data.frame()
+
+## -------------------------- Plot age distribution  --------------------------
+col_means <- sapply(out_ages[, grepl("n_clin_inc", colnames(out_ages))], mean, na.rm = TRUE)
+names(col_means) <- NULL
+barplot(
+  col_means,
+  col = "lightblue",
+  main = "Average Clinical Incidence by Yearly Age Group",
+  ylab = "Average Incidence"
+)
+```
+
+
+## 4. Introducing seasonality
 
 Seasonality can be included in the model using the `set_seasonality()` function. The main argument is the coefficients of a Fourier function (FF) describing the relative carrying capacity of the vector population over time. 
 
@@ -130,7 +165,7 @@ plot(seasonal_output$time, seasonal_output$mv, lwd = 2,
 
 
 
-## 4. Stochastic Simulations
+## 5. Stochastic Simulations
 Simulations can also be run with stochastic human transitions. To achieve this, we can just add `stochastic = TRUE` to the `get_parameters()` function call. We can also run multiple simulations by setting the `n_particles` parameter in `run_simulation()`. This will produce a 3D array with dimensions [*timesteps, variables, particles*]. This can be converted into a long dataframe using `make_2d()`. 
 
 ```{r, message = FALSE, warning = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=0.55}
@@ -155,7 +190,6 @@ plot_range <- range(c(stochastic_output$time, seasonal_output$time))
 y_range <- range(c(stochastic_output$n_detect_730_3650 / stochastic_output$n_730_3650,
                    seasonal_output$n_detect_730_3650 / seasonal_output$n_730_3650), na.rm = TRUE)
 
-# Create empty plot
 plot(NA, xlim = plot_range, ylim = y_range, xlab = "Time", ylab = expression(italic(Pf)~PR[2-10]), bty = "l")
 
 # Add stochastic output
@@ -167,7 +201,6 @@ for (i in unique(stochastic_output$particle)) {
 # Add deterministic output
 lines(seasonal_output$time, seasonal_output$n_detect_730_3650 / seasonal_output$n_730_3650, col = "#619CFF", lwd = 2, lty = 1)
 
-# Add legend
 legend("topleft",
        legend = c("Stochastic", "Deterministic"),
        col = c("#F8766D", "#619CFF"),
