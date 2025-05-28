@@ -6,7 +6,7 @@
 #' @param human_pop Size of human population (count)
 #' @param tsd Number of time-steps per day. Fewer is faster, more better approximates the continuous solution.
 #' @param age_vector Lower bound of each age category. See function for default.
-#' @param het_brackets Number of biting heterogeneity groups.
+#' @param biting_groups Number of biting heterogeneity groups.
 #' @param lag_rates Number of sub-compartments within FOI and FOIv which approximate delay-differential equation. Higher values are a closer approximation, but computationally more expensive.
 
 #' @param eta Death rate for exponential population distribution, i.e. 1/Mean Population Age
@@ -89,7 +89,7 @@ get_parameters <- function(
     human_pop = 100000,
     tsd = 4, #Time steps per day
     age_vector =  c(0,0.25,0.5,1,1.5,2,2.5,3,3.5,4,5,6,7,8.5,10,20,30,40,60,80)*365, #Default
-    het_brackets = 3,
+    biting_groups = 3,
     lag_rates = 10, #Number of sub-compartments within FOI and FOIv which approximate delay-differential equation. Higher values are a closer approximation, but computationally more expensive
     # age, heterogeneity in exposure,
     eta = 1/(21*365),
@@ -182,11 +182,11 @@ get_parameters <- function(
   if(max(age_vector) <= 20*365){stop(message("At least one age category must be over 20 years (7300 days)"))}
   if(!is.numeric(n_days)){stop(message("n_days must be a numeric value"))}
   if(!is.numeric(tsd)){stop(message("tsd must be a numeric value"))}
-  if(!is.numeric(het_brackets)){stop(message("het_brackets must be a numeric value"))}
-  if(!is.numeric(lag_rates)){stop(message("het_brackets must be a numeric value"))}
+  if(!is.numeric(biting_groups)){stop(message("biting_groups must be a numeric value"))}
+  if(!is.numeric(lag_rates)){stop(message("biting_groups must be a numeric value"))}
   if(n_days %% 1 != 0 | n_days < 1){stop(message("n_days must be a positive integer value"))}
   if(tsd %% 1 != 0 | tsd < 1){stop(message("tsd must be a positive integer value"))}
-  if(het_brackets %% 1 != 0 | het_brackets < 1){stop(message("het_brackets must be a positive integer value"))}
+  if(biting_groups %% 1 != 0 | biting_groups < 1){stop(message("biting_groups must be a positive integer value"))}
   if(lag_rates %% 1 != 0| lag_rates < 1){stop(message("lag_rates must be a positive integer value"))}
   if(!is.numeric(ft)){stop(message("ft must be a numeric value between 0 and 1"))}
   if(ft < 0 | ft > 1){stop(message("ft must be a numeric value between 0 and 1"))}
@@ -207,14 +207,14 @@ get_parameters <- function(
 
   # age, heterogeneity in exposure
   params$age_vector <- age_vector
-  params$het_brackets <- het_brackets
+  params$biting_groups <- biting_groups
   params$eta <- eta
   params$rho <- rho
   params$a0 <- a0
   params$sigma2 <- sigma2
   params$max_age <- max_age
   na <- as.integer(length(age_vector))  # number of age groups
-  nh <- as.integer(het_brackets)
+  nh <- as.integer(biting_groups)
   params$na <- na
   params$nh <- nh
   params$ft <- ft

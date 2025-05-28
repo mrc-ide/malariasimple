@@ -56,6 +56,7 @@ set_rainfall_manual <- function(params, rainfall_ts){
 #' @param g Cosine coefficients
 #' @param h Sine coefficients
 #' @param floor Minimum permitted value of output
+#' @export
 get_seasonal_forcing <- function(t, g0, g, h, floor = 0.001) {
   if (floor <= 0) stop(message("floor must be greater than 0"))
   result <- g0

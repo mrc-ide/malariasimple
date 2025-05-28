@@ -13,7 +13,7 @@ malariasimple_deterministic <- structure(
     rank = c(0L, 1L, 1L, 0L, 0L, 0L, 0L, 1L, 1L, 0L, 0L, 0L, 0L, 0L, 3L, 3L, 3L, 3L, 3L, 3L, 0L, 0L, 2L, 1L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 3L, 3L, 3L, 3L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 1L, 1L, 3L, 1L, 0L, 0L, 0L, 1L, 1L, 0L, 0L, 1L, 1L, 0L, 1L, 1L)),
   properties = list(
     time_type = "discrete",
-    has_compare = FALSE,
+    has_compare = TRUE,
     has_adjoint = FALSE),
   default_dt = 1)
 malariasimple_stochastic <- structure(
@@ -30,6 +30,6 @@ malariasimple_stochastic <- structure(
     rank = c(0L, 1L, 1L, 0L, 0L, 0L, 0L, 1L, 1L, 0L, 0L, 0L, 0L, 0L, 3L, 3L, 3L, 3L, 3L, 3L, 0L, 0L, 2L, 1L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 3L, 3L, 3L, 3L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 1L, 1L, 3L, 1L, 0L, 0L, 0L, 1L, 1L, 0L, 0L, 1L, 1L, 0L, 1L, 1L)),
   properties = list(
     time_type = "discrete",
-    has_compare = FALSE,
+    has_compare = TRUE,
     has_adjoint = FALSE),
   default_dt = 1)

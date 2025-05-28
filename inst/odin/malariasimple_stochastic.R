@@ -683,7 +683,8 @@ av_mosq[1:num_int] <- av*w[i]/wh # rate at which mosquitoes bite each int. cat.
 ###################
 ##------------------------------------------------------------------------------
 dim(clin_inc) <- c(na,nh,num_int)
-clin_inc[,,] <- ST_trans[i,j,k] + SD_trans[i,j,k] + AT_trans[i,j,k] + AD_trans[i,j,k] + UD_trans[i,j,k]  + UT_trans[i,j,k]
+initial(clin_inc[,,]) <- init_T[i,j,k]
+update(clin_inc[,,]) <- ST_trans[i,j,k] + SD_trans[i,j,k] + AT_trans[i,j,k] + AD_trans[i,j,k] + UD_trans[i,j,k]  + UT_trans[i,j,k]
 
 prev_dim <- parameter()
 dim(min_age_prev) <- prev_dim
@@ -786,3 +787,18 @@ update(EIR_mean) <- sum(epsilon_0[,,])
 
 initial(mu_mosq) <- 0
 update(mu_mosq) <- mu
+
+##------------- FOR INTERACTION WITH MONTY. ALLOWS FITTING TO PREVALENCE DATA --------------
+prevalence <- n_ud_detect_prev[1]/ n_ud_prev[1]
+tests <- data()
+positive <- data()
+positive ~ Binomial(tests, prevalence)
+
+##----------------------- FULL DETECT OUTPUT ----------------------------
+dim(detect) <- c(na,nh,num_int)
+initial(detect[,,]) <- init_D[i,j,k] + init_T[i,j,k]
+update(detect[,,]) <- T[i,j,k] + D[i,j,k]  + A[i,j,k]*p_det[i,j,k]
+
+dim(n) <- c(na,nh,num_int)
+initial(n[,,]) <- init_A[i,j,k] + init_T[i,j,k] + init_D[i,j,k] + init_P[i,j,k] + init_U[i,j,k] + init_S[i,j,k]
+update(n[,,]) <- all[i,j,k]

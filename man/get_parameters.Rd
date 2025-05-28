@@ -11,7 +11,7 @@ get_parameters(
   tsd = 4,
   age_vector = c(0, 0.25, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 5, 6, 7, 8.5, 10, 20, 30, 40,
     60, 80) * 365,
-  het_brackets = 3,
+  biting_groups = 3,
   lag_rates = 10,
   eta = 1/(21 * 365),
   rho = 0.85,
@@ -88,7 +88,7 @@ get_parameters(
 
 \item{age_vector}{Lower bound of each age category. See function for default.}
 
-\item{het_brackets}{Number of biting heterogeneity groups.}
+\item{biting_groups}{Number of biting heterogeneity groups.}
 
 \item{lag_rates}{Number of sub-compartments within FOI and FOIv which approximate delay-differential equation. Higher values are a closer approximation, but computationally more expensive.}
 

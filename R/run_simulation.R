@@ -54,6 +54,10 @@ run_simulation <- function(params, n_particles = 1, full_output = FALSE){
   return(out)
 }
 
+#' @title Get column names for simulation output
+#' @param sys Dust system. Output from dust2::dust_system_create()
+#' @param params Simulation parameters
+#' @export
 get_output_colnames <- function(sys, params){
   ## Get column names
   colname_ls <- dust2::dust_unpack_index(sys)
@@ -73,3 +77,4 @@ get_output_colnames <- function(sys, params){
   index[index == "n_ud_inc"] <- paste("n_clin_inc",params$age_vector[params$min_age_inc], params$clin_inc_rendering_max_ages,sep="_")
   return(index)
 }
+

@@ -18,7 +18,9 @@ Remotes:
 Imports: 
     dust2,
     statmod,
-    abind
+    abind,
+    dplyr,
+    reshape2
 LinkingTo:
     cpp11,
     dust2,

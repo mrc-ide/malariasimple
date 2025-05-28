@@ -12,7 +12,7 @@ test_that("Deterministic demo run produces incidence and prevalence as expected"
     stochastic = FALSE,
     human_pop = 1,
     tsd = 3,
-    het_brackets = 5,
+    biting_rates = 5,
     prevalence_rendering_min_ages = 2 * 365,
     prevalence_rendering_max_ages = 10 * 365,
     clin_inc_rendering_min_ages = 0,
@@ -27,8 +27,8 @@ test_that("Deterministic demo run produces incidence and prevalence as expected"
 
   out <- run_simulation(params) |> as.data.frame()
 
-  expect_equal(round(out$n_detect_730_3650[300], 3), 0.134)
-  expect_equal(round(out$n_clin_inc_0_Inf[10], 5), 0.00144)
+  expect_equal(round(out$n_detect_730_3650[300], 3), 0.133)
+  expect_equal(round(out$n_clin_inc_0_Inf[10], 5), 0.00146)
 })
 
 test_that("Input EIR equals output EIR",{

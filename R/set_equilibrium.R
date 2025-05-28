@@ -36,7 +36,7 @@ set_equilibrium <- function(params, init_EIR)
   params$cov <- cov
   params$num_int <- num_int
   age_vector <- params$age_vector
-  het_brackets <- params$het_brackets
+  biting_groups <- params$biting_groups
 
   ## Check Parameters
   if(!is.numeric(init_EIR) | init_EIR < 0) stop("init_EIR must be a numeric value greater than zero")
@@ -45,7 +45,7 @@ set_equilibrium <- function(params, init_EIR)
   ##                                  POPULATION DEMOGRAPHICS
   ##---------------------------------------------------------------------------------------
   na <- as.integer(length(age_vector))  # number of age groups
-  nh <- as.integer(het_brackets)  # number of heterogeneity groups
+  nh <- as.integer(biting_groups)  # number of heterogeneity groups
   h <- statmod::gauss.quad.prob(nh, dist = "normal")
 
   age_rate <- age_width <- age_mid_point <- den <- c()
