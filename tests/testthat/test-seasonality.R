@@ -24,3 +24,14 @@ test_that("set_seasonality returns a numeric output of n_days",{
   expect_equal(length(params$daily_rain_input),n_days+1)
   expect_equal(sum(is.na(params$daily_rain_input)),0)
 })
+
+test_that("set_rainfall_manual gives an appropriate length output",{
+  n_days = 100
+  rain_days = 200
+  cc_df <- data.frame(day = 1:rain_days,
+                            cc = 3*sin((1:rain_days * 2*pi) / 365) + 3)
+  params <- get_parameters(n_days = n_days) |>
+    set_rainfall_manual(cc_df$cc)
+
+  expect_equal(length(params$daily_rain_input), n_days + 1)
+})

@@ -29,7 +29,7 @@ set_seasonality <- function(params, g0, g, h, floor = 0.001){
 #' @title Add manual rainfall forcing
 #' @description Takes daily rain-forcing time series input and adds it to the parameter set
 #' @param params Other malariasimple parameters
-#' @param rainfall_ts Vector daily rainfall-forcing. Length must equal or exceed params$n_days
+#' @param cc_ts Carrying capacity time series. Vector of daily carrying capacity. Length must equal or exceed params$n_days
 #' @return Updates the input parameter list to include seasonal parameters
 #' @examples
 #' n_days = 1000
@@ -40,10 +40,13 @@ set_seasonality <- function(params, g0, g, h, floor = 0.001){
 #'           set_equilibrium(init_EIR = 5)
 #'@export
 #'
-set_rainfall_manual <- function(params, rainfall_ts){
+set_rainfall_manual <- function(params, cc_ts){
   if (params$equilibrium_set == 1) warning(message("Equilbrium must be set last"))
-  if (length(rainfall_ts) < params$n_days) stop(message("rainfall_ts must be at least as long as n_days"))
-  params$daily_rain_input <- c(1,rainfall_ts)
+  if (!is.vector(cc_ts) | is.list(cc_ts)) stop(message("cc_ts must be a vector"))
+  if (min(cc_ts) < 0) stop(message("cc_ts contains negative values. Vector carrying capacity cannot be negative."))
+  if (length(cc_ts) < params$n_days) stop(message("cc_ts must be at least as long as n_days"))
+  if (0 %in% cc_ts) warning(message("cc_ts contains zero values. This may cause the model to behave strangely."))
+  params$daily_rain_input <- c(1,cc_ts[1:params$n_days])
   params$seasonality_set <- 1
   return(params)
 }

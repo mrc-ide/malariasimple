@@ -4,12 +4,12 @@
 \alias{set_rainfall_manual}
 \title{Add manual rainfall forcing}
 \usage{
-set_rainfall_manual(params, rainfall_ts)
+set_rainfall_manual(params, cc_ts)
 }
 \arguments{
 \item{params}{Other malariasimple parameters}
 
-\item{rainfall_ts}{Vector daily rainfall-forcing. Length must equal or exceed params$n_days}
+\item{cc_ts}{Carrying capacity time series. Vector of daily carrying capacity. Length must equal or exceed params$n_days}
 }
 \value{
 Updates the input parameter list to include seasonal parameters
