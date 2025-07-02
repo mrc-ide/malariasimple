@@ -16,3 +16,22 @@ test_that("Default values give correct age_rendering outputs",{
   expect_equal(age_render$max_age_inc, 20)
 })
 
+##ft
+test_that("Zero ft provides zero treated patients",{
+  age_vector <- c(0,5,50) * 365
+  params <- get_parameters(daily_ft = 0, age_vector = age_vector) |> set_equilibrium(init_EIR = 100)
+  sim <- run_simulation(params)
+  expect_equal(sum(sim[,"T_count"]),0)
+})
+
+test_that("Varying ft in get_parameters gives varying T_count",{
+  ft <- seq(0.1,0.9,length.out = 200)
+  age_vector <- c(0,5,50) * 365
+  params <- get_parameters(age_vector = age_vector,
+                           n_days = 100,
+                           daily_ft = ft) |>
+    set_equilibrium(init_EIR = 20)
+
+  sim <- run_simulation(params)
+  expect_lt(sim[1,"T_count"], sim[100,"T_count"])
+})

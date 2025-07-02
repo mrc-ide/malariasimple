@@ -1,18 +1,22 @@
 ## DECLARE TIME STEPS
 n_days <- parameter()
 
-dim(daily_rain_input) <- n_days +1
-daily_rain_input <- parameter()
-
 dim(days) <- n_days + 1
 days <- parameter()
+
+dim(daily_rain_input) <- n_days +1
+daily_rain_input <- parameter()
+rain_input <- interpolate(days, daily_rain_input, "linear")
+
+dim(daily_ft) <- n_days + 1
+daily_ft <- parameter()
+ft <- interpolate(days, daily_ft, "linear")
 
 ## MODEL VARIABLES
 ##------------------------------------------------------------------------------
 
 na <- parameter()
 nh <- parameter()
-ft <- parameter()
 
 ##------------------------------------------------------------------------------
 ##################
@@ -459,8 +463,6 @@ lambda <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval*muLL*dEL/(2*
 K0 <- 2*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dLL)-1)
 
 # Seasonal carrying capacity KL = base carrying capacity K0 * effect for time of year theta:
-rain_input <- interpolate(days, daily_rain_input, "linear")
-
 KL <- K0 * rain_input
 fv <- 1/( foraging_time/(1-zbar) + gonotrophic_cycle ) # mosquito feeding rate (zbar from intervention param.)
 mu <- -fv*log(p1*p2) # mosquito death rate

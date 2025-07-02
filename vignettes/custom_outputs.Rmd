@@ -19,31 +19,33 @@ knitr::opts_chunk$set(
 In `malariasimple` we can customise simulation outputs in two ways:
 
 ## 1. Specifying age-specific rendering
+
 This method is similar to the method used in `malariasimple`. Customisation occurs in the parameter set-up stage and the desired output is created directly with `run_simulation()`. However, this method is limited to specifying age categories for prevalence and critical incidence estimates. An example of this method to compare critical incidence in different age groups is shown in the vignette `Basic_Model_Run`
 
 ## 2. Using get_custom_output()
+
 One of the benefits of `malariasimple` is that comparisons between groups of individuals can be made very easily using `get_custom_output()`. This method requires an extra step of post-processing after running the simulation, however it permits much more flexibility regarding customising the output. Any human variable can be output, this includes:
 
-- Total humans `"n"`
-- Clinical incidence `"clin_inc"`
-- Detected cases `"detect"`
-- Susceptibles `"S"`
-- Diseased, untreaded `"D"`
-- Asymptomatic infection `"I"`
-- Sub-patent infection `"U"`
-- Treated Disease `"T"`
-- Uninfected, prophylactically protected `"P"`
+-   Total humans `"n"`
+-   Clinical incidence `"clin_inc"`
+-   Detected cases `"detect"`
+-   Susceptibles `"S"`
+-   Diseased, untreaded `"D"`
+-   Asymptomatic infection `"I"`
+-   Sub-patent infection `"U"`
+-   Treated Disease `"T"`
+-   Uninfected, prophylactically protected `"P"`
 
 We can then define the subsection of the human population we want these outputs for. These can be defined according to three axes:
 
-- Age
-- Intervention category
-- Biting group
+-   Age
+-   Intervention category
+-   Biting group
 
 Using this method is a two step process:
 
-1. Run simulation, specifying `full_output = TRUE`. 
-2. Use `get_custom_output()` to summarise the desired output variables. 
+1.  Run simulation, specifying `full_output = TRUE`.
+2.  Use `get_custom_output()` to summarise the desired output variables.
 
 Below is an example comparing malaria prevelence in children who received SMC and those who did not.
 

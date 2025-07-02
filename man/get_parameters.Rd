@@ -69,7 +69,7 @@ get_parameters(
   dPL = 0.643,
   gammaL = 13.25,
   betaL = 21.2,
-  ft = 0,
+  daily_ft = 0,
   clin_inc_rendering_min_ages = NULL,
   clin_inc_rendering_max_ages = NULL,
   prevalence_rendering_min_ages = NULL,
@@ -204,7 +204,7 @@ get_parameters(
 
 \item{betaL}{Number of eggs laid per day per mosquito}
 
-\item{ft}{Percentage of population that gets treated}
+\item{daily_ft}{Daily vector of percentage of population that gets treated. A scalar value is permitted and assumes constant ft.}
 
 \item{clin_inc_rendering_min_ages}{Vector of values (or singe value) of lower age boundaries for clinical incidence output (days)}
 

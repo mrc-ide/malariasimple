@@ -68,7 +68,7 @@
 #' @param dPL Development time of pupae
 #' @param gammaL Relative effect of density dependence on late instars relative to early instars
 #' @param betaL Number of eggs laid per day per mosquito
-#' @param ft Percentage of population that gets treated
+#' @param daily_ft Daily vector of percentage of population that gets treated. A scalar value is permitted and assumes constant ft.
 #' @param clin_inc_rendering_min_ages Vector of values (or singe value) of lower age boundaries for clinical incidence output (days)
 #' @param clin_inc_rendering_max_ages Vector of values (or singe value) of upper age boundaries for clinical incidence output (days)
 #' @param prevalence_rendering_min_ages Vector of values (or singe value) of lower age boundaries for prevalence output (days)
@@ -157,7 +157,7 @@ get_parameters <- function(
     gammaL = 13.25,
     betaL = 21.2,
     # intervention parameters
-    ft = 0,
+    daily_ft = 0,
     clin_inc_rendering_min_ages = NULL,
     clin_inc_rendering_max_ages = NULL,
     prevalence_rendering_min_ages = NULL, #Default = 2*365
@@ -188,9 +188,9 @@ get_parameters <- function(
   if(tsd %% 1 != 0 | tsd < 1){stop(message("tsd must be a positive integer value"))}
   if(biting_groups %% 1 != 0 | biting_groups < 1){stop(message("biting_groups must be a positive integer value"))}
   if(lag_rates %% 1 != 0| lag_rates < 1){stop(message("lag_rates must be a positive integer value"))}
-  if(!is.numeric(ft)){stop(message("ft must be a numeric value between 0 and 1"))}
-  if(ft < 0 | ft > 1){stop(message("ft must be a numeric value between 0 and 1"))}
-
+  if(!is.numeric(daily_ft)){stop(message("daily_ft may only contain numeric values between 0 and 1"))}
+  if(any(daily_ft < 0 | daily_ft > 1)){stop(message("daily_ft may only contain numeric values between 0 and 1"))}
+  if(length(daily_ft) < n_days && length(daily_ft) != 1){stop(message("daily_ft must be either scaler or at least as long as n_days"))}
 
   ###########################################
   # Define parameters
@@ -217,7 +217,10 @@ get_parameters <- function(
   nh <- as.integer(biting_groups)
   params$na <- na
   params$nh <- nh
-  params$ft <- ft
+
+  if(length(daily_ft) == 1) daily_ft <- rep(daily_ft, (n_days + 1))
+  daily_ft <- daily_ft[1:n_days]
+  params$daily_ft <- c(daily_ft[1], daily_ft)
 
   # rate of leaving infection states
   params$rA <- rA

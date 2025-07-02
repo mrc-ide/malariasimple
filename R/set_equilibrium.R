@@ -163,8 +163,8 @@ set_equilibrium <- function(params, init_EIR)
   betaD <- matrix(rep(params$rD + gamma, rep(nh, na)), ncol = nh, byrow = TRUE)
   betaP <- matrix(rep(params$rP + gamma, rep(nh, na)), ncol = nh, byrow = TRUE)
 
-  aT <- FOI_eq * phi_eq * params$ft/betaT
-  aD <- FOI_eq * phi_eq * (1 - params$ft)/betaD
+  aT <- FOI_eq * phi_eq * params$daily_ft[1]/betaT
+  aD <- FOI_eq * phi_eq * (1 - params$daily_ft[1])/betaD
   aP <- params$rT * aT/betaP
 
   Z_eq <- array(dim = c(na, nh, 4))
