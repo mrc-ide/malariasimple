@@ -45,7 +45,7 @@ set_bednets <- function(params,
   #----------------------------------- Sanity Checks -----------------------------------------------
   if (params$equilibrium_set == 1) warning(message("Equilbrium must be set last"))
   if(any(days %% 1 != 0)) stop(message("'days' must be integer values"))
-
+  if(any(diff(days) < 1)) stop(message("'Days' must be unique and in chronological order"))
   if (!continuous_distribution){
     if(length(gamman) == 1) gamman <- rep(gamman, n_dists)
     if(length(dn0) == 1) dn0 <- rep(dn0, n_dists)
@@ -118,6 +118,11 @@ get_itn_usage_mat <- function(days,coverages,retention,n_days){
   ##Matrix of the population prop. using a net from distribution event i (col number) on day t (row number)
   itn_mat <- matrix(nrow = n_days, ncol = n_dists+1) #Final column is those with no bednet
   itn_mat[1,] <- c(rep(0,n_dists),1) #Initialise no bednets
+  #If bednets are introduced on day 1
+  if(1 %in% days){
+    itn_mat[1,1] <- coverages[which(days == 1)]
+    itn_mat[1,(n_dists+1)] <- 1 - itn_mat[1,1]
+  }
   for(i in 2:n_days){
     #People discard nets
     itn_mat[i,1:n_dists] <- itn_mat[(i-1),(1:n_dists)]*exp(-1/retention)

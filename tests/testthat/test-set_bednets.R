@@ -56,3 +56,11 @@ test_that("Zero valued itn coverage does not result in NaN values",{
   expect_equal(mean(params$s_itn_daily), 1)
 })
 
+test_that("ITNs reduce transmission when introduced on day 1", {
+  params <- get_parameters(n_days = 100) |>
+    set_bednets(days = 1, coverages = 0.9) |>
+    set_equilibrium(init_EIR = 100)
+  expect_true(params$r_itn_daily[2] != 0)
+  expect_true(params$s_itn_daily[2] != 1)
+})
+
