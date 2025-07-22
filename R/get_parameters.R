@@ -1,10 +1,12 @@
 #' @title Create parameters for malariasimple
 #' @description Helper function to provide defaults for most necessary values required for running the malariasimple model
 #'
+#' @param stochastic Boolean variable. Set to false for deterministic simulation
 #' @param n_days Number of days for which the simulation will run.
+#' @param human_pop Size of human population (count)
 #' @param tsd Number of time-steps per day. Fewer is faster, more better approximates the continuous solution.
 #' @param age_vector Lower bound of each age category. See function for default.
-#' @param het_brackets Number of biting heterogeneity groups.
+#' @param biting_groups Number of biting heterogeneity groups.
 #' @param lag_rates Number of sub-compartments within FOI and FOIv which approximate delay-differential equation. Higher values are a closer approximation, but computationally more expensive.
 
 #' @param eta Death rate for exponential population distribution, i.e. 1/Mean Population Age
@@ -51,13 +53,13 @@
 #' @param PM New-born immunity relative to mothers
 #' @param dCM Inverse of decay rate of maternal immunity
 #' @param delayMos Extrinsic incubation period
-#' @param tau1 Duration of host seeking, assumed to be constant between species
-#' @param tau2 Duration of mosquito resting after feed
-#' @param mu0 Daily mortality of adult mosquitoes
+#' @param foraging_time Duration of host seeking, assumed to be constant between species
+#' @param gonotrophic_cycle Duration of mosquito resting after feed
+#' @param mum Daily mortality of adult mosquitoes
 #' @param Q0 Anthrophagy probability
 #' @param chi Endophily probability
-#' @param bites_Bed Percentage of bites indoors and in bed
-#' @param bites_Indoors Percentage of bites indoors
+#' @param phi_bednets Percentage of bites indoors and in bed
+#' @param phi_indoors Percentage of bites indoors
 #' @param muEL Per capita daily mortality rate of early stage larvae (low density)
 #' @param muLL Per capita daily mortality rate of late stage larvae (low density)
 #' @param muPL Per capita daily mortality rate of pupae
@@ -66,7 +68,7 @@
 #' @param dPL Development time of pupae
 #' @param gammaL Relative effect of density dependence on late instars relative to early instars
 #' @param betaL Number of eggs laid per day per mosquito
-#' @param ft Percentage of population that gets treated
+#' @param daily_ft Daily vector of percentage of population that gets treated. A scalar value is permitted and assumes constant ft.
 #' @param clin_inc_rendering_min_ages Vector of values (or singe value) of lower age boundaries for clinical incidence output (days)
 #' @param clin_inc_rendering_max_ages Vector of values (or singe value) of upper age boundaries for clinical incidence output (days)
 #' @param prevalence_rendering_min_ages Vector of values (or singe value) of lower age boundaries for prevalence output (days)
@@ -82,10 +84,12 @@
 #' @export
 get_parameters <- function(
     ##Accuracy/speed trade off parameters
+    stochastic = FALSE,
     n_days = 100,
+    human_pop = 100000,
     tsd = 4, #Time steps per day
     age_vector =  c(0,0.25,0.5,1,1.5,2,2.5,3,3.5,4,5,6,7,8.5,10,20,30,40,60,80)*365, #Default
-    het_brackets = 5,
+    biting_groups = 3,
     lag_rates = 10, #Number of sub-compartments within FOI and FOIv which approximate delay-differential equation. Higher values are a closer approximation, but computationally more expensive
     # age, heterogeneity in exposure,
     eta = 1/(21*365),
@@ -136,13 +140,13 @@ get_parameters <- function(
     dCM = 67.6952,
     # entomological parameters
     delayMos = 10,
-    tau1 = 0.69,
-    tau2 = 2.31,
-    mu0 = 0.132,
+    foraging_time = 0.69,
+    gonotrophic_cycle = 2.31,
+    mum = 0.132,
     Q0 = 0.92,
     chi = 0.86,
-    bites_Bed = 0.89,
-    bites_Indoors = 0.97,
+    phi_bednets = 0.85,
+    phi_indoors = 0.9,
     # larval parameters daily density dependent mortality rate of egg
     muEL = 0.0338,
     muLL = 0.0348,
@@ -153,11 +157,11 @@ get_parameters <- function(
     gammaL = 13.25,
     betaL = 21.2,
     # intervention parameters
-    ft = 0,
+    daily_ft = 0,
     clin_inc_rendering_min_ages = NULL,
     clin_inc_rendering_max_ages = NULL,
-    prevalence_rendering_min_ages = NULL,
-    prevalence_rendering_max_ages = NULL,
+    prevalence_rendering_min_ages = NULL, #Default = 2*365
+    prevalence_rendering_max_ages = NULL, #Default = 10*365
     ...
 
 ){
@@ -178,39 +182,45 @@ get_parameters <- function(
   if(max(age_vector) <= 20*365){stop(message("At least one age category must be over 20 years (7300 days)"))}
   if(!is.numeric(n_days)){stop(message("n_days must be a numeric value"))}
   if(!is.numeric(tsd)){stop(message("tsd must be a numeric value"))}
-  if(!is.numeric(het_brackets)){stop(message("het_brackets must be a numeric value"))}
-  if(!is.numeric(lag_rates)){stop(message("het_brackets must be a numeric value"))}
+  if(!is.numeric(biting_groups)){stop(message("biting_groups must be a numeric value"))}
+  if(!is.numeric(lag_rates)){stop(message("biting_groups must be a numeric value"))}
   if(n_days %% 1 != 0 | n_days < 1){stop(message("n_days must be a positive integer value"))}
   if(tsd %% 1 != 0 | tsd < 1){stop(message("tsd must be a positive integer value"))}
-  if(het_brackets %% 1 != 0 | het_brackets < 1){stop(message("het_brackets must be a positive integer value"))}
+  if(biting_groups %% 1 != 0 | biting_groups < 1){stop(message("biting_groups must be a positive integer value"))}
   if(lag_rates %% 1 != 0| lag_rates < 1){stop(message("lag_rates must be a positive integer value"))}
-  if(!is.numeric(ft)){stop(message("ft must be a numeric value between 0 and 1"))}
-  if(ft < 0 | ft > 1){stop(message("ft must be a numeric value between 0 and 1"))}
-
+  if(!is.numeric(daily_ft)){stop(message("daily_ft may only contain numeric values between 0 and 1"))}
+  if(any(daily_ft < 0 | daily_ft > 1)){stop(message("daily_ft may only contain numeric values between 0 and 1"))}
+  if(length(daily_ft) < n_days && length(daily_ft) != 1){stop(message("daily_ft must be either scaler or at least as long as n_days"))}
 
   ###########################################
   # Define parameters
   ###########################################
   ## DEFAULT PARAMS
   params$n_days <- n_days
+  params$human_pop <- human_pop
+  params$stochastic <- stochastic
   params$tsd <- tsd
   params$n_ts <- n_days*tsd
+
   # duration of year
   params$DY <- 365
+
   # age, heterogeneity in exposure
   params$age_vector <- age_vector
-  params$het_brackets <- het_brackets
+  params$biting_groups <- biting_groups
   params$eta <- eta
   params$rho <- rho
   params$a0 <- a0
   params$sigma2 <- sigma2
   params$max_age <- max_age
   na <- as.integer(length(age_vector))  # number of age groups
-  nh <- as.integer(het_brackets)
+  nh <- as.integer(biting_groups)
   params$na <- na
   params$nh <- nh
-  params$ft <- ft
 
+  if(length(daily_ft) == 1) daily_ft <- rep(daily_ft, (n_days + 1))
+  daily_ft <- daily_ft[1:n_days]
+  params$daily_ft <- c(daily_ft[1], daily_ft)
 
   # rate of leaving infection states
   params$rA <- rA
@@ -264,17 +274,17 @@ get_parameters <- function(
 
   # entomological parameters
   params$delayMos <- delayMos
-  params$tau1 <- tau1
-  params$tau2 <- tau2
-  params$mu0 <- mu0
+  params$foraging_time <- foraging_time
+  params$gonotrophic_cycle <- gonotrophic_cycle
+  params$mum <- mum
   params$Q0 <- Q0
-  params$bites_Bed <- bites_Bed
-  params$bites_Indoors <- bites_Indoors
-  params$fv0 <- 1 / (tau1 + tau2)
+  params$phi_bednets <- phi_bednets
+  params$phi_indoors <- phi_indoors
+  params$fv0 <- 1 / (foraging_time + gonotrophic_cycle)
   params$av0 <- Q0 * params$fv0 # daily feeeding rate on humans
-  params$Surv0 <- exp(-mu0 * delayMos) # probability of surviving incubation period
-  params$p10 <- exp(-mu0 * tau1)  # probability of surviving one feeding cycle
-  params$p2 <- exp(-mu0 * tau2)  # probability of surviving one resting cycle
+  params$Surv0 <- exp(-mum * delayMos) # probability of surviving incubation period
+  params$p10 <- exp(-mum * foraging_time)  # probability of surviving one feeding cycle
+  params$p2 <- exp(-mum * gonotrophic_cycle)  # probability of surviving one resting cycle
 
   # larval parameters
   params$muEL <- muEL
@@ -286,10 +296,10 @@ get_parameters <- function(
   params$gammaL <- gammaL
   params$betaL <- betaL
   # {White et al. 2011 Parasites and Vectors}
-  params$eov <- betaL/mu0 * (exp(mu0/params$fv0) - 1)
+  params$eov <- betaL/mum * (exp(mum/params$fv0) - 1)
   params$b_lambda <- (gammaL * muLL/muEL - dEL/dLL + (gammaL - 1) * muLL * dEL)
   params$lambda <- -0.5 * params$b_lambda +
-    sqrt(0.25 * params$b_lambda^2 + gammaL * betaL * muLL * dEL/(2 * muEL * mu0 * dLL * (1 + dPL * muPL)))
+    sqrt(0.25 * params$b_lambda^2 + gammaL * betaL * muLL * dEL/(2 * muEL * mum * dLL * (1 + dPL * muPL)))
 
 
   #Additional parameters for dust model
@@ -315,7 +325,7 @@ get_parameters <- function(
   params$EIP_tempsens <- 0 #odin.dust likes numerical variable types
   params$mu_tempsens <- 0
 
-  #check that none of the spare parameters in the extra
+  #Check that none of the spare parameters in the extra
   if(sum(!is.na(match(names(extra_param_list),names(params))))!=0){
 
     stop (message(cat("Extra params in ... share names with default param names. Please check:\n",

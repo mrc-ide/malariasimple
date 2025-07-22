@@ -13,10 +13,14 @@ Encoding: UTF-8
 LazyData: true
 Remotes: 
     mrc-ide/dust2,
-    mrc-ide/monty
+    mrc-ide/monty,
+    mrc-ide/malariasimulation
 Imports: 
     dust2,
-    statmod
+    statmod,
+    abind,
+    dplyr,
+    reshape2
 LinkingTo:
     cpp11,
     dust2,
@@ -24,7 +28,9 @@ LinkingTo:
 Suggests: 
     knitr,
     rmarkdown,
-    testthat (>= 3.0.0)
+    ggplot2,
+    testthat (>= 3.0.0),
+    malariasimulation
 Config/testthat/edition: 3
 RoxygenNote: 7.3.2
 VignetteBuilder: knitr

@@ -1,23 +1,22 @@
 ## DECLARE TIME STEPS
 n_days <- parameter()
-n_ts <- parameter()
-
-dim(daily_rain_input) <- n_days +1
-daily_rain_input <- parameter()
 
 dim(days) <- n_days + 1
 days <- parameter()
 
-dim(iterations) <- n_ts + 1
-iterations <- parameter()
+dim(daily_rain_input) <- n_days +1
+daily_rain_input <- parameter()
+rain_input <- interpolate(days, daily_rain_input, "linear")
 
+dim(daily_ft) <- n_days + 1
+daily_ft <- parameter()
+ft <- interpolate(days, daily_ft, "linear")
 
 ## MODEL VARIABLES
 ##------------------------------------------------------------------------------
 
 na <- parameter()
 nh <- parameter()
-ft <- parameter()
 
 ##------------------------------------------------------------------------------
 ##################
@@ -448,26 +447,24 @@ gammaL <- parameter()
 
 # fitted entomological parameters:
 mv0 <- parameter()
-mu0 <- parameter()
-tau1 <- parameter()
-tau2 <- parameter()
+mum <- parameter()
+foraging_time <- parameter()
+gonotrophic_cycle <- parameter()
 betaL <- parameter()
 
 # Entomological variables:
-mu0_use <- mu0
-p10 <- exp(-mu0_use * tau1)  # probability of surviving one feeding cycle
-p2 <- exp(-mu0_use * tau2)  # probability of surviving one resting cycle
+mum_use <- mum
+p10 <- exp(-mum_use * foraging_time)  # probability of surviving one feeding cycle
+p2 <- exp(-mum_use * gonotrophic_cycle)  # probability of surviving one resting cycle
 eov <- betaL/mu*(exp(mu/fv)-1)
 beta_larval <- eov*mu*exp(-mu/fv)/(1-exp(-mu/fv)) # Number of eggs laid per day
 b_lambda <- (gammaL*muLL/muEL-dEL/dLL+(gammaL-1)*muLL*dEL)
-lambda <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval*muLL*dEL/(2*muEL*mu0_use*dLL*(1+dPL*muPL)))
-K0 <- 2*mv0*dLL*mu0_use*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dLL)-1)
+lambda <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval*muLL*dEL/(2*muEL*mum_use*dLL*(1+dPL*muPL)))
+K0 <- 2*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dLL)-1)
 
 # Seasonal carrying capacity KL = base carrying capacity K0 * effect for time of year theta:
-rain_input <- interpolate(days, daily_rain_input, "linear")
-
-KL <- K0*rain_input
-fv <- 1/( tau1/(1-zbar) + tau2 ) # mosquito feeding rate (zbar from intervention param.)
+KL <- K0 * rain_input
+fv <- 1/( foraging_time/(1-zbar) + gonotrophic_cycle ) # mosquito feeding rate (zbar from intervention param.)
 mu <- -fv*log(p1*p2) # mosquito death rate
 
 # finding equilibrium and initial values for EL, LL & PL
@@ -496,13 +493,14 @@ update(PL) <- if(PL + dt*(LL/dLL - muPL*PL - PL/dPL) < 0) 0 else (PL + dt*(LL/dL
 #See supplementary materials of [Thompson, 2022] - https://doi.org/10.1016/S2214-109X(22)00416-8
 max_smc_cov <- parameter()
 
-##Parameters relevant to clearance of existing infections by SMC treatment
-dim(alpha_smc) <- n_ts + 1
-alpha_smc <- parameter()
-alpha_smc_timestep <- interpolate(iterations, alpha_smc, "constant")
+dim(alpha_smc_times, alpha_smc_set) <- parameter(rank = 1)
+alpha_smc_times <- parameter(constant = TRUE)
+alpha_smc_set <- parameter(constant = TRUE)
+
+alpha_smc <- interpolate(alpha_smc_times, alpha_smc_set, mode = "constant")
 
 dim(alpha_smc_array) <-  c(na,nh,num_int)
-alpha_smc_array[,,] <- smc_mask[i,j,k] * alpha_smc_timestep #Multiply by proportion of individuals in SMC compartment currently receiving SMC
+alpha_smc_array[,,] <- smc_mask[i,j,k] * alpha_smc #Multiply by proportion of individuals in SMC compartment currently receiving SMC
 
 ##Parameters relating to prophylaxis effect of SMC
 dim(P_smc_daily) <- n_days + 1
@@ -529,30 +527,20 @@ max_itn_cov <- parameter()
 
 
 Q0 <- parameter()
-bites_Bed <- parameter()
+phi_bednets <- parameter()
 
 # General intervention model terminology:
 # r - probability of trying to repeat feed after hitting ITN
 # d - probability of dying after hitting ITN
 # s - probability of successful feed after hitting ITN
 
-# The maximum (and then minimum) r and d values for ITN on day 0 before they decay
-rn <- parameter()
-dn0 <- parameter()
-rnm <- parameter()
+dim(r_itn_daily) <- n_days + 1 #Bednet insecticide decay
+dim(s_itn_daily) <- n_days + 1 #Proportion of individuals in the ITN compartment who currently have ITNs.= daily_ITN / max(daily_ITN)
+r_itn_daily <- parameter()
+s_itn_daily <- parameter()
 
-dim(itn_decay_daily) <- n_days + 1 #Bednet insecticide decay
-dim(itn_eff_cov_daily) <- n_days + 1 #Proportion of individuals in the ITN compartment who currently have ITNs.= daily_ITN / max(daily_ITN)
-itn_decay_daily <- parameter()
-itn_eff_cov_daily <- parameter()
-
-itn_eff_cov <- interpolate(days, itn_eff_cov_daily, "linear")
-itn_decay <- interpolate(days, itn_decay_daily, "linear")
-
-d_itn <- dn0*itn_decay*itn_eff_cov
-r_itn <- (rnm + (rn - rnm)*itn_decay)*itn_eff_cov#Bednet repellency does not decay to zero.
-s_itn <- 1 - d_itn - r_itn
-
+r_itn <- interpolate(days, r_itn_daily, "linear")
+s_itn <- interpolate(days, s_itn_daily, "linear")
 ################## GENERAL INTERVENTION PARAMETERS #######################
 num_int <- parameter()
 
@@ -568,18 +556,18 @@ dim(cov) <- num_int
 # probability that mosquito bites and survives for each intervention category
 dim(w_) <- 4
 w_[1] <- 1
-w_[2] <- 1 - bites_Bed + bites_Bed*s_itn
+w_[2] <- 1 - phi_bednets + phi_bednets*s_itn
 w_[3] <- 1
-w_[4] <- 1 - bites_Bed + bites_Bed*s_itn
+w_[4] <- 1 - phi_bednets + phi_bednets*s_itn
 w[] <- w_[i]
 dim(w) <- num_int
 
 # probability that mosquito is repelled during a single attempt for each int. cat.
 dim(z_) <- 4
 z_[1] <- 0
-z_[2] <- bites_Bed*r_itn
+z_[2] <- phi_bednets*r_itn
 z_[3] <- 0
-z_[4] <- bites_Bed*r_itn
+z_[4] <- phi_bednets*r_itn
 z[] <- z_[i]
 dim(z) <- num_int
 
@@ -609,7 +597,8 @@ av_mosq[1:num_int] <- av*w[i]/wh # rate at which mosquitoes bite each int. cat.
 ###################
 ##------------------------------------------------------------------------------
 dim(clin_inc) <- c(na,nh,num_int)
-clin_inc[,,] <- ST_trans[i,j,k] + SD_trans[i,j,k] + AT_trans[i,j,k] + AD_trans[i,j,k] + UD_trans[i,j,k]  + UT_trans[i,j,k]
+initial(clin_inc[,,]) <- init_T[i,j,k]
+update(clin_inc[,,]) <- ST_trans[i,j,k] + SD_trans[i,j,k] + AT_trans[i,j,k] + AD_trans[i,j,k] + UD_trans[i,j,k]  + UT_trans[i,j,k]
 
 prev_dim <- parameter()
 dim(min_age_prev) <- prev_dim
@@ -623,7 +612,10 @@ n_prev[1:prev_dim] <- sum(S[min_age_prev[i]:max_age_prev[i],,]) + sum(T[min_age_
   sum(A[min_age_prev[i]:max_age_prev[i],,]) + sum(U[min_age_prev[i]:max_age_prev[i],,]) + sum(P[min_age_prev[i]:max_age_prev[i],,])
 
 dim(detect_prev_full) <- c(na,nh,num_int)
-detect_prev_full[,,] <- T[i,j,k] + D[i,j,k]  + A[i,j,k]*p_det[i,j,k]
+initial(detect_prev_full[,,]) <- init_D[i,j,k]
+update(detect_prev_full[,,]) <- T[i,j,k] + D[i,j,k]  + A[i,j,k]*p_det[i,j,k]
+
+
 
 dim(detect_prev) <- prev_dim
 detect_prev[1:prev_dim] <- sum(detect_prev_full[min_age_prev[i]:max_age_prev[i],,])
@@ -645,7 +637,7 @@ dim(max_age_inc) <- inc_dim
 min_age_inc <- parameter(type = "integer")
 max_age_inc <- parameter(type = "integer")
 
-dim(n_ud_inc) <- inc_dim
+dim(n_ud_inc) <- inc_dim #User defined incidence
 initial(n_ud_inc[]) <- min_age_inc[i]
 update(n_ud_inc[]) <- sum(clin_inc[min_age_inc[i]:max_age_inc[i],,]) / dt
 
@@ -705,10 +697,28 @@ all_deaths[,,] <- S_death[i,j,k] + T_death[i,j,k] + D_death[i,j,k] + A_death[i,j
 initial(natural_deaths) <- 0
 update(natural_deaths) <- sum(all_deaths[,,])
 
-dim(EIR_pop) <- c(na,nh,num_int)
-EIR_pop[,,] <- EIR[i,j,k] * all[i,j,k]
+dim(epsilon_0) <- c(na,nh,num_int)
+epsilon_0[,,] <- (all[i,j,k] * EIR[i,j,k]) / foi_age[i]
 initial(EIR_mean) <- 0
-update(EIR_mean) <- sum(EIR_pop[,,]) / H
+update(EIR_mean) <- sum(epsilon_0[,,])
 
 initial(mu_mosq) <- 0
 update(mu_mosq) <- mu
+
+##------------- FOR INTERACTION WITH MONTY. ALLOWS FITTING TO PREVALENCE DATA --------------
+prevalence <- n_ud_detect_prev[1]/ n_ud_prev[1]
+tests <- data()
+positive <- data()
+positive ~ Binomial(tests, prevalence)
+
+##----------------------- FULL DETECT OUTPUT ----------------------------
+dim(detect) <- c(na,nh,num_int)
+initial(detect[,,]) <- init_D[i,j,k] + init_T[i,j,k]
+update(detect[,,]) <- T[i,j,k] + D[i,j,k]  + A[i,j,k]*p_det[i,j,k]
+
+dim(n) <- c(na,nh,num_int)
+initial(n[,,]) <- init_A[i,j,k] + init_T[i,j,k] + init_D[i,j,k] + init_P[i,j,k] + init_U[i,j,k] + init_S[i,j,k]
+update(n[,,]) <- all[i,j,k]
+
+
+

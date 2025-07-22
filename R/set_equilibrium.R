@@ -1,13 +1,14 @@
 #' @title Set equilibrium
-#' @description Updates parameter list to include equilibrium values for a given EIR (entomological innoculation rate) for the malariasimple parameter list.
+#' @description Updates parameter list to include equilibrium values for a given EIR (entomological inoculation rate) for the malariasimple parameter list.
 #' This function also includes some 'finishing touches' for the smooth running of the simulation and so is essential that this function is performed last.
 #' @param params List of parameters
 #' @param init_EIR Value of EIR at equilbrium
-#'
+
 #' @examples
 #' params <- get_parameters() |>
 #'             set_equilibrium(init_EIR = 6)
 #' @importFrom stats rlnorm
+#' @importFrom stats rbinom
 #' @export
 
 set_equilibrium <- function(params, init_EIR)
@@ -35,7 +36,7 @@ set_equilibrium <- function(params, init_EIR)
   params$cov <- cov
   params$num_int <- num_int
   age_vector <- params$age_vector
-  het_brackets <- params$het_brackets
+  biting_groups <- params$biting_groups
 
   ## Check Parameters
   if(!is.numeric(init_EIR) | init_EIR < 0) stop("init_EIR must be a numeric value greater than zero")
@@ -44,7 +45,7 @@ set_equilibrium <- function(params, init_EIR)
   ##                                  POPULATION DEMOGRAPHICS
   ##---------------------------------------------------------------------------------------
   na <- as.integer(length(age_vector))  # number of age groups
-  nh <- as.integer(het_brackets)  # number of heterogeneity groups
+  nh <- as.integer(biting_groups)  # number of heterogeneity groups
   h <- statmod::gauss.quad.prob(nh, dist = "normal")
 
   age_rate <- age_width <- age_mid_point <- den <- c()
@@ -162,8 +163,8 @@ set_equilibrium <- function(params, init_EIR)
   betaD <- matrix(rep(params$rD + gamma, rep(nh, na)), ncol = nh, byrow = TRUE)
   betaP <- matrix(rep(params$rP + gamma, rep(nh, na)), ncol = nh, byrow = TRUE)
 
-  aT <- FOI_eq * phi_eq * params$ft/betaT
-  aD <- FOI_eq * phi_eq * (1 - params$ft)/betaD
+  aT <- FOI_eq * phi_eq * params$daily_ft[1]/betaT
+  aD <- FOI_eq * phi_eq * (1 - params$daily_ft[1])/betaD
   aP <- params$rT * aT/betaP
 
   Z_eq <- array(dim = c(na, nh, 4))
@@ -231,17 +232,17 @@ set_equilibrium <- function(params, init_EIR)
   ##                        INITIAL VALUES FOR MOSQUITO STATES
   ##---------------------------------------------------------------------------------------
   FOIv_eq <- sum(FOIvij_eq)
-  init_Iv <- FOIv_eq * params$Surv0/(FOIv_eq + params$mu0)
-  init_Sv <- params$mu0 * init_Iv/(FOIv_eq * params$Surv0)
+  init_Iv <- FOIv_eq * params$Surv0/(FOIv_eq + params$mum)
+  init_Sv <- params$mum * init_Iv/(FOIv_eq * params$Surv0)
   init_Pv <- 1 - init_Sv - init_Iv
 
   # mosquito density needed to give this EIR
   mv0 <- omega * EIRd_eq/(init_Iv * params$av0)
 
   # larval states
-  K0 <- 2 * mv0 * params$dLL * params$mu0 * (1 + params$dPL * params$muPL) * params$gammaL * (params$lambda + 1)/(params$lambda/(params$muLL *
+  K0 <- 2 * mv0 * params$dLL * params$mum * (1 + params$dPL * params$muPL) * params$gammaL * (params$lambda + 1)/(params$lambda/(params$muLL *
                                                                                                                                    params$dEL) - 1/(params$muLL * params$dLL) - 1)
-  init_PL <- 2 * params$dPL * params$mu0 * mv0
+  init_PL <- 2 * params$dPL * params$mum * mv0
   init_LL <- params$dLL * (params$muPL + 1/params$dPL) * init_PL
   init_EL <- (init_LL/params$dLL + params$muLL* init_LL * (1 + params$gammaL * init_LL/K0))/(1/params$dEL - params$muLL * params$gammaL * init_LL/K0)
 
@@ -280,7 +281,6 @@ set_equilibrium <- function(params, init_EIR)
   init_ICA = array(init_ICA, c(na, nh, num_int))
   init_ICM = array(init_ICM, c(na, nh, num_int))
 
-  # TODO: Remove this part and put it as an edit to the equilibrium solution
   if(!is.null(params$ncc)){
     init_IB = array(init_IB, c(na, nh, num_int, params$ncc))
     init_ID = array(init_ID, c(na, nh, num_int, params$ncc))
@@ -321,24 +321,20 @@ set_equilibrium <- function(params, init_EIR)
   #Interventions
   if(params$itn_set == 0){
     params$max_itn_cov <- 0
-    params$itn_decay_daily <- rep(0,(params$n_days+1))
-    params$itn_eff_cov_daily <- rep(0,(params$n_days+1))
-    params$mean_itn_decay <- 0
-    params$dn0 <- 0
-    params$rn <- 0
-    params$rnm <- 0
-
+    params$r_itn_daily <- rep(0,(params$n_days+1))
+    params$s_itn_daily <- rep(1,(params$n_days+1))
   }
-
 
   params$smc_mask <- array(0, dim = c(na,nh,num_int))
   if(params$smc_set == 0){
     params$max_smc_cov <- 0
     params$eff_smc_prop <- rep(0,(params$n_days+1))
     params$P_smc_daily <- rep(0,(params$n_days+1))
-    params$alpha_smc <- rep(0,(params$n_ts+1))
+    params$alpha_smc_set <- c(0,0)
+    params$alpha_smc_times <- c(0,2)
     params$rel_c_days <- rep(1,(params$n_days+1))
   }
+
   ##SMC mask must be defined in set_equilibrium, because num_int must be defined
   if(params$smc_set == 1){
     params$smc_mask[which(params$age_vector %in% params$smc_age),1:nh,3:num_int] <- 1  #Produce an array which is 1 for compartments receiving SMC, else 0.
@@ -353,13 +349,31 @@ set_equilibrium <- function(params, init_EIR)
   if (is.null(params$daily_temp))
     params$daily_temp <- rep(1, (params$n_days+1))
 
-  params$init_S <- init_S
-  params$init_T <- init_T
-  params$init_D <- init_D
-  params$init_A <- init_A
-  params$init_U <- init_U
-  params$init_P <- init_P
-  params$init_Y <- init_Y
+  human_pop <- params$human_pop
+  if(params$stochastic){
+    human_init_list <- list(init_S = init_S, init_T = init_T,
+                            init_D = init_D, init_A = init_A,
+                            init_U = init_U, init_P = init_P,
+                            init_Y = init_Y)
+    init_count_list <- lapply(human_init_list, function(arr) {
+      array(rbinom(length(arr), size = human_pop, prob = arr), dim = dim(arr))
+    })
+    params$init_S <- init_count_list$init_S
+    params$init_T <- init_count_list$init_T
+    params$init_D <- init_count_list$init_D
+    params$init_A <- init_count_list$init_A
+    params$init_U <- init_count_list$init_U
+    params$init_P <- init_count_list$init_P
+    params$init_Y <- init_count_list$init_Y
+  } else {
+    params$init_S <- init_S*human_pop
+    params$init_T <- init_T*human_pop
+    params$init_D <- init_D*human_pop
+    params$init_A <- init_A*human_pop
+    params$init_U <- init_U*human_pop
+    params$init_P <- init_P*human_pop
+    params$init_Y <- init_Y*human_pop
+  }
 
   params$init_IB <- init_IB
   params$init_ID <- init_ID

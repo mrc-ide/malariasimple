@@ -5,11 +5,13 @@
 \title{Create parameters for malariasimple}
 \usage{
 get_parameters(
+  stochastic = FALSE,
   n_days = 100,
+  human_pop = 1e+05,
   tsd = 4,
   age_vector = c(0, 0.25, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 5, 6, 7, 8.5, 10, 20, 30, 40,
     60, 80) * 365,
-  het_brackets = 5,
+  biting_groups = 3,
   lag_rates = 10,
   eta = 1/(21 * 365),
   rho = 0.85,
@@ -52,13 +54,13 @@ get_parameters(
   PM = 0.774368,
   dCM = 67.6952,
   delayMos = 10,
-  tau1 = 0.69,
-  tau2 = 2.31,
-  mu0 = 0.132,
+  foraging_time = 0.69,
+  gonotrophic_cycle = 2.31,
+  mum = 0.132,
   Q0 = 0.92,
   chi = 0.86,
-  bites_Bed = 0.89,
-  bites_Indoors = 0.97,
+  phi_bednets = 0.85,
+  phi_indoors = 0.9,
   muEL = 0.0338,
   muLL = 0.0348,
   muPL = 0.249,
@@ -67,7 +69,7 @@ get_parameters(
   dPL = 0.643,
   gammaL = 13.25,
   betaL = 21.2,
-  ft = 0,
+  daily_ft = 0,
   clin_inc_rendering_min_ages = NULL,
   clin_inc_rendering_max_ages = NULL,
   prevalence_rendering_min_ages = NULL,
@@ -76,13 +78,17 @@ get_parameters(
 )
 }
 \arguments{
+\item{stochastic}{Boolean variable. Set to false for deterministic simulation}
+
 \item{n_days}{Number of days for which the simulation will run.}
+
+\item{human_pop}{Size of human population (count)}
 
 \item{tsd}{Number of time-steps per day. Fewer is faster, more better approximates the continuous solution.}
 
 \item{age_vector}{Lower bound of each age category. See function for default.}
 
-\item{het_brackets}{Number of biting heterogeneity groups.}
+\item{biting_groups}{Number of biting heterogeneity groups.}
 
 \item{lag_rates}{Number of sub-compartments within FOI and FOIv which approximate delay-differential equation. Higher values are a closer approximation, but computationally more expensive.}
 
@@ -168,19 +174,19 @@ get_parameters(
 
 \item{delayMos}{Extrinsic incubation period}
 
-\item{tau1}{Duration of host seeking, assumed to be constant between species}
+\item{foraging_time}{Duration of host seeking, assumed to be constant between species}
 
-\item{tau2}{Duration of mosquito resting after feed}
+\item{gonotrophic_cycle}{Duration of mosquito resting after feed}
 
-\item{mu0}{Daily mortality of adult mosquitoes}
+\item{mum}{Daily mortality of adult mosquitoes}
 
 \item{Q0}{Anthrophagy probability}
 
 \item{chi}{Endophily probability}
 
-\item{bites_Bed}{Percentage of bites indoors and in bed}
+\item{phi_bednets}{Percentage of bites indoors and in bed}
 
-\item{bites_Indoors}{Percentage of bites indoors}
+\item{phi_indoors}{Percentage of bites indoors}
 
 \item{muEL}{Per capita daily mortality rate of early stage larvae (low density)}
 
@@ -198,7 +204,7 @@ get_parameters(
 
 \item{betaL}{Number of eggs laid per day per mosquito}
 
-\item{ft}{Percentage of population that gets treated}
+\item{daily_ft}{Daily vector of percentage of population that gets treated. A scalar value is permitted and assumes constant ft.}
 
 \item{clin_inc_rendering_min_ages}{Vector of values (or singe value) of lower age boundaries for clinical incidence output (days)}
 

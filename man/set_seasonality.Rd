@@ -4,12 +4,16 @@
 \alias{set_seasonality}
 \title{Add seasonal patterns}
 \usage{
-set_seasonality(params, season_params, floor = 0.001)
+set_seasonality(params, g0, g, h, floor = 0.001)
 }
 \arguments{
 \item{params}{Other malariasimple parameters}
 
-\item{season_params}{List of Fourier parameters for manual seasonal input}
+\item{g0}{Mean baseline coefficient}
+
+\item{g}{Cosine coefficients}
+
+\item{h}{Sine coefficients}
 
 \item{floor}{Minimum value of seasonal forcing}
 }
@@ -17,14 +21,17 @@ set_seasonality(params, season_params, floor = 0.001)
 Updates the input parameter list to include seasonal parameters
 }
 \description{
-Adds seasonal forcing to the model using a Fourier function of rainfall.
+Adds seasonal forcing to the model by approximating average seasonal rainfall as a Fourier series.
 }
 \examples{
-season_params <- list(g0 = 0.28,
-g = c(0.2, -0.07, -0.001),
-h = c(0.2, -0.07, -0.1),
-theta_c = 1)
+# Define seasonality Fourier coefficients
+g0 = 0.28
+g = c(-0.3, -0.03, 0.17)
+h = c(-0.35, 0.33, -0.08)
 params <- get_parameters() |>
-          set_seasonality(season_params = season_params, floor = 0.005) |>
+          set_seasonality(g0=g0,
+          g=g,
+          h=h,
+          floor = 0.005) |>
           set_equilibrium(init_EIR = 5)
 }

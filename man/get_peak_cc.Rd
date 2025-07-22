@@ -4,18 +4,23 @@
 \alias{get_peak_cc}
 \title{Timing of peak carrying capacity}
 \usage{
-get_peak_cc(season_params)
+get_peak_cc(g0, g, h)
 }
 \arguments{
-\item{season_params}{List of Fourier function parameters describing seasonality}
+\item{g0}{Mean baseline coefficient}
+
+\item{g}{Cosine coefficients}
+
+\item{h}{Sine coefficients}
 }
 \description{
-Returns the day-of-year on which carrying capacity is maximum
+Returns the day-of-year on which vector carrying capacity is maximum
 }
 \examples{
-season_params <- list(g0 = 0.28,
-                          g = c(-0.30, -0.03, 0.17),
-                          h = c(-0.35, 0.32, -0.08),
-                          theta_c = 0.28)
-peak_cc <- get_peak_cc(season_params)
+#Seasonality parameters
+g0 = 0.28
+g = c(-0.3, -0.03, 0.17)
+h = c(-0.35, 0.32, -0.07)
+
+peak_cc <- get_peak_cc(g0, g, h)
 }

@@ -2,7 +2,7 @@
 title: "Model Introduction"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{intro}
+  %\VignetteIndexEntry{Model Introduction}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -49,7 +49,7 @@ knitr::include_graphics("images/human_compartments.png")
 Within each human sub-compartment, the population is considered a homogeneous unit. Population is defined as a fraction of the total population such that the sum of all compartments across all disease states at a given timestep will always equal 1. 
 
 
-**Note in intervention compartments**
+**Note on intervention compartments**
 
 The population proportion in each compartment is defined in the input parameters, and will stay constant throughout the simulation. Hence, the proportion in each intervention category does not necessarily represent the proportion receiving an intervention at any given time, but rather the population who *will* receive the intervention at some point during the simulation. In the case of SMC, treatments are only applied to compartments that are in both SMC intervention types and SMC-eligible age-brackets. Hence compartments in the SMC intervention type that are over the maximum SMC age at the first SMC administration will never receive SMC.   
 
@@ -70,4 +70,17 @@ The only transitions that occur within subcompartments of a disease state is the
 ```{r echo = FALSE, out.width = "110%"}
 knitr::include_graphics("images/human_transitions.png")
 ```
+
+## Speed / Accuracy Trade-Off
+`malariasimple` permits significant speed gains compared with `malariasimulation`, however it is an approximation and outputs can deviate from more mathematically exact solutions. `malariasimple` contains several tuneable parameters which can be changed to alter the balance between simulation speed and mathematical accuracy of the output. Tuneable parameters are:
+
+- tsd (time steps per day)
+- biting_groups (Number of biting heterogeneity compartments)
+- age_vector (No. of age compartments)
+- lag_rates (sub-compartments approximating the delay in FOI)
+
+Increasing the number of time steps or compartments will all add to runtime but may reduce accuracy.
+
+**Note**: tsd, biting_groups and lag_rates are fairly optimally set in the defaults, and increasing their resolution will likely increase runtime for limited accuracy gains. If you are looking to more closely approximate `malariasimulation`, the first attempt should be to increase resolution of the age_vector.  
+
 
