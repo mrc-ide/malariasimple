@@ -24,7 +24,7 @@ set_bednets(
 
 \item{daily_continuous_cov}{Vector of daily ITN coverage (required when continuous_distribution = TRUE). A single value is also accepted}
 
-\item{days}{Vector of days on which ITN distribution events occur (required when continuous_distribution = FALSE)}
+\item{days}{Vector of days on which ITN distribution events occur (required when continuous_distribution = FALSE). Analogous to 'timesteps' argument in malariasimulation}
 
 \item{coverages}{Vector detailing the proportion of the population receiving an ITN during each intervention (required when continuous_distribution = FALSE)}
 

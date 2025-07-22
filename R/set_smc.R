@@ -11,7 +11,7 @@
 #' @param drug_rel_c Relative infectivity of treated individuals during infection clearing period
 #' @param shape_smc Shape of Weibull distribution describing prophylactic waning
 #' @param scale_smc Scale of Weibull distribution describing prophylactic waning
-#' @param distribution_type SMC distributions can either be delived randomly across the eligible population each time "random", or within a consistent cohort "cohort".
+#' @param distribution_type SMC distributions can either be delivered randomly across the eligible population each time "random", or given to the same children each time "correlated".
 #' @returns Updates the input parameter list to include SMC parameters
 #'
 #' @examples
@@ -19,7 +19,7 @@
 #' smc_params <- get_parameters(n_days = 300) |>
 #'           set_smc(days = c(100,150,200),
 #'                   coverages = 0.4,
-#'                   distribution_type = "cohort") |>
+#'                   distribution_type = "correlated") |>
 #'           set_equilibrium(init_EIR = 10)
 #' @export
 set_smc <- function(params,
@@ -108,7 +108,7 @@ get_smc_usage_mat <- function(days,coverages,n_days,distribution_type){
     new_row[i] <- new_recipients
     if(distribution_type == "random"){
       new_row[-i] <- new_row[-i] - new_recipients*new_row[-i]
-    } else if(distribution_type == "cohort"){
+    } else if(distribution_type == "correlated"){
       current_cov <- 1-previous_row[n_dists+1]
       if(current_cov != 0){
         new_row[-i] <- new_row[-i] * (max(current_cov - new_recipients,0) / current_cov)

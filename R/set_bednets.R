@@ -3,7 +3,7 @@
 #' @param params malariasimple parameters
 #' @param continuous_distribution Is ITN distribution continuous? If FALSE, distribution is assumed to occur in discrete events.
 #' @param daily_continuous_cov Vector of daily ITN coverage (required when continuous_distribution = TRUE). A single value is also accepted
-#' @param days Vector of days on which ITN distribution events occur (required when continuous_distribution = FALSE)
+#' @param days Vector of days on which ITN distribution events occur (required when continuous_distribution = FALSE). Analogous to 'timesteps' argument in malariasimulation
 #' @param coverages Vector detailing the proportion of the population receiving an ITN during each intervention (required when continuous_distribution = FALSE)
 #' @param gamman Half-life of ITN insecticide (days)
 #' @param retention Average number of days a net is kept for

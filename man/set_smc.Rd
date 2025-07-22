@@ -42,7 +42,7 @@ set_smc(
 
 \item{scale_smc}{Scale of Weibull distribution describing prophylactic waning}
 
-\item{distribution_type}{SMC distributions can either be delived randomly across the eligible population each time "random", or within a consistent cohort "cohort".}
+\item{distribution_type}{SMC distributions can either be delivered randomly across the eligible population each time "random", or given to the same children each time "correlated".}
 }
 \value{
 Updates the input parameter list to include SMC parameters
@@ -55,6 +55,6 @@ Set SMC parameters
 smc_params <- get_parameters(n_days = 300) |>
           set_smc(days = c(100,150,200),
                   coverages = 0.4,
-                  distribution_type = "cohort") |>
+                  distribution_type = "correlated") |>
           set_equilibrium(init_EIR = 10)
 }

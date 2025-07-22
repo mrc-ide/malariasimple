@@ -35,14 +35,14 @@ Preset values are available for SP_AQ, AL, and DHA_PQP (see ?set_drug_params for
 
 The assumptions behind the SMC parameterisation in `malariasimple` are largely based on [Thompson,2022 - Supplementary Materials](https://ars.els-cdn.com/content/image/1-s2.0-S2214109X22004168-mmc1.pdf).
 
-## Random Vs. Cohort
+## Random Vs. Correlated
 In `malariasimulation`, you can adjust the 'correlation' of an intervention to determine whether having previously received the intervention makes an individual more/less/equally likely to receive the same intervention in the future. This functionality currently does not exist in `malariasimple`, however we can set two extremes: 
 
 * *'Random' distribution*
 Each individual within the defined age category has an equal chance of receiving SMC at each distribution event regardless of whether they received a dose previously. Equivalent to correlation = 0. 
 
-* *'Cohort' distribution* 
-Assumes doses are given in cohorts. If a child receives SMC on the first distribution event, they will continue to receive further doses unless the coverage decreases. Equivalent to correlation = 1. 
+* *'Correlated' distribution* 
+Assumes doses are given to the same children each round. If a child receives SMC on the first distribution event, they will continue to receive further doses unless the coverage decreases. Equivalent to correlation = 1. 
 
 ## Using set_smc()
 To fully define an SMC intervention, we can specify:
@@ -103,15 +103,15 @@ smc_random_params <- basic_params |>
   malariasimple::set_equilibrium(init_EIR = 10)
 smc_random_out <- malariasimple::run_simulation(smc_random_params) |> as.data.frame()
 
-## ---------- Seasonal transmission with 'cohort' SMC distribution --------
-smc_cohort_params <- basic_params |>
+## ---------- Seasonal transmission with 'correlated' SMC distribution --------
+smc_corr_params <- basic_params |>
   malariasimple::set_smc(coverages = smc_cov, days = smc_days,
           min_age = 1*365,
           max_age = 5*365,
-          distribution_type = "cohort",
+          distribution_type = "correlated",
           drug = "AL") |>
   malariasimple::set_equilibrium(init_EIR = 10)
-smc_cohort_out <- malariasimple::run_simulation(smc_cohort_params) |> as.data.frame()
+smc_corr_out <- malariasimple::run_simulation(smc_corr_params) |> as.data.frame()
 
 ## --------------------------- Plot PfPR[2-10] ---------------------------- 
 plot(basic_out$time, basic_out$n_detect_730_3650/basic_out$n_730_3650,
@@ -120,11 +120,11 @@ plot(basic_out$time, basic_out$n_detect_730_3650/basic_out$n_730_3650,
 lines(smc_random_out$time, smc_random_out$n_detect_730_3650/smc_random_out$n_730_3650,
       type = "l", lwd = 2, col = "#00BA38",
       xlab = "Day", ylab =  expression(paste(italic(Pf),"PR"[2-10])))
-lines(smc_cohort_out$time, smc_cohort_out$n_detect_730_3650/smc_cohort_out$n_730_3650,
+lines(smc_corr_out$time, smc_corr_out$n_detect_730_3650/smc_corr_out$n_730_3650,
       type = "l", lwd = 2, col = "#619CFF",
       xlab = "Day", ylab =  expression(paste(italic(Pf),"PR"[2-10])))
 abline(v = smc_days, lty = 2)
-legend("bottomleft", legend = c("No intervention", "SMC (random)", "SMC (cohort)"), 
+legend("bottomleft", legend = c("No intervention", "SMC (random)", "SMC (correlated)"), 
        col = c("#F8766D","#00BA38","#619CFF"), lty = 1, 
        bty = "n", ncol = 1, cex = 0.8, lwd=2)
 ```
