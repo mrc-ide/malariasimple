@@ -40,7 +40,8 @@ get_decay_mat <- function(days,n_days,gamman_itn = NULL,scale_smc = NULL,shape_s
     if(intervention == "SMC"){
       decay_mat[dist_day:n_days,i] <- exp(-((t / scale_smc) ^ shape_smc))
     } else if(intervention == "ITN"){
-      decay_mat[dist_day:n_days,i] <- exp(-t/gamman_itn[i])
+      decay_rate <- log(2) / gamman_itn[i]
+      decay_mat[dist_day:n_days,i] <- exp(-t*decay_rate)
     }
   }
   return(decay_mat)
