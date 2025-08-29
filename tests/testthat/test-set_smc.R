@@ -32,14 +32,17 @@ test_that("alpha_smc is zero when drug_efficacy is zero",{
 
 test_that("rel_c_days works at edge cases", {
   days <- c(1,50,99)
+  cov <- 0.5
   params_1 <- get_parameters(n_days = 200) |>
-    set_smc(days = days, coverages = 0.5, drug_rel_c = 1)
+    set_smc(days = days, coverages = cov, drug_rel_c = 1)
   expect_true(all(params_1$rel_c_days == 1))
 
   params_0 <- get_parameters(n_days = 200) |>
-    set_smc(days = days, coverages = 0.5, drug_rel_c = 0)
-  expect_true(all(params_0$rel_c_days[days+1] == 0))
-  expect_true(all(params_0$rel_c_days %in% c(1,0)))
+    set_smc(days = days, coverages = cov, drug_rel_c = 0)
+  x <- 1 - cov / params_0$max_smc_cov #max_smc_cov*x + (1-max_smc_cov)*1 == cov
+
+  expect_true(all(params_0$rel_c_days[days+1] == x))
+  expect_true(all(params_0$rel_c_days %in% c(1,x)))
 })
 
 test_that("SMC clearance is working as expected", {

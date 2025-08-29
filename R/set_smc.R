@@ -8,7 +8,7 @@
 #' @param max_age Maximum age eligible for SMC
 #' @param smc_clearance_lag No. of days between receipt of SMC and infectious clearance
 #' @param drug_efficacy Proportion of infections successfully cleared
-#' @param drug_rel_c Relative infectivity of treated individuals during infection clearing period
+#' @param drug_rel_c Relative infectivity of treated individuals during infection clearing period. 1 indicates no difference. 0 indicates no forward infection.
 #' @param shape_smc Shape of Weibull distribution describing prophylactic waning
 #' @param scale_smc Scale of Weibull distribution describing prophylactic waning
 #' @param distribution_type SMC distributions can either be delivered randomly across the eligible population each time "random", or given to the same children each time "correlated".
@@ -66,7 +66,7 @@ set_smc <- function(params,
 
   #----------------------------------- Prophylaxis Calculations ------------------------------------------------
   usage_mat <- get_smc_usage_mat(days,coverages,params$n_days,distribution_type)
-  daily_smc_cov <- get_daily_cov(usage_mat)
+  daily_smc_cov <- get_daily_cov(usage_mat) #Total coverage of eligible groups who have ever received SMC
 
   decay_mat <- get_decay_mat(days = days,n_days=params$n_days,scale_smc=scale_smc,shape_smc=shape_smc,intervention="SMC")
   daily_smc_decay <- get_daily_decay(usage_mat, decay_mat)
@@ -84,9 +84,9 @@ set_smc <- function(params,
   params$alpha_smc_set <- sorted_smc_days_mat[,"alpha_smc"]
 
   #------------------------------------- Reduced Infectivity ---------------------------------------------------
-  #The in the time between smc treatment and infection clearance - existing infections are less infectious by a factor of #drug_rel_c
+  #In the time between smc treatment and infection clearance - existing infections are less infectious by a factor of #drug_rel_c
   rel_c_days <- rep(1,params$n_days + 1)
-  rel_c_days[as.vector(outer(days, 0:(smc_clearance_lag-1), "+"))] <- drug_rel_c
+  rel_c_days[as.vector(outer(days, 0:(smc_clearance_lag-1), "+"))] <- 1 - ((coverages / params$max_smc_cov)*(1-drug_rel_c)) #Effective drug_rel_c. Made closer to 1 to account for the fact that not everyone in the SMC compartment is receiving SMC on each day.
   params$rel_c_days <- rel_c_days #Time vector. Days where SMC influences infectivity are set to SMC_rel_c. Else 1.
 
   #--------------------------------------------------------------------------------------------------------------

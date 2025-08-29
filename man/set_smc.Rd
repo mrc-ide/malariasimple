@@ -36,7 +36,7 @@ set_smc(
 
 \item{drug_efficacy}{Proportion of infections successfully cleared}
 
-\item{drug_rel_c}{Relative infectivity of treated individuals during infection clearing period}
+\item{drug_rel_c}{Relative infectivity of treated individuals during infection clearing period. 1 indicates no difference. 0 indicates no forward infection.}
 
 \item{shape_smc}{Shape of Weibull distribution describing prophylactic waning}
 
