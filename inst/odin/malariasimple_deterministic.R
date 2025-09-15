@@ -235,7 +235,7 @@ FOI[,,] <- FOI_XL[i,j,k,lag_rates]
 #------------ EIR -----------------
 # rate for age group * rate for biting category * FOI for age group * prop of
 # infectious mosquitoes
-dim(foi_age) <- na
+dim(FOI) <- na
 foi_age <- parameter()
 dim(rel_foi) <- nh
 rel_foi <- parameter()
