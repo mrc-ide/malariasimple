@@ -5,11 +5,12 @@
 #' @param daily_continuous_cov Vector of daily ITN coverage (required when continuous_distribution = TRUE). A single value is also accepted
 #' @param days Vector of days on which ITN distribution events occur (required when continuous_distribution = FALSE). Analogous to 'timesteps' argument in malariasimulation
 #' @param coverages Vector detailing the proportion of the population receiving an ITN during each intervention (required when continuous_distribution = FALSE)
-#' @param gamman Half-life of ITN insecticide (days)
+#' @param gamman Mean lifetime ITN insecticide efficacy (days).
 #' @param retention Average number of days a net is kept for
 #' @param dn0 Probability of mosquito dying upon an encounter with ITN (max)
 #' @param rn Probability of repeating behaviour with ITN (max)
 #' @param rnm Probability of repeating behaviour with ITN (min)
+#' @param distribution_type Either 'random' or 'correlated'
 #'
 #' @returns Updates the input parameter list to include ITN parameters
 #'
@@ -36,16 +37,19 @@ set_bednets <- function(params,
                     retention =   3 * 365,
                     dn0 = 0.41,
                     rn = 0.56,
-                    rnm = 0.24){
+                    rnm = 0.24,
+                    distribution_type = "random"){
 
   #------------- Assume constant net/retention parameters if only one value given -----------------
   n_dists <- length(days) #Number of distribution events
 
 
   #----------------------------------- Sanity Checks -----------------------------------------------
+  if(!distribution_type %in% c("random", "correlated")) stop(message("distribution_type must be either 'random' or 'correlated'"))
   if (params$equilibrium_set == 1) warning(message("Equilbrium must be set last"))
   if(any(days %% 1 != 0)) stop(message("'days' must be integer values"))
   if(any(diff(days) < 1)) stop(message("'Days' must be unique and in chronological order"))
+  if(any(days > params$n_days)) stop(message("'Days' cannot exceed simulation length (n_days)"))
   if (!continuous_distribution){
     if(length(gamman) == 1) gamman <- rep(gamman, n_dists)
     if(length(dn0) == 1) dn0 <- rep(dn0, n_dists)
@@ -97,7 +101,8 @@ set_bednets <- function(params,
                                                retention = retention,
                                                dn0 = dn0,
                                                rn = rn,
-                                               rnm = rnm)
+                                               rnm = rnm,
+                                               distribution_type = distribution_type)
   }
   params$itn_set <- 1
   params$equilibrium_set <- 0
@@ -111,29 +116,46 @@ set_bednets <- function(params,
 #' @param coverages Vector detailing the proportion of the population receiving an ITN during each intervention (required when continuous_distribution = FALSE)
 #' @param retention Average number of days a net is kept for
 #' @param n_days Length of simulation
+#' @param distribution_type Either 'random' or 'correlated'
 #' @export
-get_itn_usage_mat <- function(days,coverages,retention,n_days){
+get_itn_usage_mat <- function(days,
+                              coverages,
+                              retention,
+                              n_days,
+                              distribution_type) {
   n_dists <- length(coverages) #Number of ITN distribution events
-
   ##Matrix of the population prop. using a net from distribution event i (col number) on day t (row number)
-  itn_mat <- matrix(nrow = n_days, ncol = n_dists+1) #Final column is those with no bednet
-  itn_mat[1,] <- c(rep(0,n_dists),1) #Initialise no bednets
+  itn_mat <- matrix(nrow = n_days, ncol = n_dists + 1) #Final column is those with no bednet
+  itn_mat[1, ] <- c(rep(0, n_dists), 1) #Initialise no bednets
   #If bednets are introduced on day 1
-  if(1 %in% days){
-    itn_mat[1,1] <- coverages[which(days == 1)]
-    itn_mat[1,(n_dists+1)] <- 1 - itn_mat[1,1]
+  if (1 %in% days) {
+    itn_mat[1, 1] <- coverages[which(days == 1)]
+    itn_mat[1, (n_dists + 1)] <- 1 - itn_mat[1, 1]
   }
-  for(i in 2:n_days){
+  for (i in 2:n_days) {
     #People discard nets
-    itn_mat[i,1:n_dists] <- itn_mat[(i-1),(1:n_dists)]*exp(-1/retention)
-    itn_mat[i,(n_dists+1)] <- 1 - sum(itn_mat[i,(1:n_dists)])
+    itn_mat[i, 1:n_dists] <- itn_mat[(i - 1), (1:n_dists)] * exp(-1 / retention)
+    itn_mat[i, (n_dists + 1)] <- 1 - sum(itn_mat[i, (1:n_dists)])
 
-    #New nets are distributed on 'days'
-    if(i %in% days){
+    if (i %in% days) {
       dist_index <- which(days == i) #Which distribution event
       new_nets <- coverages[dist_index]
-      itn_mat[i,dist_index] <- new_nets
-      itn_mat[i,-dist_index] <- itn_mat[i,-dist_index] - new_nets*itn_mat[i,-dist_index]
+      itn_mat[i, dist_index] <- new_nets
+      if (distribution_type == "random") {
+        itn_mat[i, -dist_index] <- itn_mat[i, -dist_index] - new_nets * itn_mat[i, -dist_index]
+      } else if (distribution_type == "correlated") {
+        pool_size <- max(1 - itn_mat[1:i, n_dists + 1]) #Pool of people who have previously received a net and hence are eligible to receive a new net
+        current_cov <- itn_mat[i - 1, 1:n_dists]
+        if (pool_size != 0) {
+          for (j in 1:(dist_index - 1)) {
+            replacements_j <- (new_nets / pool_size) * current_cov[j]
+            itn_mat[i, j] <- max(itn_mat[i, j] - replacements_j,0)
+          }
+        }
+        itn_mat[i, n_dists + 1] <- 1 - sum(itn_mat[i, 1:n_dists])
+      } else {
+        stop(message("distribution type not recognized"))
+      }
     }
   }
   return(itn_mat)
@@ -146,11 +168,13 @@ itn_discrete_distribution_params <- function(params,
                                              retention, #Average number of days a net is kept for
                                              dn0,
                                              rn,
-                                             rnm
+                                             rnm,
+                                             distribution_type
 ){
   #Matrix of the proportion of individuals currently using a net from each distribution event
   usage_mat <- get_itn_usage_mat(days = days, coverages = coverages,
-                                 retention = retention, n_days = params$n_days)
+                                 retention = retention, n_days = params$n_days,
+                                 distribution_type = distribution_type)
 
   #Overall itn coverage
   daily_coverages <- get_daily_cov(usage_mat)
@@ -177,8 +201,10 @@ itn_discrete_distribution_params <- function(params,
 
   #Decay level averaged over all itns currently in use
   if (length(days) == 1){
-    d_itn <- c(0,d_itn_mat[, 1]) * c(0,decay_mat[, 1]) * params$itn_eff_cov_daily
-    r_itn <- c(0,r_itn_mat[, 1]) * c(0,decay_mat[, 1]) * params$itn_eff_cov_daily
+    #d_itn <- c(0,d_itn_mat[, 1]) * c(0,decay_mat[, 1]) * params$itn_eff_cov_daily
+    d_itn <- c(0,d_itn_mat[, 1]) * params$itn_eff_cov_daily
+    #r_itn <- c(0,r_itn_mat[, 1]) * c(0,decay_mat[, 1]) * params$itn_eff_cov_daily
+    r_itn <- c(0,r_itn_mat[, 1]) * params$itn_eff_cov_daily
   } else {
     d_itn <- c(0,get_daily_decay(usage_mat, d_itn_mat)) * params$itn_eff_cov_daily
     r_itn <- c(0,get_daily_decay(usage_mat, r_itn_mat)) * params$itn_eff_cov_daily
@@ -192,7 +218,7 @@ itn_discrete_distribution_params <- function(params,
 itn_continuous_distribution_params <- function(params,daily_continuous_cov, gamman, retention, dn0, rn, rnm){
   params$max_itn_cov <- max(daily_continuous_cov)
   params$itn_eff_cov_daily <- c(0,daily_continuous_cov/max(daily_continuous_cov))
-  decay_rate <- log(2) / gamman
+  decay_rate <- 1 / gamman
   mean_itn_decay <- mean(exp(-((1:retention)) * decay_rate))
   d_itn <- dn0 * mean_itn_decay * params$itn_eff_cov_daily
   params$r_itn_daily <- (rnm + (rn - rnm) * mean_itn_decay) * params$itn_eff_cov_daily

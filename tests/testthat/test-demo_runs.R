@@ -27,8 +27,8 @@ test_that("Deterministic demo run produces incidence and prevalence as expected"
 
   out <- run_simulation(params) |> as.data.frame()
 
-  expect_equal(round(out$n_detect_730_3650[300], 3), 0.133)
-  expect_equal(round(out$n_clin_inc_0_Inf[10], 5), 0.00146)
+  expect_equal(round(out$n_detect_730_3650[300], 3), 0.143)
+  expect_equal(round(out$n_clin_inc_0_Inf[10], 5), 0.00149)
 })
 
 test_that("Input EIR equals output EIR",{
