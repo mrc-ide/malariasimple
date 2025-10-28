@@ -13,7 +13,7 @@ A fast, time-discrete compartmental approximation of
 
 ## Installation
 
-You can install the development version of malariasimple from
+You can install malariasimple from
 [GitHub](https://github.com/) with:
 
 ``` r
