@@ -73,7 +73,7 @@ set_equilibrium <- function(params, init_EIR)
   foi_age <- c()
   for (i in 1:na)
   {
-    foi_age[i] <- 1 - (params$rho * exp(-age_vector[i]/params$a0))  #force of infection for each age group
+    foi_age[i] <- 1 - (params$rho * exp(-age_mid_point[i]/params$a0))  #force of infection for each age group
   }
   fden <- foi_age * den
   omega <- sum(fden)  #normalising constant

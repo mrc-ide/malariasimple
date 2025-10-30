@@ -50,14 +50,21 @@ Three more parameters are required to fully parametrise the ITNs.
 - `rnm` Probability of mosquito being repelled upon encounter with old net (fully decayed insecticide)
 
 
-## ITN Distribution Types
-There are two types of ITN distribution covered in `malariasimple`. 
+## Forms of ITN Distribution
+There are various assumptions regarding the way that ITNs are distributed in `malariasimple`. 
 
 ### 1. Discrete
 
-This is the default. The model assumes that ITNs are distributed on discrete distribution events (`days`) to a specified random proportion of the population (`coverages`).
+This is the default. The model assumes that ITNs are distributed on discrete distribution events (`days`) to a specified proportion of the population (`coverages`).
 
-**Using set_bednets() with discrete distibution**
+Within this assumption, we can also choose how to decide who gets a net on each successive round.
+
+- `distribution_type = "random"`. ITNs are distributed randomly during each event, and probability of receiving a net is unrelated to whether you have received a net previously. This is equivalent to correlation = 0 in malariasimulation.
+- `distribution_type = "correlated"`. We assume that some individuals are more 'accessible' by public health institutions than others. In this case, new nets are first distributed to those who have previously received a net and only given to new individuals in the case of expanded coverage. 
+
+**Note**: Assuming 'random' distribution can force the size of the ITN compartment to be very large. This can increase the numerical error introduced when we synthetically reduce the effectiveness of ITNs to account for periods of lower coverage, especially at high EIRs. 
+
+**Using set_bednets() with discrete distribution**
 
 ```{r, message = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=0.6}
 n_days <- 2*365
@@ -69,23 +76,40 @@ retention <- 5*365 #People keep their nets for 5 years
 
 
 ## -------------  Set up malariasimple parameters ----------------------
-discrete_params = malariasimple::get_parameters(n_days = n_days,
-                            age_vector = c(0,1,2,5,10,20,40,60,80)*365) |>
+#Random distribution
+discrete_params_rand = malariasimple::get_parameters(n_days = n_days) |>
   malariasimple::set_bednets(days = itn_days,
           coverages = itn_cov,
           gamman = gamman,
-          retention = retention) |>
-  malariasimple::set_equilibrium(init_EIR = 5)
+          retention = retention,
+          distribution_type = "random") |>
+  malariasimple::set_equilibrium(init_EIR = 10)
+
+#Correlated distribution
+discrete_params_corr = malariasimple::get_parameters(n_days = n_days) |>
+  malariasimple::set_bednets(days = itn_days,
+          coverages = itn_cov,
+          gamman = gamman,
+          retention = retention,
+          distribution_type = "correlated") |>
+  malariasimple::set_equilibrium(init_EIR = 10)
 
 ## ---------------------- Run simulation ------------------------------
-discrete_out <- malariasimple::run_simulation(discrete_params) |> as.data.frame()
+discrete_rand_out <- malariasimple::run_simulation(discrete_params_rand) |> as.data.frame()
+discrete_corr_out <- malariasimple::run_simulation(discrete_params_corr) |> as.data.frame()
 
 ## -----------------------  Plot  -------------------------------------
-plot(discrete_out$time, discrete_out$n_detect_730_3650/discrete_out$n_730_3650,
-     type = "l", lwd = 2, main = "Discrete Distributions",
+plot(discrete_rand_out$time, discrete_rand_out$n_detect_730_3650/discrete_rand_out$n_730_3650,
+     type = "l", lwd = 2, col = "steelblue", 
+     main = "Discrete Distributions",
      xlab = "Day", ylab =  expression(paste(italic(Pf),"PR"[2-10])))
+lines(discrete_corr_out$time, discrete_corr_out$n_detect_730_3650 / discrete_corr_out$n_730_3650,
+      lwd = 2, col = "firebrick")
 abline(v = itn_days, lty = 2)
-legend("topright", legend = "ITN distributions", lty = 2, bty = "n")
+legend("topright", 
+       legend = c("Random", "Correlated"), 
+       col = c("steelblue", "firebrick"),
+       lty = c(2,2), bty = "n")
 
 
 ```
@@ -93,20 +117,33 @@ legend("topright", legend = "ITN distributions", lty = 2, bty = "n")
 
 `set_bednets()` tracks the usage and average insecticide decay from each distribution event. ITN usage can be visualised using the intermediate function `get_itn_usage_mat()`. Because the model only has one compartment for each intervention, the model takes the total usage at each time point when running the simulation. Below, we plot the input model assumptions.  
 
-```{r, message = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=1}
+```{r, message = FALSE, results = "hide", fig.align = 'center', out.width = '150%'}
 ## -------------  Return usage and decay matrices ----------------------
-usage_mat <- get_itn_usage_mat(itn_days, itn_cov, retention, n_days)
-decay_mat <- get_decay_mat(itn_days, n_days, gamman_itn = gamman, intervention = "ITN")
+usage_mat_rand <- get_itn_usage_mat(itn_days, itn_cov, retention, n_days, distribution_type = "random")
+usage_mat_corr <- get_itn_usage_mat(itn_days, itn_cov, retention, n_days, distribution_type = "correlated")
+#decay_mat <- get_decay_mat(itn_days, n_days, gamman_itn = gamman, intervention = "ITN")
 
 ## -----------------------  Plot  --------------------------------
 t <- 1:n_days
 colours <- c("#1B9E77", "#D95F02", "#7570B3")
-#par(mfrow = c(1, mar = c(4, 4, 2, 1), cex = 0.8) 
+par(mfrow = c(1,2), cex = 0.6) 
 
-#Usage plot
-matplot(t, usage_mat[, 1:length(itn_days)], type = "l", lty = 1, col = colours, ylim = c(0,1),
-        xlab = "Time", ylab = "ITN usage", main = "ITN Usage by Distribution Event")
-lines(1:n_days, discrete_params$itn_eff_cov_daily[2:(n_days+1)] * discrete_params$max_itn_cov,
+#Usage plot (random)
+matplot(t, usage_mat_rand[, 1:length(itn_days)], type = "l", lty = 1, col = colours, ylim = c(0,1),
+        xlab = "Time", ylab = "ITN usage", main = "Random Discrete Distribution")
+lines(1:n_days, discrete_params_rand$itn_eff_cov_daily[2:(n_days+1)] * discrete_params_rand$max_itn_cov,
+      col = "black", lwd = 2, lty = 2)
+legend("topleft",
+       legend = c("Distribution event 1", "Distribution event 2", "Distribution event 3", "Total ITN usage"),
+       col = c(colours, "black"),
+       lty = c(1, 1, 1, 2),
+       lwd = c(1, 1, 1, 2),
+       bty = "n") 
+
+#Usage plot (correlated)
+matplot(t, usage_mat_corr[, 1:length(itn_days)], type = "l", lty = 1, col = colours, ylim = c(0,1),
+        xlab = "Time", ylab = "ITN usage", main = "Correlated Discrete Distribution")
+lines(1:n_days, discrete_params_corr$itn_eff_cov_daily[2:(n_days+1)] * discrete_params_corr$max_itn_cov,
       col = "black", lwd = 2, lty = 2)
 legend("topleft",
        legend = c("Distribution event 1", "Distribution event 2", "Distribution event 3", "Total ITN usage"),

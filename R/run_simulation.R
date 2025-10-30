@@ -10,6 +10,7 @@
 #' @export
 
 run_simulation <- function(params, n_particles = 1, full_output = FALSE){
+  if(params$equilibrium_set == 0) stop("Equilibrium values have not been set")
   if(!params$stochastic){
     gen <- malariasimple_deterministic
   } else if(params$stochastic){

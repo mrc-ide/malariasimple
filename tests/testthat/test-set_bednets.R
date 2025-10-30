@@ -1,8 +1,12 @@
 test_that("get_itn_usage_mat produces zero usage from zero coverage", {
-  itn_usage_mat <- get_itn_usage_mat(days = c(1,50,99), coverages = c(0,0,0),
-                                     retention = 100, n_days = 200)
-  expect_true(all(itn_usage_mat[,4] == 1))
-  expect_true(all(itn_usage_mat[,1:3] == 0))
+  itn_usage_mat_rand <- get_itn_usage_mat(days = c(1,50,99), coverages = c(0,0,0),
+                                     retention = 100, n_days = 200, distribution_type = "random")
+  itn_usage_mat_corr <- get_itn_usage_mat(days = c(1,50,99), coverages = c(0,0,0),
+                                     retention = 100, n_days = 200, distribution_type = "correlated")
+  expect_true(all(itn_usage_mat_rand[,4] == 1))
+  expect_true(all(itn_usage_mat_rand[,1:3] == 0))
+  expect_true(all(itn_usage_mat_corr[,4] == 1))
+  expect_true(all(itn_usage_mat_corr[,1:3] == 0))
 })
 
 test_that("daily outputs are all the same length (continuous_distribution == TRUE)", {
