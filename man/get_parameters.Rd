@@ -6,6 +6,7 @@
 \usage{
 get_parameters(
   stochastic = FALSE,
+  parameter_draws = "median",
   n_days = 100,
   human_pop = 1e+05,
   tsd = 4,
@@ -79,6 +80,8 @@ get_parameters(
 }
 \arguments{
 \item{stochastic}{Boolean variable. Set to false for deterministic simulation}
+
+\item{parameter_draws}{Default 'median'. If given a value 1-1000 model parameters are taken with a single draw from the fitted joint posterior}
 
 \item{n_days}{Number of days for which the simulation will run.}
 
@@ -154,7 +157,7 @@ get_parameters(
 
 \item{kB}{Shape parameter}
 
-\item{uB}{Duration in which immunity is not boosted}
+\item{uB}{Duration in which pre-erythrocytic immunity is not boosted}
 
 \item{phi0}{Maximum probability due to no immunity}
 
@@ -166,7 +169,7 @@ get_parameters(
 
 \item{kC}{Shape parameter}
 
-\item{uCA}{Duration in which immunity is not boosted}
+\item{uCA}{Duration in which clinical immunity is not boosted}
 
 \item{PM}{New-born immunity relative to mothers}
 

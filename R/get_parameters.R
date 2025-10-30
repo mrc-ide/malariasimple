@@ -2,6 +2,7 @@
 #' @description Helper function to provide defaults for most necessary values required for running the malariasimple model
 #'
 #' @param stochastic Boolean variable. Set to false for deterministic simulation
+#' @param parameter_draws Default 'median'. If given a value 1-1000 model parameters are taken with a single draw from the fitted joint posterior
 #' @param n_days Number of days for which the simulation will run.
 #' @param human_pop Size of human population (count)
 #' @param tsd Number of time-steps per day. Fewer is faster, more better approximates the continuous solution.
@@ -43,13 +44,13 @@
 #' @param dB Inverse of decay rate
 #' @param IB0 Scale parameter
 #' @param kB Shape parameter
-#' @param uB Duration in which immunity is not boosted
+#' @param uB Duration in which pre-erythrocytic immunity is not boosted
 #' @param phi0 Maximum probability due to no immunity
 #' @param phi1 Maximum relative reduction due to immunity
 #' @param dCA Inverse of decay rate
 #' @param IC0 Scale parameter
 #' @param kC Shape parameter
-#' @param uCA Duration in which immunity is not boosted
+#' @param uCA Duration in which clinical immunity is not boosted
 #' @param PM New-born immunity relative to mothers
 #' @param dCM Inverse of decay rate of maternal immunity
 #' @param delayMos Extrinsic incubation period
@@ -85,6 +86,7 @@
 get_parameters <- function(
     ##Accuracy/speed trade off parameters
     stochastic = FALSE,
+    parameter_draws = "median",
     n_days = 100,
     human_pop = 100000,
     tsd = 4, #Time steps per day
@@ -192,6 +194,25 @@ get_parameters <- function(
   if(any(daily_ft < 0 | daily_ft > 1)){stop(message("daily_ft may only contain numeric values between 0 and 1"))}
   if(length(daily_ft) < n_days && length(daily_ft) != 1){stop(message("daily_ft must be either scaler or at least as long as n_days"))}
 
+  #Parameter draws
+  if(parameter_draws != "median"){
+    if (!is.numeric(parameter_draws) || length(parameter_draws) != 1) {
+      stop("'set_parameter_draws' must be 'median' or a single integer 1:1000")
+    }
+
+    draw_id <- as.integer(parameter_draws)
+    if (draw_id < 1 || draw_id > 1000) {
+      stop("'parameter_draws' must be between 1 and 1000")
+    }
+
+    this_draw <- subset(parameter_draws_df, draw == draw_id)
+    for(i in 1:nrow(this_draw)){
+      assign(this_draw$simple_name[i], this_draw$simple_val[i])
+    }
+  }
+
+
+
   ###########################################
   # Define parameters
   ###########################################
@@ -281,7 +302,7 @@ get_parameters <- function(
   params$phi_bednets <- phi_bednets
   params$phi_indoors <- phi_indoors
   params$fv0 <- 1 / (foraging_time + gonotrophic_cycle)
-  params$av0 <- Q0 * params$fv0 # daily feeeding rate on humans
+  params$av0 <- Q0 * params$fv0 # daily feeding rate on humans
   params$Surv0 <- exp(-mum * delayMos) # probability of surviving incubation period
   params$p10 <- exp(-mum * foraging_time)  # probability of surviving one feeding cycle
   params$p2 <- exp(-mum * gonotrophic_cycle)  # probability of surviving one resting cycle
