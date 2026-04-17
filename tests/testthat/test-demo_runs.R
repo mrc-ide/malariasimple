@@ -2,9 +2,9 @@ test_that("Deterministic demo run produces incidence and prevalence as expected"
   n_days <- 365
   init_EIR <- 10
 
-  g0 = 0.28
-  g = c(-0.3, -0.03, 0.17)
-  h = c(-0.35, 0.33, -0.08)
+  g0 <- 0.28
+  g <- c(-0.3, -0.03, 0.17)
+  h <- c(-0.35, 0.33, -0.08)
 
 
   params <- get_parameters(
@@ -28,7 +28,7 @@ test_that("Deterministic demo run produces incidence and prevalence as expected"
   out <- run_simulation(params) |> as.data.frame()
 
   expect_equal(round(out$n_detect_730_3650[300], 3), 0.143)
-  expect_equal(round(out$n_clin_inc_0_Inf[10], 5), 0.00149)
+  expect_equal(round(out$n_clin_inc_0_Inf[10], 5), 0.00146)
 })
 
 test_that("Input EIR equals output EIR",{

@@ -26,67 +26,112 @@ set_smc <- function(params,
                     drug = "SP_AQ",
                     coverages = NULL,
                     days = NULL,
-                    min_age = 0.25*365,
-                    max_age = 5*365,
+                    min_age = 0.25 * 365,
+                    max_age = 5 * 365,
                     smc_clearance_lag = 5,
                     drug_efficacy = NULL,
                     drug_rel_c = NULL,
                     shape_smc = NULL,
                     scale_smc = NULL,
-                    distribution_type = "random"){
-
+                    distribution_type = "random") {
   #----------------------------------- Sanity Checks -----------------------------------------------
-  if(is.null(days)){stop(message("SMC coverage days must provided"))}
-  if(is.null(coverages)){stop(message("SMC coverages must be provided"))}
+  if (is.null(days)) {
+    stop(message("SMC coverage days must provided"))
+  }
+  if (is.null(coverages)) {
+    stop(message("SMC coverages must be provided"))
+  }
 
-  if(!min_age %in% params$age_vector){stop(message("min_age must correspond to an age category boundary. Consider adjusting age_vector"))}
-  if(!max_age %in% params$age_vector){stop(message("max_age must correspond to an age category boundary. Consider adjusting age_vector"))}
+  if (!min_age %in% params$age_vector) {
+    stop(message(
+      "min_age must correspond to an age category boundary. Consider adjusting age_vector"
+    ))
+  }
+  if (!max_age %in% params$age_vector) {
+    stop(message(
+      "max_age must correspond to an age category boundary. Consider adjusting age_vector"
+    ))
+  }
 
-  if(max(coverages) > 1 | min(coverages) < 0) stop(message("coverages must be between 0 and 1"))
-  if(min(days) < 1) stop("days must be greater than 1")
-  if(max(days) > (params$n_days - smc_clearance_lag)){
-    warning(message("days which exceed (n_days - smc_clearance_lag) have been removed."))
+  if (max(coverages) > 1 |
+      min(coverages) < 0)
+    stop(message("coverages must be between 0 and 1"))
+  if (min(days) < 1)
+    stop("days must be greater than 1")
+  if (max(days) > (params$n_days - smc_clearance_lag)) {
+    warning(message(
+      "days which exceed (n_days - smc_clearance_lag) have been removed."
+    ))
     days <- days[days <= (params$n_days - smc_clearance_lag)]
   }
-  if(length(days) == 0) stop("No SMC distribution events are included")
-  if(!(length(coverages) == 1 | length(coverages) == length(days))) stop(message("length(coverages) must be either 1 or length(days)"))
+  if (length(days) == 0)
+    stop("No SMC distribution events are included")
+  if (!(length(coverages) == 1 |
+        length(coverages) == length(days)))
+    stop(message("length(coverages) must be either 1 or length(days)"))
   days <- round(days) #It's easiest if SMC days are all integer values.
   days <- days + 1 #To account for day 0.
   #----------------------------------- Set Parameters -----------------------------------------------
   drug_params <- set_drug_params(drug)
-  if(is.null(drug_efficacy)){drug_efficacy <- drug_params[1]}
-  if(is.null(drug_rel_c)){drug_rel_c <- drug_params[2]}
-  if(is.null(shape_smc)) {shape_smc <- drug_params[3]}
-  if(is.null(scale_smc)) {scale_smc <- drug_params[4]}
-  if(length(coverages) == 1) coverages <- rep(coverages,length(days))
+  if (is.null(drug_efficacy)) {
+    drug_efficacy <- drug_params[1]
+  }
+  if (is.null(drug_rel_c)) {
+    drug_rel_c <- drug_params[2]
+  }
+  if (is.null(shape_smc)) {
+    shape_smc <- drug_params[3]
+  }
+  if (is.null(scale_smc)) {
+    scale_smc <- drug_params[4]
+  }
+  if (length(coverages) == 1)
+    coverages <- rep(coverages, length(days))
 
-  if(drug_efficacy > 1 | drug_efficacy < 0) stop(message("drug_efficacy must be between 0 and 1"))
-  if(drug_rel_c > 1 | drug_rel_c < 0) stop(message("drug_rel_c must be between 0 and 1"))
-  params$smc_age <- params$age_vector[params$age_vector >= min_age & params$age_vector < max_age] #age_cats to receive SMC
+  if (drug_efficacy > 1 |
+      drug_efficacy < 0)
+    stop(message("drug_efficacy must be between 0 and 1"))
+  if (drug_rel_c > 1 |
+      drug_rel_c < 0)
+    stop(message("drug_rel_c must be between 0 and 1"))
+  params$smc_age <- params$age_vector[params$age_vector >= min_age &
+                                        params$age_vector < max_age] #age_cats to receive SMC
 
   #----------------------------------- Prophylaxis Calculations ------------------------------------------------
-  usage_mat <- get_smc_usage_mat(days,coverages,params$n_days,distribution_type)
+  usage_mat <- get_smc_usage_mat(days, coverages, params$n_days, distribution_type)
   daily_smc_cov <- get_daily_cov(usage_mat) #Total coverage of eligible groups who have ever received SMC
 
-  decay_mat <- get_decay_mat(days = days,n_days=params$n_days,scale_smc=scale_smc,shape_smc=shape_smc,intervention="SMC")
+  decay_mat <- get_decay_mat(
+    days = days,
+    n_days = params$n_days,
+    scale_smc = scale_smc,
+    shape_smc = shape_smc,
+    intervention = "SMC"
+  )
   daily_smc_decay <- get_daily_decay(usage_mat, decay_mat)
-  params$P_smc_daily <- c(0,daily_smc_decay) #Prophylactic effect
+  params$P_smc_daily <- c(0, daily_smc_decay) #Prophylactic effect
   params$max_smc_cov <- max(daily_smc_cov) #Size of SMC compartment
 
   #------------------------------------- Infection Clearance ----------------------------------------------------
   #Schedule infection clearance
   eff_drug_efficacy <- (coverages / max(daily_smc_cov)) * drug_efficacy
   smc_days_mat <- cbind(
-    time = c(0,days + smc_clearance_lag, days + smc_clearance_lag + params$dt),
-    alpha_smc = c(0,eff_drug_efficacy,rep(0,length(days))))
+    time = c(
+      0,
+      days + smc_clearance_lag,
+      days + smc_clearance_lag + params$dt
+    ),
+    alpha_smc = c(0, eff_drug_efficacy, rep(0, length(days)))
+  )
   sorted_smc_days_mat <- smc_days_mat[order(smc_days_mat[, 'time']), ]
-  params$alpha_smc_times <- sorted_smc_days_mat[,"time"]
-  params$alpha_smc_set <- sorted_smc_days_mat[,"alpha_smc"]
+  params$alpha_smc_times <- sorted_smc_days_mat[, "time"]
+  params$alpha_smc_set <- sorted_smc_days_mat[, "alpha_smc"]
 
   #------------------------------------- Reduced Infectivity ---------------------------------------------------
   #In the time between smc treatment and infection clearance - existing infections are less infectious by a factor of #drug_rel_c
-  rel_c_days <- rep(1,params$n_days + 1)
-  rel_c_days[as.vector(outer(days, 0:(smc_clearance_lag-1), "+"))] <- 1 - ((coverages / params$max_smc_cov)*(1-drug_rel_c)) #Effective drug_rel_c. Made closer to 1 to account for the fact that not everyone in the SMC compartment is receiving SMC on each day.
+  rel_c_days <- rep(1, params$n_days + 1)
+  rel_c_days[as.vector(outer(days, 0:(smc_clearance_lag - 1), "+"))] <- 1 - ((coverages / params$max_smc_cov) *
+                                                                               (1 - drug_rel_c)) #Effective drug_rel_c. Made closer to 1 to account for the fact that not everyone in the SMC compartment is receiving SMC on each day.
   params$rel_c_days <- rel_c_days #Time vector. Days where SMC influences infectivity are set to SMC_rel_c. Else 1.
 
   #--------------------------------------------------------------------------------------------------------------
@@ -94,31 +139,39 @@ set_smc <- function(params,
   return(params)
 }
 
-get_smc_usage_mat <- function(days,coverages,n_days,distribution_type){
+get_smc_usage_mat <- function(days,
+                              coverages,
+                              n_days,
+                              distribution_type) {
   n_dists <- length(coverages) #Number of SMC distribution events
   ##Matrix of the population prop. protected by SMC from distribution event i (col number) on day t (row number)
-  smc_mat <- matrix(nrow = n_days, ncol = n_dists+1)
-  smc_mat[1:(days[1]-1),] <- matrix(rep(c(rep(0,n_dists),1), (days[1]-1)), nrow = (days[1]-1), byrow = TRUE)  #Initialise no SMC
+  smc_mat <- matrix(nrow = n_days, ncol = n_dists + 1)
+  smc_mat[1:(days[1] - 1), ] <- matrix(rep(c(rep(0, n_dists), 1), (days[1] -
+                                                                     1)), nrow = (days[1] - 1), byrow = TRUE)  #Initialise no SMC
   days_complete <- c(days, n_days)
-  for(i in seq_along(coverages)){
+  for (i in seq_along(coverages)) {
     day <- days[i]
     new_recipients <- coverages[i]
-    previous_row <- smc_mat[day-1,]
+    previous_row <- smc_mat[day - 1, ]
     new_row <- previous_row
     new_row[i] <- new_recipients
-    if(distribution_type == "random"){
-      new_row[-i] <- new_row[-i] - new_recipients*new_row[-i]
-    } else if(distribution_type == "correlated"){
-      current_cov <- 1-previous_row[n_dists+1]
-      if(current_cov != 0){
-        new_row[-i] <- new_row[-i] * (max(current_cov - new_recipients,0) / current_cov)
+    if (distribution_type == "random") {
+      new_row[-i] <- new_row[-i] - new_recipients * new_row[-i]
+    } else if (distribution_type == "correlated") {
+      current_cov <- 1 - previous_row[n_dists + 1]
+      if (current_cov != 0) {
+        new_row[-i] <- new_row[-i] * (max(current_cov - new_recipients, 0) / current_cov)
       }
-      new_row[n_dists+1] <- 1-sum(new_row[1:n_dists])
+      new_row[n_dists + 1] <- 1 - sum(new_row[1:n_dists])
     }
-    days_in_distribution <- day:(days_complete[i+1]-1)
-    smc_mat[days_in_distribution,] <- matrix(rep(new_row, length(days_in_distribution)), nrow = length(days_in_distribution), byrow = TRUE)
+    days_in_distribution <- day:(days_complete[i + 1] - 1)
+    smc_mat[days_in_distribution, ] <- matrix(
+      rep(new_row, length(days_in_distribution)),
+      nrow = length(days_in_distribution),
+      byrow = TRUE
+    )
   }
-  smc_mat[n_days,] <- smc_mat[(n_days-1),]
+  smc_mat[n_days, ] <- smc_mat[(n_days - 1), ]
   return(smc_mat)
 }
 
@@ -141,18 +194,27 @@ get_smc_usage_mat <- function(days,coverages,n_days,distribution_type){
 #' set_drug_params(drug = "SP_AQ")
 
 #' @export
-set_drug_params <- function(drug){
+set_drug_params <- function(drug) {
   #SMC drug parameters [drug_efficacy, drug_rel_c, drug_prophylaxis_shape, drug_prophylaxis_scale]
-  if(drug == "SP_AQ"){
+  if (drug == "SP_AQ") {
     drug_params <- c(0.9, 0.32, 4.3, 38.1) #sulphadoxine-pyrimethamine and amodiaquine
-  } else if(drug == "AL"){
+  } else if (drug == "AL") {
     drug_params <- c(.95, 0.05094, 11.3, 10.6) #artemether-lumefantrine
-  } else if(drug == "DHA_PQP"){
+  } else if (drug == "DHA_PQP") {
     drug_params <- c(.95, 0.09434, 4.4, 28.1) #dihydroartemisinin-piperaquine
   } else{
-    stop(message("SMC drug '",drug,"' not recognised. Available pre-sets are `SP_AQ`, `AL`, and `DHA_PQP`.\n",
-                 "Custom drug allocation may be applied by defining parameters directly"))
+    stop(message(
+      "SMC drug '",
+      drug,
+      "' not recognised. Available pre-sets are `SP_AQ`, `AL`, and `DHA_PQP`.\n",
+      "Custom drug allocation may be applied by defining parameters directly"
+    ))
   }
-  names(drug_params) <- c("drug_efficacy", "drug_rel_c", "drug_prophylaxis_shape", "drug_prophylaxis_scale")
+  names(drug_params) <- c(
+    "drug_efficacy",
+    "drug_rel_c",
+    "drug_prophylaxis_shape",
+    "drug_prophylaxis_scale"
+  )
   return(drug_params)
 }

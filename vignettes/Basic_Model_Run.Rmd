@@ -47,13 +47,34 @@ The other key function in preparing parameters is `set_equilbrium()`. This calcu
 ```{r, eval = FALSE}
 custom_params <- get_parameters(n_days = 200, #Length of simulation
                                 human_population = 1000, #Size of human population
-                                ft = 0.3, #Proportion treated
                                 eta = 1/(30*365)) |> #Human population birth/death rate
   set_equilibrium(init_EIR = 10)
 custom_out <- run_simulation(custom_params)
 ```
 
-## 3. Age Group Rendering
+## 3. Defining treatment coverage
+
+Malaria treatment therapies are built into the core structure of the model through the inclusion of the *Treated* (**T**) and *Prophylactically Protected* (**P**) states (see `model_introduction` vignette). A given proportion of cases are successfully treated and enter the *Treated* state where they are protected from superinfection and infectiousness to mosquitoes is approximately two-thirds lower than that of untreated individuals. They then progress to the 'Prophylactically Protected' state where they are fully protected from infection and do not contribute to the overall force of infection. 
+
+Treatment programmes can be customised by setting the following parameters in the `get_parameters()` function:
+
+* `daily_ft`: the proportion of cases that are promptly and effectively treated. This can be given either as a scalar value (if treatment coverage is assumed constant throughout the simulation), or as a vector of daily values. (Default = 0) 
+
+* `rT`: individuals leave the *Treated* state at rate `rT`, i.e. time spent in this state is assumed to follow an exponential distribution with mean 1 / rT. (Default = 1/5 days^-1^)
+
+* `rP`: individuals leave the *Prophylactically Protected* state at rate `rP`, i.e. the time spent in this state is assumed to follow an exponential distribution with mean 1 / `rP`. (Default = 1/15 days^-1^)
+
+```{r, eval = FALSE}
+treatment_params <- get_parameters(n_days = 200,
+                                   daily_ft = 0.7, #Assume 70% of cases are effectively and promptly treated throughout the simulation
+                                   rT = 1/3, #Treated individuals remain infectious for an average of 3 days
+                                   rP = 1/20, #Treated individuals retain prophylactic protection for an additional 20 days
+                                   ) |> 
+  set_equilibrium(init_EIR = 10)
+treatment_out <- run_simulation(treatment_params)
+```
+
+## 4. Age Group Rendering
 
 From `get_parameters()`, we can define which age groups we want the model to output regarding clinical incidence and prevalence. It is essential that these align with the age compartments defined in age_vector (for default values, see ?get_parameters). All ages must be provided in *days*. To align with `malariasimulation`, prevalence is inferred from the proportion of detected infections (n_detect\_) and the population proportion within that age group (n\_)
 
@@ -136,16 +157,16 @@ barplot(
 ```
 
 
-## 4. Introducing seasonality
+## 5. Introducing seasonality
 
 Seasonality can be included in the model using the `set_seasonality()` function. The main argument is the coefficients of a Fourier function (FF) describing the relative carrying capacity of the vector population over time. 
 
 ```{r, message = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=0.55}
 ##------------------ Define seasonal parameters --------------------
 #Fourier Coefficients
-g0 = 0.28
-g = c(-0.3, -0.03, 0.17)
-h = c(-0.35, 0.33, -0.08)
+g0 <- 0.28
+g <- c(-0.3, -0.03, 0.17)
+h <- c(-0.35, 0.33, -0.08)
 
 #Floor argument defines minimal value of relative carrying capacity
 seasonal_params <- get_parameters(n_days = 365) |>
@@ -165,10 +186,11 @@ plot(seasonal_output$time, seasonal_output$mv, lwd = 2,
 
 
 
-## 5. Stochastic Simulations
-Simulations can also be run with stochastic human transitions. To achieve this, we can just add `stochastic = TRUE` to the `get_parameters()` function call. We can also run multiple simulations by setting the `n_particles` parameter in `run_simulation()`. This will produce a 3D array with dimensions [*timesteps, variables, particles*]. This can be converted into a long dataframe using `make_2d()`. 
+## 6. Stochastic Simulations
+Simulations can also be run with stochastic human transitions. To achieve this, we can simply add `stochastic = TRUE` to the `get_parameters()` function call. We can also run multiple simulations by setting the `n_particles` parameter in `run_simulation()`. This will produce a 3D array with dimensions [*timesteps, variables, particles*]. This can be converted into a long dataframe using `make_2d()`. 
 
 ```{r, message = FALSE, warning = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=0.55}
+set.seed(1)
 ##------------------- Prepare parameters ---------------------
 n_particles <- 5
 n_days <- 365

@@ -68,3 +68,47 @@ test_that("ITNs reduce transmission when introduced on day 1", {
   expect_true(params$s_itn_daily[2] != 1)
 })
 
+test_that("Nonsense ITN distribution days produce errors", {
+  expect_error(
+    get_parameters(n_days = 100) |>
+    set_bednets(days = c(5, 105),
+                coverages = c(0.7, 0.5)))
+
+  expect_error(
+    get_parameters(n_days = 100) |>
+      set_bednets(days = c(5),
+                  coverages = c(0.7, 0.5)))
+
+  expect_error(
+    get_parameters(n_days = 100) |>
+      set_bednets(days = c(0,5),
+                  coverages = c(0.7, 0.5)))
+  expect_error(
+    get_parameters(n_days = 100) |>
+      set_bednets(days = c("everyday"),
+                  coverages = c(0.7)))
+})
+
+test_that("Random distribution is more effective than correlated", {
+  params_corr <- get_parameters(n_days = 50,
+                                prevalence_rendering_min_ages = 730,
+                                prevalence_rendering_max_ages = 3650) |>
+    set_bednets(days = c(10, 30),
+                cov = c(0.5, 0.5),
+                distribution_type = "correlated") |>
+    set_equilibrium(init_EIR = 10)
+  sim_corr <- run_simulation(params_corr)
+
+  params_rand <- get_parameters(n_days = 50,
+                                prevalence_rendering_min_ages = 730,
+                                prevalence_rendering_max_ages = 3650) |>
+    set_bednets(days = c(10, 30),
+                cov = c(0.5, 0.5),
+                distribution_type = "random") |>
+    set_equilibrium(init_EIR = 10)
+  sim_rand <- run_simulation(params_rand)
+  expect_equal(sim_rand[9, "n_detect_730_3650"], sim_corr[9, "n_detect_730_3650"])
+  expect_lt(sim_rand[50, "n_detect_730_3650"], sim_corr[50, "n_detect_730_3650"])
+})
+
+

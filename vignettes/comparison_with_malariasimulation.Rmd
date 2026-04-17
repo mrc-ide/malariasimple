@@ -33,12 +33,11 @@ human_pop <- 5000
 n_days <- n_years*365
 init_EIR <- 50
 num_sims <- 10 #Number of parallel stochastic simulations
-fine_age_vector <- c(seq(0,10,by=0.25), 15, 20, seq(30,90, by = 10)) * 365
 
 ##Seasonality parameters
-g0 = 0.28
-g = c(-0.3, -0.03, 0.17)
-h = c(-0.35, 0.32, -0.07)
+g0 <- 0.28
+g <- c(-0.3, -0.03, 0.17)
+h <- c(-0.35, 0.32, -0.07)
 
 ##Define ITN parameters
 itn_days <- c(100,365,500,800)
@@ -53,8 +52,8 @@ smc_days <- rep(365 * seq(1, n_years - 1, by = 1), each = length(smc_offsets)) +
   peak_cc +
   rep(smc_offsets, 2)
 smc_cov <- seq(0.3,0.6, length.out = length(smc_days))
-smc_min_age = 0.25*365
-smc_max_age = 5*365
+smc_min_age <- 0.25*365
+smc_max_age <- 5*365
 ```
 
 ### malariasimulation
@@ -102,8 +101,7 @@ malsim_params <- malariasimulation::get_parameters(
 malsim <- malariasimulation::run_simulation_with_repetitions(
   timesteps = n_days,
   repetitions = num_sims,
-  overrides = malsim_params,
-  parallel = TRUE
+  parameters = malsim_params
 )
 ```
 
@@ -114,7 +112,6 @@ simple_det_params_1 <- malariasimple::get_parameters(
   n_days = n_days,
   prevalence_rendering_min_ages = 2 * 365,
   prevalence_rendering_max_ages = 10 * 365,
-  age_vector = fine_age_vector,
   human_pop = human_pop
 ) |>
   malariasimple::set_seasonality(
@@ -148,7 +145,6 @@ simple_stoch_params_1 <- malariasimple::get_parameters(
   n_days = n_days,
   prevalence_rendering_min_ages = 2 * 365,
   prevalence_rendering_max_ages = 10 * 365,
-  age_vector = fine_age_vector,
   stochastic = TRUE,
   human_pop = human_pop
 ) |>

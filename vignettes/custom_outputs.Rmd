@@ -20,7 +20,7 @@ In `malariasimple` we can customise simulation outputs in two ways:
 
 ## 1. Specifying age-specific rendering
 
-This method is similar to the method used in `malariasimple`. Customisation occurs in the parameter set-up stage and the desired output is created directly with `run_simulation()`. However, this method is limited to specifying age categories for prevalence and critical incidence estimates. An example of this method to compare critical incidence in different age groups is shown in the vignette `Basic_Model_Run`
+This method is similar to the method used in `malariasimulation`. Customisation occurs in the parameter set-up stage and the desired output is created directly with `run_simulation()`. However, this method is limited to specifying age categories for prevalence and critical incidence estimates. An example of this method to compare critical incidence in different age groups is shown in the vignette `Basic_Model_Run`
 
 ## 2. Using get_custom_output()
 
@@ -47,7 +47,7 @@ Using this method is a two step process:
 1.  Run simulation, specifying `full_output = TRUE`.
 2.  Use `get_custom_output()` to summarise the desired output variables.
 
-Below is an example comparing malaria prevelence in children who received SMC and those who did not.
+Below is an example comparing malaria prevalence in children who received SMC and those who did not.
 
 ```{r, message = FALSE, fig.align = 'center', out.width='100%', fig.asp=0.55}
 library(malariasimple)
@@ -63,7 +63,7 @@ smc_days <- c(545, 575, 605, 910, 940, 970)
 smc_cov <- 0.6
 
 #Define a custom age vector
-age_vector <- c(0,0.5,1,2,3,5,7,10,20,30,40,50,60,70) * 365
+age_vector <- c(0, 0.5, 1, 2, 3, 5, 7, 10, 20, 30, 40, 50, 60, 70) * 365
 
 #Define malariasimple parameters
 smc_params <- malariasimple::get_parameters(n_days = 1000,

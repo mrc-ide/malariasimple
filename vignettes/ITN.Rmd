@@ -67,31 +67,35 @@ Within this assumption, we can also choose how to decide who gets a net on each 
 **Using set_bednets() with discrete distribution**
 
 ```{r, message = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=0.6}
-n_days <- 2*365
+n_days <- 2 * 365
 ## ------------------  Define ITN parameters --------------------------
-itn_days <- c(100,200,350) #Days on which ITN distribution events occur
-itn_cov <- c(0.1,0.4,0.5) #Proportion of the population who receive an ITN on each distribution event
-gamman <- 2.64*365 #Half-life of insecticide
-retention <- 5*365 #People keep their nets for 5 years
+itn_days <- c(100, 200, 350) #Days on which ITN distribution events occur
+itn_cov <- c(0.1, 0.4, 0.5) #Proportion of the population who receive an ITN on each distribution event
+gamman <- 2.64 * 365 #Half-life of insecticide
+retention <- 5 * 365 #People keep their nets for 5 years
 
 
 ## -------------  Set up malariasimple parameters ----------------------
 #Random distribution
-discrete_params_rand = malariasimple::get_parameters(n_days = n_days) |>
-  malariasimple::set_bednets(days = itn_days,
-          coverages = itn_cov,
-          gamman = gamman,
-          retention = retention,
-          distribution_type = "random") |>
+discrete_params_rand <- malariasimple::get_parameters(n_days = n_days) |>
+  malariasimple::set_bednets(
+    days = itn_days,
+    coverages = itn_cov,
+    gamman = gamman,
+    retention = retention,
+    distribution_type = "random"
+  ) |>
   malariasimple::set_equilibrium(init_EIR = 10)
 
 #Correlated distribution
-discrete_params_corr = malariasimple::get_parameters(n_days = n_days) |>
-  malariasimple::set_bednets(days = itn_days,
-          coverages = itn_cov,
-          gamman = gamman,
-          retention = retention,
-          distribution_type = "correlated") |>
+discrete_params_corr <- malariasimple::get_parameters(n_days = n_days) |>
+  malariasimple::set_bednets(
+    days = itn_days,
+    coverages = itn_cov,
+    gamman = gamman,
+    retention = retention,
+    distribution_type = "correlated"
+  ) |>
   malariasimple::set_equilibrium(init_EIR = 10)
 
 ## ---------------------- Run simulation ------------------------------
@@ -121,15 +125,14 @@ legend("topright",
 ## -------------  Return usage and decay matrices ----------------------
 usage_mat_rand <- get_itn_usage_mat(itn_days, itn_cov, retention, n_days, distribution_type = "random")
 usage_mat_corr <- get_itn_usage_mat(itn_days, itn_cov, retention, n_days, distribution_type = "correlated")
-#decay_mat <- get_decay_mat(itn_days, n_days, gamman_itn = gamman, intervention = "ITN")
 
 ## -----------------------  Plot  --------------------------------
 t <- 1:n_days
 colours <- c("#1B9E77", "#D95F02", "#7570B3")
-par(mfrow = c(1,2), cex = 0.6) 
+par(mfrow = c(1, 2), cex = 0.6) 
 
 #Usage plot (random)
-matplot(t, usage_mat_rand[, 1:length(itn_days)], type = "l", lty = 1, col = colours, ylim = c(0,1),
+matplot(t, usage_mat_rand[, seq_along(itn_days)], type = "l", lty = 1, col = colours, ylim = c(0,1),
         xlab = "Time", ylab = "ITN usage", main = "Random Discrete Distribution")
 lines(1:n_days, discrete_params_rand$itn_eff_cov_daily[2:(n_days+1)] * discrete_params_rand$max_itn_cov,
       col = "black", lwd = 2, lty = 2)
@@ -141,7 +144,7 @@ legend("topleft",
        bty = "n") 
 
 #Usage plot (correlated)
-matplot(t, usage_mat_corr[, 1:length(itn_days)], type = "l", lty = 1, col = colours, ylim = c(0,1),
+matplot(t, usage_mat_corr[, seq_along(itn_days)], type = "l", lty = 1, col = colours, ylim = c(0,1),
         xlab = "Time", ylab = "ITN usage", main = "Correlated Discrete Distribution")
 lines(1:n_days, discrete_params_corr$itn_eff_cov_daily[2:(n_days+1)] * discrete_params_corr$max_itn_cov,
       col = "black", lwd = 2, lty = 2)
@@ -161,15 +164,14 @@ The model assumes that ITNs are continually distributed with individuals replaci
 **Using set_bednets() with continuous distribution**
 ```{r, message = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=0.55}
 ## ------------------  Define ITN parameters --------------------------
-itn_coverage_data <- data.frame(day = c(1,365,2*365),
-                                cov = c(0.2,0.3,0.8))
+itn_coverage_data <- data.frame(day = c(1, 365, 2 * 365), cov = c(0.2, 0.3, 0.8))
 daily_continuous_cov <- approx(itn_coverage_data$day, itn_coverage_data$cov, xout = 1:n_days)$y
 
 ## -------------  Set up malariasimple parameters ----------------------
-continuous_params = malariasimple::get_parameters(n_days = 2*365,
-                                   age_vector = c(0,1,2,5,10,20,40,60,80)*365) |>
+continuous_params <- malariasimple::get_parameters(n_days = 2 * 365,
+                                                  age_vector = c(0, 1, 2, 5, 10, 20, 40, 60, 80) * 365) |>
   malariasimple::set_bednets(continuous_distribution = TRUE,
-          daily_continuous_cov = daily_continuous_cov) |>
+                             daily_continuous_cov = daily_continuous_cov) |>
   malariasimple::set_equilibrium(init_EIR = 5)
 
 ## ---------------------- Run simulation ------------------------------
@@ -188,14 +190,24 @@ Under the continuous assumption, insecticide decay is considered constant (equal
 ```{r, message = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=0.6}
 ## -----------------------  Plot --------------------------------------
 par(cex = 0.8)
-plot(1:n_days, daily_continuous_cov, type = "l", xlab = "Time", ylab = "", ylim = c(0,1),
-     lty = 2, lwd = 2)
-legend("bottomright",
-       legend = c("Total ITN usage", "Mean ITN efficacy"),
-       col = c("black", "red"),
-       lty = c(2,2),
-       lwd = c(2,2),
-       bty = "n") 
+plot(
+  1:n_days,
+  daily_continuous_cov,
+  type = "l",
+  xlab = "Time",
+  ylab = "",
+  ylim = c(0, 1),
+  lty = 2,
+  lwd = 2
+)
+legend(
+  "bottomright",
+  legend = c("Total ITN usage", "Mean ITN efficacy"),
+  col = c("black", "red"),
+  lty = c(2, 2),
+  lwd = c(2, 2),
+  bty = "n"
+) 
 ```
 
 

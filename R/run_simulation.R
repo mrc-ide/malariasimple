@@ -12,9 +12,9 @@
 run_simulation <- function(params, n_particles = 1, full_output = FALSE){
   if(params$equilibrium_set == 0) stop("Equilibrium values have not been set")
   if(!params$stochastic){
-    gen <- malariasimple_deterministic
+    gen <- malariasimple::malariasimple_deterministic
   } else if(params$stochastic){
-    gen <- malariasimple_stochastic
+    gen <- malariasimple::malariasimple_stochastic
   }
   sys <- dust2::dust_system_create(gen(), params, n_particles = n_particles, dt = 1/params$tsd)
 
@@ -62,7 +62,7 @@ run_simulation <- function(params, n_particles = 1, full_output = FALSE){
 get_output_colnames <- function(sys, params){
   ## Get column names
   colname_ls <- dust2::dust_unpack_index(sys)
-  colname_length <- sum(sapply(colname_ls, length))
+  colname_length <- sum(vapply(colname_ls, length, integer(1)))
   index <- vector("character", colname_length)
   pos <- 1
 

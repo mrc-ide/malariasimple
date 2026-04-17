@@ -1,14 +1,18 @@
 #' @title Create parameters for malariasimple
-#' @description Helper function to provide defaults for most necessary values required for running the malariasimple model
+#' @description Helper function to provide defaults for most necessary values
+#' required for running the malariasimple model
 #'
 #' @param stochastic Boolean variable. Set to false for deterministic simulation
-#' @param parameter_draws Default 'median'. If given a value 1-1000 model parameters are taken with a single draw from the fitted joint posterior
+#' @param parameter_draws Default 'median'. If given a value 1-1000 model parameters
+#' are taken with a single draw from the fitted joint posterior
 #' @param n_days Number of days for which the simulation will run.
 #' @param human_pop Size of human population (count)
-#' @param tsd Number of time-steps per day. Fewer is faster, more better approximates the continuous solution.
+#' @param tsd Number of time-steps per day. Fewer is faster, more better
+#' approximates the continuous solution.
 #' @param age_vector Lower bound of each age category. See function for default.
 #' @param biting_groups Number of biting heterogeneity groups.
-#' @param lag_rates Number of sub-compartments within FOI and FOIv which approximate delay-differential equation. Higher values are a closer approximation, but computationally more expensive.
+#' @param lag_rates Number of sub-compartments within FOI and FOIv which approximate
+#' delay-differential equation. Higher values are a closer approximation, but computationally more expensive.
 
 #' @param eta Death rate for exponential population distribution, i.e. 1/Mean Population Age
 #' @param rho Age-dependent biting parameter
@@ -70,10 +74,14 @@
 #' @param gammaL Relative effect of density dependence on late instars relative to early instars
 #' @param betaL Number of eggs laid per day per mosquito
 #' @param daily_ft Daily vector of percentage of population that gets treated. A scalar value is permitted and assumes constant ft.
-#' @param clin_inc_rendering_min_ages Vector of values (or singe value) of lower age boundaries for clinical incidence output (days)
-#' @param clin_inc_rendering_max_ages Vector of values (or singe value) of upper age boundaries for clinical incidence output (days)
-#' @param prevalence_rendering_min_ages Vector of values (or singe value) of lower age boundaries for prevalence output (days)
-#' @param prevalence_rendering_max_ages Vector of values (or singe value) of upper age boundaries for prevalence output (days)
+#' @param clin_inc_rendering_min_ages Vector of values (or singe value) of
+#' lower age boundaries for clinical incidence output (days)
+#' @param clin_inc_rendering_max_ages Vector of values (or singe value) of
+#' upper age boundaries for clinical incidence output (days)
+#' @param prevalence_rendering_min_ages Vector of values (or singe value) of
+#' lower age boundaries for prevalence output (days)
+#' @param prevalence_rendering_max_ages Vector of values (or singe value) of
+#' upper age boundaries for prevalence output (days)
 
 #' @param ... Additional arguments
 #' @examples
@@ -84,118 +92,154 @@
 #'           set_equilibrium(init_EIR = 10)
 #' @export
 get_parameters <- function(
-    ##Accuracy/speed trade off parameters
-    stochastic = FALSE,
-    parameter_draws = "median",
-    n_days = 100,
-    human_pop = 100000,
-    tsd = 4, #Time steps per day
-    age_vector =  c(0,0.25,0.5,1,1.5,2,2.5,3,3.5,4,5,6,7,8.5,10,20,30,40,60,80)*365, #Default
-    biting_groups = 3,
-    lag_rates = 10, #Number of sub-compartments within FOI and FOIv which approximate delay-differential equation. Higher values are a closer approximation, but computationally more expensive
-    # age, heterogeneity in exposure,
-    eta = 1/(21*365),
-    rho = 0.85,
-    a0 = 2920,
-    sigma2 = 1.67,
-    max_age = 100*365,
-    #  rate of leaving infection states
-    rA = 1/195,
-    rT = 0.2,
-    rD = 0.2,
-    rU = 1/110.299,
-    rP = 1/15,
-    #  human latent period and time lag from asexual parasites to
-    dE  = 12,
-    delayGam = 12.5,
-    # human infectiousness to mosquitoes
-    cD  = 0.0676909,
-    cT  =  0.322 * cD,
-    cU  = 0.006203,
-    gamma1  = 1.82425,
-    #  Immunity reducing probability of detection
-    d1 = 0.160527,
-    dID = 3650,
-    ID0 = 1.577533,
-    kD = 0.476614,
-    uD = 9.44512,
-    aD = 8001.99,
-    fD0 = 0.007055,
-    gammaD = 4.8183,
-    alphaA = 0.75735,
-    alphaU = 0.185624,
-    # Immunity reducing probability of infection
-    b0 = 0.590076,
-    b1 = 0.5,
-    dB = 3650,
-    IB0 = 43.8787,
-    kB = 2.15506,
-    uB = 7.19919,
-    # Immunity reducing probability of clinical disease
-    phi0 = 0.791666,
-    phi1 = 0.000737,
-    dCA = 10950,
-    IC0 = 18.02366,
-    kC = 2.36949,
-    uCA = 6.06349,
-    PM = 0.774368,
-    dCM = 67.6952,
-    # entomological parameters
-    delayMos = 10,
-    foraging_time = 0.69,
-    gonotrophic_cycle = 2.31,
-    mum = 0.132,
-    Q0 = 0.92,
-    chi = 0.86,
-    phi_bednets = 0.85,
-    phi_indoors = 0.9,
-    # larval parameters daily density dependent mortality rate of egg
-    muEL = 0.0338,
-    muLL = 0.0348,
-    muPL = 0.249,
-    dEL = 6.64,
-    dLL = 3.72,
-    dPL = 0.643,
-    gammaL = 13.25,
-    betaL = 21.2,
-    # intervention parameters
-    daily_ft = 0,
-    clin_inc_rendering_min_ages = NULL,
-    clin_inc_rendering_max_ages = NULL,
-    prevalence_rendering_min_ages = NULL, #Default = 2*365
-    prevalence_rendering_max_ages = NULL, #Default = 10*365
-    ...
-
-){
+  ##Accuracy/speed trade off parameters
+  stochastic = FALSE,
+  parameter_draws = "median",
+  n_days = 100,
+  human_pop = 100000,
+  tsd = 3,
+  #Time steps per day
+  age_vector =  c(0, 0.25, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 5, 6, 7, 8.5, 10, 20, 30, 40, 60, 80) *
+    365,
+  #Default
+  biting_groups = 4,
+  lag_rates = 10,
+  #Number of sub-compartments within FOI and FOIv which approximate delay-differential equation. Higher values are a closer approximation, but computationally more expensive
+  # age, heterogeneity in exposure,
+  eta = 1 / (21 * 365),
+  rho = 0.85,
+  a0 = 2920,
+  sigma2 = 1.67,
+  max_age = 100 * 365,
+  #  rate of leaving infection states
+  rA = 1 / 195,
+  rT = 0.2,
+  rD = 0.2,
+  rU = 1 / 110.299,
+  rP = 1 / 15,
+  #  human latent period and time lag from asexual parasites to
+  dE  = 12,
+  delayGam = 12.5,
+  # human infectiousness to mosquitoes
+  cD  = 0.0676909,
+  cT  =  0.322 * cD,
+  cU  = 0.006203,
+  gamma1  = 1.82425,
+  #  Immunity reducing probability of detection
+  d1 = 0.160527,
+  dID = 3650,
+  ID0 = 1.577533,
+  kD = 0.476614,
+  uD = 9.44512,
+  aD = 8001.99,
+  fD0 = 0.007055,
+  gammaD = 4.8183,
+  alphaA = 0.75735,
+  alphaU = 0.185624,
+  # Immunity reducing probability of infection
+  b0 = 0.590076,
+  b1 = 0.5,
+  dB = 3650,
+  IB0 = 43.8787,
+  kB = 2.15506,
+  uB = 7.19919,
+  # Immunity reducing probability of clinical disease
+  phi0 = 0.791666,
+  phi1 = 0.000737,
+  dCA = 10950,
+  IC0 = 18.02366,
+  kC = 2.36949,
+  uCA = 6.06349,
+  PM = 0.774368,
+  dCM = 67.6952,
+  # entomological parameters
+  delayMos = 10,
+  foraging_time = 0.69,
+  gonotrophic_cycle = 2.31,
+  mum = 0.132,
+  Q0 = 0.92,
+  chi = 0.86,
+  phi_bednets = 0.85,
+  phi_indoors = 0.9,
+  # larval parameters daily density dependent mortality rate of egg
+  muEL = 0.0338,
+  muLL = 0.0348,
+  muPL = 0.249,
+  dEL = 6.64,
+  dLL = 3.72,
+  dPL = 0.643,
+  gammaL = 13.25,
+  betaL = 21.2,
+  # intervention parameters
+  daily_ft = 0,
+  clin_inc_rendering_min_ages = NULL,
+  clin_inc_rendering_max_ages = NULL,
+  prevalence_rendering_min_ages = NULL, #Default = 2 * 365
+  prevalence_rendering_max_ages = NULL, #Default = 10 * 365
+  ...) {
   # set up param list
   params <- list()
 
   # catch extra params and place in list
   extra_param_list <- list(...)
-  if(length(extra_param_list)>0){
-    if(is.list(extra_param_list[[1]])){
+  if (length(extra_param_list) > 0) {
+    if (is.list(extra_param_list[[1]])) {
       extra_param_list <- extra_param_list[[1]]
     }
   }
 
   #Sanity Checks
-  if(age_vector[1] != 0){stop(message("age_vector must start from zero"))}
-  if(length(age_vector) < 2){stop(message("age_vector must have at least two categories"))}
-  if(max(age_vector) <= 20*365){stop(message("At least one age category must be over 20 years (7300 days)"))}
-  if(!is.numeric(n_days)){stop(message("n_days must be a numeric value"))}
-  if(!is.numeric(tsd)){stop(message("tsd must be a numeric value"))}
-  if(!is.numeric(biting_groups)){stop(message("biting_groups must be a numeric value"))}
-  if(!is.numeric(lag_rates)){stop(message("biting_groups must be a numeric value"))}
-  if(n_days %% 1 != 0 | n_days < 1){stop(message("n_days must be a positive integer value"))}
-  if(tsd %% 1 != 0 | tsd < 1){stop(message("tsd must be a positive integer value"))}
-  if(biting_groups %% 1 != 0 | biting_groups < 1){stop(message("biting_groups must be a positive integer value"))}
-  if(lag_rates %% 1 != 0| lag_rates < 1){stop(message("lag_rates must be a positive integer value"))}
-  if(!is.numeric(daily_ft)){stop(message("daily_ft may only contain numeric values between 0 and 1"))}
-  if(any(daily_ft < 0 | daily_ft > 1)){stop(message("daily_ft may only contain numeric values between 0 and 1"))}
-  if(length(daily_ft) < n_days && length(daily_ft) != 1){stop(message("daily_ft must be either scaler or at least as long as n_days"))}
+  if (age_vector[1] != 0) {
+    stop(message("age_vector must start from zero"))
+  }
+  if (length(age_vector) < 2) {
+    stop(message("age_vector must have at least two categories"))
+  }
+  if (max(age_vector) <= 20 * 365) {
+    stop(message("At least one age category must be over 20 years (7300 days)"))
+  }
+  if (!is.numeric(n_days)) {
+    stop(message("n_days must be a numeric value"))
+  }
+  if (!is.numeric(tsd)) {
+    stop(message("tsd must be a numeric value"))
+  }
+  if (!is.numeric(biting_groups)) {
+    stop(message("biting_groups must be a numeric value"))
+  }
+  if (!is.numeric(lag_rates)) {
+    stop(message("biting_groups must be a numeric value"))
+  }
+  if (n_days %% 1 != 0 ||
+      n_days < 1) {
+    stop(message("n_days must be a positive integer value"))
+  }
+  if (tsd %% 1 != 0 ||
+      tsd < 1) {
+    stop(message("tsd must be a positive integer value"))
+  }
+  if (biting_groups %% 1 != 0 ||
+      biting_groups < 1) {
+    stop(message("biting_groups must be a positive integer value"))
+  }
+  if (lag_rates %% 1 != 0 ||
+      lag_rates < 1) {
+    stop(message("lag_rates must be a positive integer value"))
+  }
+  if (!is.numeric(daily_ft)) {
+    stop(message("daily_ft may only contain numeric values between 0 and 1"))
+  }
+  if (any(daily_ft < 0 |
+          daily_ft > 1)) {
+    stop(message("daily_ft may only contain numeric values between 0 and 1"))
+  }
+  if (length(daily_ft) < n_days &&
+      length(daily_ft) != 1) {
+    stop(message("daily_ft must be either scaler or at least as long as n_days"))
+  }
 
   #Parameter draws
-  if(parameter_draws != "median"){
+  if (parameter_draws != "median") {
     if (!is.numeric(parameter_draws) || length(parameter_draws) != 1) {
       stop("'set_parameter_draws' must be 'median' or a single integer 1:1000")
     }
@@ -205,8 +249,8 @@ get_parameters <- function(
       stop("'parameter_draws' must be between 1 and 1000")
     }
 
-    this_draw <- subset(parameter_draws_df, draw == draw_id)
-    for(i in 1:nrow(this_draw)){
+  this_draw <- parameter_draws_df[parameter_draws_df$draw == draw_id, ]
+    for (i in seq_len(nrow(this_draw))) {
       assign(this_draw$simple_name[i], this_draw$simple_val[i])
     }
   }
@@ -221,7 +265,7 @@ get_parameters <- function(
   params$human_pop <- human_pop
   params$stochastic <- stochastic
   params$tsd <- tsd
-  params$n_ts <- n_days*tsd
+  params$n_ts <- n_days * tsd
 
   # duration of year
   params$DY <- 365
@@ -239,7 +283,8 @@ get_parameters <- function(
   params$na <- na
   params$nh <- nh
 
-  if(length(daily_ft) == 1) daily_ft <- rep(daily_ft, (n_days + 1))
+  if (length(daily_ft) == 1)
+    daily_ft <- rep(daily_ft, (n_days + 1))
   daily_ft <- daily_ft[1:n_days]
   params$daily_ft <- c(daily_ft[1], daily_ft)
 
@@ -317,21 +362,25 @@ get_parameters <- function(
   params$gammaL <- gammaL
   params$betaL <- betaL
   # {White et al. 2011 Parasites and Vectors}
-  params$eov <- betaL/mum * (exp(mum/params$fv0) - 1)
-  params$b_lambda <- (gammaL * muLL/muEL - dEL/dLL + (gammaL - 1) * muLL * dEL)
+  params$eov <- betaL / mum * (exp(mum / params$fv0) - 1)
+  params$b_lambda <- (gammaL * muLL / muEL - dEL / dLL + (gammaL - 1) * muLL * dEL)
   params$lambda <- -0.5 * params$b_lambda +
-    sqrt(0.25 * params$b_lambda^2 + gammaL * betaL * muLL * dEL/(2 * muEL * mum * dLL * (1 + dPL * muPL)))
+    sqrt(0.25 * params$b_lambda^2 + gammaL * betaL * muLL * dEL / (2 * muEL * mum * dLL * (1 + dPL * muPL)))
 
 
   #Additional parameters for dust model
   params$lag_rates <- lag_rates
   params$lag_ratesMos <- lag_rates
-  params$dt <- 1/tsd
+  params$dt <- 1 / tsd
 
   #Set age rendering parameters for prevalence and clinical incidence estimates
-  params <- age_rendering(params,
-                          prevalence_rendering_max_ages,prevalence_rendering_min_ages,
-                          clin_inc_rendering_max_ages,clin_inc_rendering_min_ages)
+  params <- age_rendering(
+    params,
+    prevalence_rendering_max_ages,
+    prevalence_rendering_min_ages,
+    clin_inc_rendering_max_ages,
+    clin_inc_rendering_min_ages
+  )
 
   ###########################################
   # Extras
@@ -347,23 +396,28 @@ get_parameters <- function(
   params$mu_tempsens <- 0
 
   #Check that none of the spare parameters in the extra
-  if(sum(!is.na(match(names(extra_param_list),names(params))))!=0){
-
-    stop (message(cat("Extra params in ... share names with default param names. Please check:\n",
-                      names(extra_param_list)[!is.na(match(names(extra_param_list),names(params)))]
-    )
+  if (sum(!is.na(match(
+    names(extra_param_list), names(params)
+  ))) != 0) {
+    stop (message(
+      cat(
+        "Extra params in ... share names with default param names. Please check:\n",
+        names(extra_param_list)[!is.na(match(names(extra_param_list), names(params)))]
+      )
     ))
   }
-  return(append(params,extra_param_list))
+  return(append(params, extra_param_list))
 }
 
-max_age_to_index <- function(max_age,age_vector){
-  if(is.infinite(max_age)){
+max_age_to_index <- function(max_age, age_vector) {
+  if (is.infinite(max_age)) {
     max_age_index <- length(age_vector)
-  } else if(!max_age %in% age_vector) {
-    stop(message("rendering_max_ages must correspond to an age category boundary (or Inf)"))
+  } else if (!max_age %in% age_vector) {
+    stop(message(
+      "rendering_max_ages must correspond to an age category boundary (or Inf)"
+    ))
   } else {
-    max_age_index <- which(age_vector == max_age) - 1
+    max_age_index <- which(age_vector == max_age) - as.integer(1)
   }
   return(max_age_index)
 }
@@ -372,42 +426,42 @@ age_rendering <- function(params,
                           prevalence_rendering_max_ages,
                           prevalence_rendering_min_ages,
                           clin_inc_rendering_max_ages,
-                          clin_inc_rendering_min_ages){
+                          clin_inc_rendering_min_ages) {
   #Set default values
-  default_clin_inc_rendering_min_ages <- 0*365
+  default_clin_inc_rendering_min_ages <- 0 * 365
   default_clin_inc_rendering_max_ages <- Inf
-  default_prevalence_rendering_min_ages <- 2*365
-  default_prevalence_rendering_max_ages <- 10*365
+  default_prevalence_rendering_min_ages <- 2 * 365
+  default_prevalence_rendering_max_ages <- 10 * 365
 
   age_vector <- params$age_vector
 
   #If NULL, try to apply default values. Else cover all age ranges
-  if(is.null(clin_inc_rendering_min_ages)){
-    if(default_clin_inc_rendering_min_ages %in% age_vector){
+  if (is.null(clin_inc_rendering_min_ages)) {
+    if (default_clin_inc_rendering_min_ages %in% age_vector) {
       clin_inc_rendering_min_ages <- default_clin_inc_rendering_min_ages
     } else {
       clin_inc_rendering_min_ages <- 0
     }
   }
 
-  if(is.null(prevalence_rendering_min_ages)){
-    if(default_prevalence_rendering_min_ages %in% age_vector){
+  if (is.null(prevalence_rendering_min_ages)) {
+    if (default_prevalence_rendering_min_ages %in% age_vector) {
       prevalence_rendering_min_ages <- default_prevalence_rendering_min_ages
     } else {
       prevalence_rendering_min_ages <- 0
     }
   }
 
-  if(is.null(clin_inc_rendering_max_ages)){
-    if(default_clin_inc_rendering_max_ages %in% age_vector){
+  if (is.null(clin_inc_rendering_max_ages)) {
+    if (default_clin_inc_rendering_max_ages %in% age_vector) {
       clin_inc_rendering_max_ages <- default_clin_inc_rendering_max_ages
     } else {
       clin_inc_rendering_max_ages <- Inf
     }
   }
 
-  if(is.null(prevalence_rendering_max_ages)){
-    if(default_prevalence_rendering_max_ages %in% age_vector){
+  if (is.null(prevalence_rendering_max_ages)) {
+    if (default_prevalence_rendering_max_ages %in% age_vector) {
       prevalence_rendering_max_ages <- default_prevalence_rendering_max_ages
     } else {
       prevalence_rendering_max_ages <- Inf
@@ -415,28 +469,48 @@ age_rendering <- function(params,
   }
 
   ## Check rendering ages are valid.
-  if(length(prevalence_rendering_max_ages) != length(prevalence_rendering_min_ages)){
+  if (length(prevalence_rendering_max_ages) != length(prevalence_rendering_min_ages)) {
     stop(message("prevalence rendering min age and max age must be equal length"))
-    }
-  if(length(clin_inc_rendering_max_ages) != length(clin_inc_rendering_min_ages)){
-    stop(message("clinical incidence rendering min age and max age must be equal length"))
-    }
-  if(sum(!prevalence_rendering_min_ages %in% age_vector) != 0){
-    stop(message("prevalence_rendering_min_ages must correspond to boundaries specified in age_vector. \n
-                 See params$age_vector for default values"))
   }
-  if(sum(!clin_inc_rendering_min_ages %in% age_vector) != 0){
-    stop(message("clin_inc_rendering_min_ages must correspond to boundaries specified in age_vector. \n
-                 See params$age_vector for default values"))
+  if (length(clin_inc_rendering_max_ages) != length(clin_inc_rendering_min_ages)) {
+    stop(message(
+      "clinical incidence rendering min age and max age must be equal length"
+    ))
+  }
+  if (sum(!prevalence_rendering_min_ages %in% age_vector) != 0) {
+    stop(message(
+      "prevalence_rendering_min_ages must correspond to boundaries specified in age_vector. \n
+                 See params$age_vector for default values"
+    ))
+  }
+  if (sum(!clin_inc_rendering_min_ages %in% age_vector) != 0) {
+    stop(message(
+      "clin_inc_rendering_min_ages must correspond to boundaries specified in age_vector. \n
+                 See params$age_vector for default values"
+    ))
+  }
+  if (any(clin_inc_rendering_min_ages >= clin_inc_rendering_max_ages)) {
+    stop(message(
+      "clin_inc_rendering_min_ages must be less that clin_inc_rendering_max_ages"
+    ))
+  }
+  if (any(prevalence_rendering_min_ages >= prevalence_rendering_max_ages)) {
+    stop(message(
+      "prevalence_rendering_min_ages must be less that prevalence_rendering_max_ages"
+    ))
   }
 
   # Convert minimum ages (in days) to index of age vector
   params$min_age_prev <- match(prevalence_rendering_min_ages, age_vector) |> as.integer()
-  params$min_age_inc <- match(clin_inc_rendering_min_ages,age_vector) |> as.integer()
+  params$min_age_inc <- match(clin_inc_rendering_min_ages, age_vector) |> as.integer()
 
   # Convert maximum ages (in days) in index of age vector. Age vector describes lower age bracket, hence maximum ages takes preceding index
-  params$max_age_prev <- sapply(prevalence_rendering_max_ages, function(x) max_age_to_index(x,age_vector)) |> as.integer()
-  params$max_age_inc <- sapply(clin_inc_rendering_max_ages, function(x) max_age_to_index(x,age_vector)) |> as.integer()
+  params$max_age_prev <- vapply(prevalence_rendering_max_ages,
+                                function(x) max_age_to_index(x, age_vector),
+                                integer(1))
+  params$max_age_inc <- vapply(clin_inc_rendering_max_ages,
+                               function(x) max_age_to_index(x, age_vector),
+                               integer(1))
 
   # Prepare inputs for odin.dust model
   params$prev_dim <- length(prevalence_rendering_max_ages)
