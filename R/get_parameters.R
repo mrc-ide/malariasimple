@@ -57,7 +57,7 @@
 #' @param uCA Duration in which clinical immunity is not boosted
 #' @param PM New-born immunity relative to mothers
 #' @param dCM Inverse of decay rate of maternal immunity
-#' @param delayMos Extrinsic incubation period
+#' @param eip Extrinsic incubation period
 #' @param foraging_time Duration of host seeking, assumed to be constant between species
 #' @param gonotrophic_cycle Duration of mosquito resting after feed
 #' @param mum Daily mortality of adult mosquitoes
@@ -153,7 +153,7 @@ get_parameters <- function(
   PM = 0.774368,
   dCM = 67.6952,
   # entomological parameters
-  delayMos = 10,
+  eip = 10,
   foraging_time = 0.69,
   gonotrophic_cycle = 2.31,
   mum = 0.132,
@@ -339,7 +339,7 @@ get_parameters <- function(
   params$dCM <- dCM
 
   # entomological parameters
-  params$delayMos <- delayMos
+  params$eip <- eip
   params$foraging_time <- foraging_time
   params$gonotrophic_cycle <- gonotrophic_cycle
   params$mum <- mum
@@ -348,7 +348,7 @@ get_parameters <- function(
   params$phi_indoors <- phi_indoors
   params$fv0 <- 1 / (foraging_time + gonotrophic_cycle)
   params$av0 <- Q0 * params$fv0 # daily feeding rate on humans
-  params$Surv0 <- exp(-mum * delayMos) # probability of surviving incubation period
+  params$Surv0 <- exp(-mum * eip) # probability of surviving incubation period
   params$p10 <- exp(-mum * foraging_time)  # probability of surviving one feeding cycle
   params$p2 <- exp(-mum * gonotrophic_cycle)  # probability of surviving one resting cycle
 
@@ -392,8 +392,8 @@ get_parameters <- function(
   params$seasonality_set <- 0
 
   ##Default parameters to be potentially overriden
-  params$EIP_tempsens <- 0 #odin.dust likes numerical variable types
-  params$mu_tempsens <- 0
+  params$daily_rain_input <- rep(1, (params$n_days + 1))
+  params$daily_eip <- rep(eip, (params$n_days + 1))
 
   #Check that none of the spare parameters in the extra
   if (sum(!is.na(match(

@@ -6,6 +6,7 @@
 // [[dust2::parameter(n_days, type = "int", rank = 0, required = TRUE, constant = TRUE)]]
 // [[dust2::parameter(days, type = "real_type", rank = 1, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(daily_rain_input, type = "real_type", rank = 1, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(daily_eip, type = "real_type", rank = 1, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(daily_ft, type = "real_type", rank = 1, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(na, type = "int", rank = 0, required = TRUE, constant = TRUE)]]
 // [[dust2::parameter(nh, type = "int", rank = 0, required = TRUE, constant = TRUE)]]
@@ -70,7 +71,6 @@
 // [[dust2::parameter(FOIv_eq, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(omega, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(delayGam, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
-// [[dust2::parameter(delayMos, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(dLL, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(dPL, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(dEL, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
@@ -121,6 +121,7 @@ public:
     struct dim_type {
       dust2::array::dimensions<1> days;
       dust2::array::dimensions<1> daily_rain_input;
+      dust2::array::dimensions<1> daily_eip;
       dust2::array::dimensions<1> daily_ft;
       dust2::array::dimensions<1> age_rate;
       dust2::array::dimensions<1> het_wt;
@@ -311,7 +312,6 @@ public:
     real_type FOIv_eq;
     real_type omega;
     real_type delayGam;
-    real_type delayMos;
     real_type dLL;
     real_type dPL;
     real_type dEL;
@@ -334,7 +334,6 @@ public:
     int num_int;
     int prev_dim;
     int inc_dim;
-    real_type delayMos_use;
     real_type mum_use;
     real_type b_lambda;
     std::vector<real_type> alpha_smc_times;
@@ -342,6 +341,7 @@ public:
     std::vector<real_type> cov_;
     std::vector<real_type> days;
     std::vector<real_type> daily_rain_input;
+    std::vector<real_type> daily_eip;
     std::vector<real_type> daily_ft;
     std::vector<real_type> age_rate;
     std::vector<real_type> het_wt;
@@ -374,6 +374,7 @@ public:
     std::vector<int> min_age_inc;
     std::vector<int> max_age_inc;
     dust2::interpolate::InterpolateLinear<real_type> interpolate_rain_input;
+    dust2::interpolate::InterpolateLinear<real_type> interpolate_eip;
     dust2::interpolate::InterpolateLinear<real_type> interpolate_ft;
     std::vector<real_type> birth_rate;
     std::vector<real_type> T_rates;
@@ -531,7 +532,6 @@ public:
     const real_type FOIv_eq = dust2::r::read_real(parameters, "FOIv_eq");
     const real_type omega = dust2::r::read_real(parameters, "omega");
     const real_type delayGam = dust2::r::read_real(parameters, "delayGam");
-    const real_type delayMos = dust2::r::read_real(parameters, "delayMos");
     const real_type dLL = dust2::r::read_real(parameters, "dLL");
     const real_type dPL = dust2::r::read_real(parameters, "dPL");
     const real_type dEL = dust2::r::read_real(parameters, "dEL");
@@ -560,6 +560,7 @@ public:
     const int inc_dim = dust2::r::read_int(parameters, "inc_dim");
     dim.days.set({static_cast<size_t>(n_days + 1)});
     dim.daily_rain_input.set({static_cast<size_t>(n_days + 1)});
+    dim.daily_eip.set({static_cast<size_t>(n_days + 1)});
     dim.daily_ft.set({static_cast<size_t>(n_days + 1)});
     dim.age_rate.set({static_cast<size_t>(na)});
     dim.het_wt.set({static_cast<size_t>(nh)});
@@ -663,7 +664,6 @@ public:
     dim.FOIv.set({static_cast<size_t>(lag_ratesMos)});
     dim.FOIvijk.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int)});
     dim.ince_delay.set({static_cast<size_t>(lag_ratesMos)});
-    const real_type delayMos_use = delayMos;
     const real_type mum_use = mum;
     const real_type b_lambda = (gammaL * muLL / muEL - dEL / dLL + (gammaL - 1) * muLL * dEL);
     std::vector<real_type> alpha_smc_times(dim.alpha_smc_times.size);
@@ -714,6 +714,8 @@ public:
     dust2::r::read_real_array(parameters, dim.days, days.data(), "days", true);
     std::vector<real_type> daily_rain_input(dim.daily_rain_input.size);
     dust2::r::read_real_array(parameters, dim.daily_rain_input, daily_rain_input.data(), "daily_rain_input", true);
+    std::vector<real_type> daily_eip(dim.daily_eip.size);
+    dust2::r::read_real_array(parameters, dim.daily_eip, daily_eip.data(), "daily_eip", true);
     std::vector<real_type> daily_ft(dim.daily_ft.size);
     dust2::r::read_real_array(parameters, dim.daily_ft, daily_ft.data(), "daily_ft", true);
     std::vector<real_type> age_rate(dim.age_rate.size);
@@ -776,6 +778,7 @@ public:
     std::vector<int> max_age_inc(dim.max_age_inc.size);
     dust2::r::read_int_array(parameters, dim.max_age_inc, max_age_inc.data(), "max_age_inc", true);
     const auto interpolate_rain_input = dust2::interpolate::InterpolateLinear(days, daily_rain_input, "days", "daily_rain_input");
+    const auto interpolate_eip = dust2::interpolate::InterpolateLinear(days, daily_eip, "days", "daily_eip");
     const auto interpolate_ft = dust2::interpolate::InterpolateLinear(days, daily_ft, "days", "daily_ft");
     std::vector<real_type> birth_rate(dim.birth_rate.size);
     for (size_t j = 1; j <= dim.birth_rate.dim[1]; ++j) {
@@ -865,7 +868,7 @@ public:
       {"n", std::vector<size_t>(dim.n.dim.begin(), dim.n.dim.end())}
     };
     odin.packing.state.copy_offset(odin.offset.state.begin());
-    return shared_state{odin, dim, n_days, na, nh, eta, rA, rT, rD, rU, rP, dE, lag_rates, dCM, uCA, dCA, dB, uB, dID, uD, age20l, age20u, age_20_factor, PM, phi0, phi1, IC0, kC, b0, b1, kB, IB0, aD, fD0, gammaD, d1, ID0, kD, init_Sv, init_Pv, init_Iv, cU, cD, cT, gamma1, lag_ratesMos, FOIv_eq, omega, delayGam, delayMos, dLL, dPL, dEL, muLL, muEL, muPL, gammaL, mv0, mum, foraging_time, gonotrophic_cycle, betaL, init_PL, init_LL, init_EL, max_smc_cov, max_itn_cov, Q0, phi_bednets, num_int, prev_dim, inc_dim, delayMos_use, mum_use, b_lambda, alpha_smc_times, alpha_smc_set, cov_, days, daily_rain_input, daily_ft, age_rate, het_wt, init_S, init_T, init_D, init_A, init_U, init_P, FOI_eq, foi_age, rel_foi, x_I, init_ICM, init_ICA, init_IB, init_ID, age_vector, p10, p2, interpolate_alpha_smc, P_smc_daily, smc_mask, rel_c_days, r_itn_daily, s_itn_daily, cov, min_age_prev, max_age_prev, min_age_inc, max_age_inc, interpolate_rain_input, interpolate_ft, birth_rate, T_rates, fd, interpolate_P_smc, interpolate_rel_c, interpolate_r_itn, interpolate_s_itn, T_leave_rate};
+    return shared_state{odin, dim, n_days, na, nh, eta, rA, rT, rD, rU, rP, dE, lag_rates, dCM, uCA, dCA, dB, uB, dID, uD, age20l, age20u, age_20_factor, PM, phi0, phi1, IC0, kC, b0, b1, kB, IB0, aD, fD0, gammaD, d1, ID0, kD, init_Sv, init_Pv, init_Iv, cU, cD, cT, gamma1, lag_ratesMos, FOIv_eq, omega, delayGam, dLL, dPL, dEL, muLL, muEL, muPL, gammaL, mv0, mum, foraging_time, gonotrophic_cycle, betaL, init_PL, init_LL, init_EL, max_smc_cov, max_itn_cov, Q0, phi_bednets, num_int, prev_dim, inc_dim, mum_use, b_lambda, alpha_smc_times, alpha_smc_set, cov_, days, daily_rain_input, daily_eip, daily_ft, age_rate, het_wt, init_S, init_T, init_D, init_A, init_U, init_P, FOI_eq, foi_age, rel_foi, x_I, init_ICM, init_ICA, init_IB, init_ID, age_vector, p10, p2, interpolate_alpha_smc, P_smc_daily, smc_mask, rel_c_days, r_itn_daily, s_itn_daily, cov, min_age_prev, max_age_prev, min_age_inc, max_age_inc, interpolate_rain_input, interpolate_eip, interpolate_ft, birth_rate, T_rates, fd, interpolate_P_smc, interpolate_rel_c, interpolate_r_itn, interpolate_s_itn, T_leave_rate};
   }
   static internal_state build_internal(const shared_state& shared) {
     std::vector<real_type> FOI(shared.dim.FOI.size);
@@ -1007,7 +1010,6 @@ public:
     shared.FOIv_eq = dust2::r::read_real(parameters, "FOIv_eq", shared.FOIv_eq);
     shared.omega = dust2::r::read_real(parameters, "omega", shared.omega);
     shared.delayGam = dust2::r::read_real(parameters, "delayGam", shared.delayGam);
-    shared.delayMos = dust2::r::read_real(parameters, "delayMos", shared.delayMos);
     shared.dLL = dust2::r::read_real(parameters, "dLL", shared.dLL);
     shared.dPL = dust2::r::read_real(parameters, "dPL", shared.dPL);
     shared.dEL = dust2::r::read_real(parameters, "dEL", shared.dEL);
@@ -1027,7 +1029,6 @@ public:
     shared.max_itn_cov = dust2::r::read_real(parameters, "max_itn_cov", shared.max_itn_cov);
     shared.Q0 = dust2::r::read_real(parameters, "Q0", shared.Q0);
     shared.phi_bednets = dust2::r::read_real(parameters, "phi_bednets", shared.phi_bednets);
-    shared.delayMos_use = shared.delayMos;
     shared.mum_use = shared.mum;
     shared.b_lambda = (shared.gammaL * shared.muLL / shared.muEL - shared.dEL / shared.dLL + (shared.gammaL - 1) * shared.muLL * shared.dEL);
     shared.cov_[0] = (1 - shared.max_itn_cov) * (1 - shared.max_smc_cov);
@@ -1036,6 +1037,7 @@ public:
     shared.cov_[3] = shared.max_itn_cov * shared.max_smc_cov;
     dust2::r::read_real_array(parameters, shared.dim.days, shared.days.data(), "days", false);
     dust2::r::read_real_array(parameters, shared.dim.daily_rain_input, shared.daily_rain_input.data(), "daily_rain_input", false);
+    dust2::r::read_real_array(parameters, shared.dim.daily_eip, shared.daily_eip.data(), "daily_eip", false);
     dust2::r::read_real_array(parameters, shared.dim.daily_ft, shared.daily_ft.data(), "daily_ft", false);
     dust2::r::read_real_array(parameters, shared.dim.age_rate, shared.age_rate.data(), "age_rate", false);
     dust2::r::read_real_array(parameters, shared.dim.het_wt, shared.het_wt.data(), "het_wt", false);
@@ -1069,6 +1071,7 @@ public:
     dust2::r::read_int_array(parameters, shared.dim.min_age_inc, shared.min_age_inc.data(), "min_age_inc", false);
     dust2::r::read_int_array(parameters, shared.dim.max_age_inc, shared.max_age_inc.data(), "max_age_inc", false);
     const auto interpolate_rain_input = dust2::interpolate::InterpolateLinear(shared.days, shared.daily_rain_input, "days", "daily_rain_input");
+    const auto interpolate_eip = dust2::interpolate::InterpolateLinear(shared.days, shared.daily_eip, "days", "daily_eip");
     const auto interpolate_ft = dust2::interpolate::InterpolateLinear(shared.days, shared.daily_ft, "days", "daily_ft");
     for (size_t j = 1; j <= shared.dim.birth_rate.dim[1]; ++j) {
       for (size_t k = 1; k <= shared.dim.birth_rate.dim[2]; ++k) {
@@ -1114,6 +1117,7 @@ public:
   static void update_internal(const shared_state& shared, internal_state& internal) {
   }
   static void initial(real_type time, const shared_state& shared, internal_state& internal, rng_state_type& rng_state, real_type* state) {
+    const real_type eip = shared.interpolate_eip.eval(time);
     for (size_t i = 1; i <= shared.dim.S.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.S.dim[1]; ++j) {
         for (size_t k = 1; k <= shared.dim.S.dim[2]; ++k) {
@@ -1200,7 +1204,7 @@ public:
       state[i - 1 + shared.odin.offset.state[32]] = shared.FOIv_eq * shared.delayGam / shared.lag_ratesMos;
     }
     for (size_t i = 1; i <= shared.dim.ince_delay.size; ++i) {
-      state[i - 1 + shared.odin.offset.state[33]] = shared.FOIv_eq * shared.init_Sv * shared.mv0 * shared.delayMos_use / shared.lag_ratesMos;
+      state[i - 1 + shared.odin.offset.state[33]] = shared.FOIv_eq * shared.init_Sv * shared.mv0 * eip / shared.lag_ratesMos;
     }
     state[3] = 0;
     state[4] = shared.init_PL;
@@ -1437,6 +1441,7 @@ public:
       }
     }
     const real_type rain_input = shared.interpolate_rain_input.eval(time);
+    const real_type eip = shared.interpolate_eip.eval(time);
     const real_type ft = shared.interpolate_ft.eval(time);
     const real_type P_smc = shared.interpolate_P_smc.eval(time);
     const real_type rel_c = shared.interpolate_rel_c.eval(time);
@@ -2016,7 +2021,7 @@ public:
     }
     const real_type mu = -fv * monty::math::log(p1 * shared.p2);
     const real_type av = fv * Q;
-    const real_type surv = monty::math::exp(-mu * shared.delayMos_use);
+    const real_type surv = monty::math::exp(-mu * eip);
     const real_type eov = shared.betaL / mu * (monty::math::exp(mu / fv) - 1);
     for (size_t i = 1; i <= static_cast<size_t>(shared.num_int); ++i) {
       internal.av_mosq[i - 1] = av * internal.w[i - 1] / wh;
@@ -2042,7 +2047,7 @@ public:
         }
       }
     }
-    const real_type incv = ince_delay[shared.lag_ratesMos - 1] * shared.lag_ratesMos / shared.delayMos_use * surv;
+    const real_type incv = ince_delay[shared.lag_ratesMos - 1] * shared.lag_ratesMos / eip * surv;
     const real_type beta_larval = eov * mu * monty::math::exp(-mu / fv) / (1 - monty::math::exp(-mu / fv));
     for (size_t i = 1; i <= static_cast<size_t>(shared.na); ++i) {
       for (size_t j = 1; j <= static_cast<size_t>(shared.nh); ++j) {
@@ -2232,9 +2237,9 @@ public:
     for (size_t i = 2; i <= static_cast<size_t>(shared.lag_ratesMos); ++i) {
       state_next[i - 1 + shared.odin.offset.state[32]] = FOIv[i - 1] + dt * ((shared.lag_ratesMos / shared.delayGam) * FOIv[i - 1 - 1] - (shared.lag_ratesMos / shared.delayGam) * FOIv[i - 1]);
     }
-    state_next[shared.odin.offset.state[33]] = ince_delay[0] + dt * (ince - (shared.lag_ratesMos / shared.delayMos_use) * ince_delay[0]);
+    state_next[shared.odin.offset.state[33]] = ince_delay[0] + dt * (ince - (shared.lag_ratesMos / eip) * ince_delay[0]);
     for (size_t i = 2; i <= static_cast<size_t>(shared.lag_ratesMos); ++i) {
-      state_next[i - 1 + shared.odin.offset.state[33]] = ince_delay[i - 1] + dt * ((shared.lag_ratesMos / shared.delayMos_use) * ince_delay[i - 1 - 1] - (shared.lag_ratesMos / shared.delayMos_use) * ince_delay[i - 1]);
+      state_next[i - 1 + shared.odin.offset.state[33]] = ince_delay[i - 1] + dt * ((shared.lag_ratesMos / eip) * ince_delay[i - 1 - 1] - (shared.lag_ratesMos / eip) * ince_delay[i - 1]);
     }
     state_next[0] = (Sv + dt * (-ince - mu * Sv + betaa) < 0 ? 0 : Sv + dt * (-ince - mu * Sv + betaa));
     state_next[1] = (Pv + dt * (ince - incv - mu * Pv) < 0 ? 0 : Pv + dt * (ince - incv - mu * Pv));

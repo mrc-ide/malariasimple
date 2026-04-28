@@ -403,11 +403,6 @@ set_equilibrium <- function(params, init_EIR)
 
   params$equilibrium_set <- 1
 
-  #Climate
-  if (is.null(params$daily_rain_input))
-    params$daily_rain_input <- rep(1, (params$n_days + 1))
-  if (is.null(params$daily_temp))
-    params$daily_temp <- rep(1, (params$n_days + 1))
 
   human_pop <- params$human_pop
   if (params$stochastic) {

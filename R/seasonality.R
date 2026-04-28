@@ -8,9 +8,9 @@
 #' @return Updates the input parameter list to include seasonal parameters
 #' @examples
 #' # Define seasonality Fourier coefficients
-#' g0 = 0.28
-#' g = c(-0.3, -0.03, 0.17)
-#' h = c(-0.35, 0.33, -0.08)
+#' g0 <- 0.28
+#' g <- c(-0.3, -0.03, 0.17)
+#' h <- c(-0.35, 0.33, -0.08)
 #' params <- get_parameters() |>
 #'           set_seasonality(g0=g0,
 #'           g=g,
@@ -48,6 +48,30 @@ set_rainfall_manual <- function(params, cc_ts){
   if (0 %in% cc_ts) warning(message("cc_ts contains zero values. This may cause the model to behave strangely."))
   params$daily_rain_input <- c(1,cc_ts[1:params$n_days])
   params$seasonality_set <- 1
+  return(params)
+}
+
+#' @title Add manual time-varying EIP
+#' @description Takes daily EIP (extrinsic incubation period) time series input and adds it to the parameter set
+#' @param params Other malariasimple parameters
+#' @param eip_ts Carrying capacity time series. Vector of daily EIP. Length must equal or exceed params$n_days
+#' @return Updates the input parameter list
+#' @examples
+#' n_days = 1000
+#' t <- 1:n_days
+#' rainfall_ts <- sin((t*2*pi)/365) + 1.1
+#' params <- get_parameters() |>
+#'           set_rainfall_manual(rainfall_ts) |>
+#'           set_equilibrium(init_EIR = 5)
+#'@export
+#'
+set_eip_manual <- function(params, eip_ts){
+  if (params$equilibrium_set == 1) warning(message("Equilbrium must be set last"))
+  if (!is.vector(de_ts) | is.list(eip_ts)) stop(message("eip_ts must be a vector"))
+  if (min(eip_ts) < 0) stop(message("eip_ts contains negative values. Vector carrying capacity cannot be negative."))
+  if (length(eip_ts) < params$n_days) stop(message("eip_ts must be at least as long as n_days"))
+  if (0 %in% eip_ts) warning(message("eip_ts contains zero values. This may cause the model to behave strangely."))
+  params$daily_eip <- c(1,eip_ts[1:params$n_days])
   return(params)
 }
 
