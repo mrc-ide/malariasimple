@@ -88,3 +88,13 @@ test_that("Nonsense parameter draws produce error", {
   expect_error(get_parameters(parameter_draws = "5"))
   expect_error(get_parameters(parameter_draws = 1001))
 })
+
+test_that("Increasing EIP leads to decreasing prevalence", {
+  n_days <- 1000
+  rising_eip <- seq(from = 10, to = 50, length.out = n_days)
+  params_rising <- get_parameters(n_days = n_days, eip = rising_eip) |>
+    set_equilibrium(init_EIR = 10)
+  sim_rising <- run_simulation(params_rising) |> as.data.frame()
+
+  expect_true(sim_rising[500,"n_detect_730_3650"] > sim_rising[1000,"n_detect_730_3650"])
+})

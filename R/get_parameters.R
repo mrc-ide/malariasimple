@@ -57,7 +57,7 @@
 #' @param uCA Duration in which clinical immunity is not boosted
 #' @param PM New-born immunity relative to mothers
 #' @param dCM Inverse of decay rate of maternal immunity
-#' @param eip Extrinsic incubation period
+#' @param eip Extrinsic incubation period (days). Either a scalar value (constant EIP), or a vector of daily values.
 #' @param foraging_time Duration of host seeking, assumed to be constant between species
 #' @param gonotrophic_cycle Duration of mosquito resting after feed
 #' @param mum Daily mortality of adult mosquitoes
@@ -339,7 +339,17 @@ get_parameters <- function(
   params$dCM <- dCM
 
   # entomological parameters
-  params$eip <- eip
+  #####EIP sense checks######
+  if (length(eip) < n_days & length(eip) != 1) stop(message("eip must be either a scalar value or a vector with length >= n_days"))
+  if (min(eip) < 0) stop(message("eip cannot contain negative values"))
+  if (0 %in% eip) warning(message("eip contains zero values. This may cause the model to behave strangely."))
+  mean_eip <- mean(eip)
+  if (length(eip) == 1) {
+    params$daily_eip <- rep(eip, (1 + n_days))
+  } else {
+    params$daily_eip <- c(mean_eip, eip[1:params$n_days])
+  }
+
   params$foraging_time <- foraging_time
   params$gonotrophic_cycle <- gonotrophic_cycle
   params$mum <- mum
@@ -348,7 +358,7 @@ get_parameters <- function(
   params$phi_indoors <- phi_indoors
   params$fv0 <- 1 / (foraging_time + gonotrophic_cycle)
   params$av0 <- Q0 * params$fv0 # daily feeding rate on humans
-  params$Surv0 <- exp(-mum * eip) # probability of surviving incubation period
+  params$Surv0 <- exp(-mum * mean_eip) # probability of surviving incubation period
   params$p10 <- exp(-mum * foraging_time)  # probability of surviving one feeding cycle
   params$p2 <- exp(-mum * gonotrophic_cycle)  # probability of surviving one resting cycle
 
@@ -393,7 +403,6 @@ get_parameters <- function(
 
   ##Default parameters to be potentially overriden
   params$daily_rain_input <- rep(1, (params$n_days + 1))
-  params$daily_eip <- rep(eip, (params$n_days + 1))
 
   #Check that none of the spare parameters in the extra
   if (sum(!is.na(match(

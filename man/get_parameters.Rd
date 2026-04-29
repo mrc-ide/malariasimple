@@ -54,7 +54,7 @@ get_parameters(
   uCA = 6.06349,
   PM = 0.774368,
   dCM = 67.6952,
-  delayMos = 10,
+  eip = 10,
   foraging_time = 0.69,
   gonotrophic_cycle = 2.31,
   mum = 0.132,
@@ -178,7 +178,7 @@ delay-differential equation. Higher values are a closer approximation, but compu
 
 \item{dCM}{Inverse of decay rate of maternal immunity}
 
-\item{delayMos}{Extrinsic incubation period}
+\item{eip}{Extrinsic incubation period (days). Either a scalar value (constant EIP), or a vector of daily values.}
 
 \item{foraging_time}{Duration of host seeking, assumed to be constant between species}
 
