@@ -12,6 +12,10 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+
+if (!requireNamespace("malariasimulation", quietly = TRUE)) {
+  knitr::knit_exit()
+}
 ```
 
 `malariasimple` is designed to resemble `malariasimulation` as closely as possible. However, there are certain scenarios (e.g. fast, low resolution runs; low population/transmission scenarios) where `malariasimple` may not provide a useful approximation. If in doubt, it is a good idea to check your `malariasimple` simulation against an equivalent `malariasimulation` run. In this vignette we will demonstrate some examples of comparing equivalent simulations of `malariasimulation` with both deterministic and stochastic runs of `malariasimple`.
@@ -20,7 +24,6 @@ Note: `malariasimple` is designed to be familiar to users of `malariasimulation`
 
 ```{r, message = FALSE}
 library(malariasimple)
-library(malariasimulation)
 set.seed(101)
 ```
 
@@ -78,7 +81,7 @@ malsim_params <- malariasimulation::get_parameters(
     human_population = human_pop
   )
 ) |>
-  malariasimulation::set_drugs(list(SP_AQ_params)) |>
+  malariasimulation::set_drugs(list(malariasimulation::SP_AQ_params)) |>
   malariasimulation::set_smc(
     drug = 1,
     timesteps = smc_days,

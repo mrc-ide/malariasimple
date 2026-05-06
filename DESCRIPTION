@@ -13,8 +13,7 @@ Encoding: UTF-8
 LazyData: true
 Remotes: 
     mrc-ide/dust2,
-    mrc-ide/monty,
-    mrc-ide/malariasimulation
+    mrc-ide/monty
 Imports: 
     dust2,
     statmod,
