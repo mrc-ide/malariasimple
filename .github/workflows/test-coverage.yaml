@@ -29,7 +29,8 @@ jobs:
           pak::pak(c(
             "local::.",
             "any::covr",
-            "any::xml2"
+            "any::xml2",
+            "any::testthat"
           ), dependencies = NA)
         shell: Rscript {0}
 
