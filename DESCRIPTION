@@ -13,9 +13,10 @@ URL: https://github.com/mrc-ide/malariasimple, https://mrc-ide.github.io/malaria
 BugReports: https://github.com/mrc-ide/malariasimple/issues
 Encoding: UTF-8
 LazyData: true
-Remotes: 
+Remotes:
     mrc-ide/dust2,
-    mrc-ide/monty
+    mrc-ide/monty,
+    mrc-ide/malariasimulation
 Imports: 
     dust2,
     statmod,
