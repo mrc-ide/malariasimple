@@ -4,9 +4,13 @@ n_days <- parameter()
 dim(days) <- n_days + 1
 days <- parameter()
 
-dim(daily_rain_input) <- n_days +1
+dim(daily_rain_input) <- n_days + 1
 daily_rain_input <- parameter()
 rain_input <- interpolate(days, daily_rain_input, "linear")
+
+dim(daily_eip) <- n_days + 1
+daily_eip <- parameter()
+eip <- interpolate(days, daily_eip, "linear")
 
 dim(daily_ft) <- n_days + 1
 daily_ft <- parameter()
@@ -396,21 +400,20 @@ lag_FOIv=sum(FOIvijk)
 
 ince <- FOIv[lag_ratesMos] * lag_ratesMos/delayGam * Sv
 
-initial(ince_delay[]) <- FOIv_eq*init_Sv*mv0*delayMos_use/lag_ratesMos
+initial(ince_delay[]) <- FOIv_eq*init_Sv*mv0*eip/lag_ratesMos
 dim(ince_delay) <- lag_ratesMos
 
-update(ince_delay[1]) <- ince_delay[1] + dt*(ince - (lag_ratesMos/delayMos_use)*ince_delay[1])
-update(ince_delay[2:lag_ratesMos]) <- ince_delay[i] + dt*((lag_ratesMos/delayMos_use)*ince_delay[i-1] -
-                                                            (lag_ratesMos/delayMos_use)*ince_delay[i])
+update(ince_delay[1]) <- ince_delay[1] + dt*(ince - (lag_ratesMos/eip)*ince_delay[1])
+update(ince_delay[2:lag_ratesMos]) <- ince_delay[i] + dt*((lag_ratesMos/eip)*ince_delay[i-1] -
+                                                            (lag_ratesMos/eip)*ince_delay[i])
 
-incv <- ince_delay[lag_ratesMos]*lag_ratesMos/delayMos_use * surv
+incv <- ince_delay[lag_ratesMos]*lag_ratesMos/eip * surv
 
 # Current hum->mos FOI depends on the number of individuals now producing gametocytes (12 day lag)
 delayGam <- parameter()
-delayMos <- parameter()
-delayMos_use <- delayMos
+
 # Number of mosquitoes that become infected at each time point
-surv <- exp(-mu*delayMos_use)
+surv <- exp(-mu*eip)
 
 # Number of mosquitoes born (depends on PL, number of larvae), or is constant outside of seasonality
 betaa <- 0.5*PL/dPL
@@ -705,6 +708,9 @@ update(EIR_mean) <- sum(epsilon_0[,,])
 initial(mu_mosq) <- 0
 update(mu_mosq) <- mu
 
+initial(eip_out) <- 0
+update(eip_out) <- eip
+
 ##------------- FOR INTERACTION WITH MONTY. ALLOWS FITTING TO PREVALENCE DATA --------------
 prevalence <- n_ud_detect_prev[1]/ n_ud_prev[1]
 tests <- data()
@@ -719,6 +725,5 @@ update(detect[,,]) <- T[i,j,k] + D[i,j,k]  + A[i,j,k]*p_det[i,j,k]
 dim(n) <- c(na,nh,num_int)
 initial(n[,,]) <- init_A[i,j,k] + init_T[i,j,k] + init_D[i,j,k] + init_P[i,j,k] + init_U[i,j,k] + init_S[i,j,k]
 update(n[,,]) <- all[i,j,k]
-
 
 

@@ -14,7 +14,8 @@ set_bednets(
   retention = 3 * 365,
   dn0 = 0.41,
   rn = 0.56,
-  rnm = 0.24
+  rnm = 0.24,
+  distribution_type = "random"
 )
 }
 \arguments{
@@ -28,7 +29,7 @@ set_bednets(
 
 \item{coverages}{Vector detailing the proportion of the population receiving an ITN during each intervention (required when continuous_distribution = FALSE)}
 
-\item{gamman}{Half-life of ITN insecticide (days)}
+\item{gamman}{Mean lifetime ITN insecticide efficacy (days).}
 
 \item{retention}{Average number of days a net is kept for}
 
@@ -37,6 +38,8 @@ set_bednets(
 \item{rn}{Probability of repeating behaviour with ITN (max)}
 
 \item{rnm}{Probability of repeating behaviour with ITN (min)}
+
+\item{distribution_type}{Either 'random' or 'correlated'}
 }
 \value{
 Updates the input parameter list to include ITN parameters

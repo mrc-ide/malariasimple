@@ -58,12 +58,12 @@ Note: SMC age boundaries must align with age categories defined in get_parameter
 ```{r, message = FALSE}
 library(malariasimple)
 n_years <- 4
-n_days <- 4*365
+n_days <- 4 * 365
 
 ##--------------------- Define Seasonality -------------------------
-g0 = 0.28
-g = c(-0.3, -0.03, 0.17)
-h = c(-0.35, 0.32, -0.07)
+g0 <- 0.28
+g <- c(-0.3, -0.03, 0.17)
+h <- c(-0.35, 0.32, -0.07)
 
 ##--------------------- Define SMC parameters ----------------------
 # Get day-of-year of peak vector carrying capacity
@@ -73,12 +73,12 @@ peak_cc <- get_peak_cc(g0, g, h)
 smc_offsets <- c(-60, -30, 0, 30)
 
 #Hence, define SMC administration days
-smc_days <- rep(365 * seq(1, n_years - 1, by = 1), each =length(smc_offsets)) +
+smc_days <- rep(365 * seq(1, n_years - 1, by = 1), each = length(smc_offsets)) +
   peak_cc +
   rep(smc_offsets, (n_years - 1))
 
 #Assume linearly increasing SMC coverage from 30% -> 60% of target age group
-smc_cov <- seq(0.3,0.6, length.out = length(smc_days))
+smc_cov <- seq(0.3, 0.6, length.out = length(smc_days))
 ```
 
 Now we can set up the malariasimple parameters for different scenarios and run the models
@@ -86,30 +86,35 @@ Now we can set up the malariasimple parameters for different scenarios and run t
 ```{r, message = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=0.55}
 ## ------------ Seasonal transmission with no interventions ---------------
 basic_params <- malariasimple::get_parameters(n_days = n_days,
-                               age_vector = c(0,1,2,3,4,5,10,20,40,60,80)*365) |>
-  malariasimple::set_seasonality(g0 = g0,
-                  g = g, 
-                  h = h) |>
+                                              age_vector = c(0, 1, 2, 3, 4, 5, 10, 20, 40, 60, 80) *
+                                                365) |>
+  malariasimple::set_seasonality(g0 = g0, g = g, h = h) |>
   malariasimple::set_equilibrium(init_EIR = 10)
 basic_out <- malariasimple::run_simulation(basic_params) |> as.data.frame()
 
 ## ---------- Seasonal transmission with 'random' SMC distribution --------
 smc_random_params <- basic_params |>
-  malariasimple::set_smc(coverages = smc_cov, days = smc_days,
-          min_age = 1*365,
-          max_age = 5*365,
-          distribution_type = "random",
-          drug = "AL") |>
+  malariasimple::set_smc(
+    coverages = smc_cov,
+    days = smc_days,
+    min_age = 1 * 365,
+    max_age = 5 * 365,
+    distribution_type = "random",
+    drug = "AL"
+  ) |>
   malariasimple::set_equilibrium(init_EIR = 10)
 smc_random_out <- malariasimple::run_simulation(smc_random_params) |> as.data.frame()
 
 ## ---------- Seasonal transmission with 'correlated' SMC distribution --------
 smc_corr_params <- basic_params |>
-  malariasimple::set_smc(coverages = smc_cov, days = smc_days,
-          min_age = 1*365,
-          max_age = 5*365,
-          distribution_type = "correlated",
-          drug = "AL") |>
+  malariasimple::set_smc(
+    coverages = smc_cov,
+    days = smc_days,
+    min_age = 1 * 365,
+    max_age = 5 * 365,
+    distribution_type = "correlated",
+    drug = "AL"
+  ) |>
   malariasimple::set_equilibrium(init_EIR = 10)
 smc_corr_out <- malariasimple::run_simulation(smc_corr_params) |> as.data.frame()
 

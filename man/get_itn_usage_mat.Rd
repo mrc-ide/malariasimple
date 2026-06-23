@@ -4,7 +4,7 @@
 \alias{get_itn_usage_mat}
 \title{Produce matrix of population ITN usage}
 \usage{
-get_itn_usage_mat(days, coverages, retention, n_days)
+get_itn_usage_mat(days, coverages, retention, n_days, distribution_type)
 }
 \arguments{
 \item{days}{Vector of days on which ITN distribution events occur (required when continuous_distribution = FALSE)}
@@ -14,6 +14,8 @@ get_itn_usage_mat(days, coverages, retention, n_days)
 \item{retention}{Average number of days a net is kept for}
 
 \item{n_days}{Length of simulation}
+
+\item{distribution_type}{Either 'random' or 'correlated'}
 }
 \description{
 Produces an ij matrix defining the proportion of the population using an ITN from distribution i on day j. Final column represents population with no ITN.

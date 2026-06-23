@@ -1,8 +1,12 @@
 test_that("get_itn_usage_mat produces zero usage from zero coverage", {
-  itn_usage_mat <- get_itn_usage_mat(days = c(1,50,99), coverages = c(0,0,0),
-                                     retention = 100, n_days = 200)
-  expect_true(all(itn_usage_mat[,4] == 1))
-  expect_true(all(itn_usage_mat[,1:3] == 0))
+  itn_usage_mat_rand <- get_itn_usage_mat(days = c(1,50,99), coverages = c(0,0,0),
+                                     retention = 100, n_days = 200, distribution_type = "random")
+  itn_usage_mat_corr <- get_itn_usage_mat(days = c(1,50,99), coverages = c(0,0,0),
+                                     retention = 100, n_days = 200, distribution_type = "correlated")
+  expect_true(all(itn_usage_mat_rand[,4] == 1))
+  expect_true(all(itn_usage_mat_rand[,1:3] == 0))
+  expect_true(all(itn_usage_mat_corr[,4] == 1))
+  expect_true(all(itn_usage_mat_corr[,1:3] == 0))
 })
 
 test_that("daily outputs are all the same length (continuous_distribution == TRUE)", {
@@ -63,4 +67,48 @@ test_that("ITNs reduce transmission when introduced on day 1", {
   expect_true(params$r_itn_daily[2] != 0)
   expect_true(params$s_itn_daily[2] != 1)
 })
+
+test_that("Nonsense ITN distribution days produce errors", {
+  expect_error(
+    get_parameters(n_days = 100) |>
+    set_bednets(days = c(5, 105),
+                coverages = c(0.7, 0.5)))
+
+  expect_error(
+    get_parameters(n_days = 100) |>
+      set_bednets(days = c(5),
+                  coverages = c(0.7, 0.5)))
+
+  expect_error(
+    get_parameters(n_days = 100) |>
+      set_bednets(days = c(0,5),
+                  coverages = c(0.7, 0.5)))
+  expect_error(
+    get_parameters(n_days = 100) |>
+      set_bednets(days = c("everyday"),
+                  coverages = c(0.7)))
+})
+
+test_that("Random distribution is more effective than correlated", {
+  params_corr <- get_parameters(n_days = 50,
+                                prevalence_rendering_min_ages = 730,
+                                prevalence_rendering_max_ages = 3650) |>
+    set_bednets(days = c(10, 30),
+                cov = c(0.5, 0.5),
+                distribution_type = "correlated") |>
+    set_equilibrium(init_EIR = 10)
+  sim_corr <- run_simulation(params_corr)
+
+  params_rand <- get_parameters(n_days = 50,
+                                prevalence_rendering_min_ages = 730,
+                                prevalence_rendering_max_ages = 3650) |>
+    set_bednets(days = c(10, 30),
+                cov = c(0.5, 0.5),
+                distribution_type = "random") |>
+    set_equilibrium(init_EIR = 10)
+  sim_rand <- run_simulation(params_rand)
+  expect_equal(sim_rand[9, "n_detect_730_3650"], sim_corr[9, "n_detect_730_3650"])
+  expect_lt(sim_rand[50, "n_detect_730_3650"], sim_corr[50, "n_detect_730_3650"])
+})
+
 

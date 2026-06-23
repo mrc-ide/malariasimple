@@ -63,3 +63,62 @@ test_that("SMC clearance is working as expected", {
   expect_equal(as.numeric(out[47,"n_detect_91.25_1825"]), 0)
 })
 
+test_that("Nonsense inputs produce errors",{
+  params <- get_parameters()
+  expect_error(
+    set_smc(
+    params = params,
+    coverages = c(1, 1),
+    min_age = 0.25 * 365,
+    max_age = 5 * 365,
+    drug_efficacy = 1,
+    smc_clearance_lag = 5
+  ))
+})
+
+test_that("Random SMC distribution is more effective than correlated",{
+  params <- get_parameters(n_days = 100)
+  corr_params <- set_smc(params,
+                         days = c(20, 50),
+                         min_age = 2*365,
+                         max_age = 10*365,
+                         coverages = c(0.5, 0.5),
+                         distribution_type = "correlated") |>
+    set_equilibrium(init_EIR = 50)
+  corr_sim <- run_simulation(corr_params) |> as.data.frame()
+  rand_params <- set_smc(params,
+                         days = c(20, 50),
+                         coverages = c(0.5, 0.5),
+                         min_age = 2*365,
+                         max_age = 10*365,
+                         distribution_type = "random") |>
+    set_equilibrium(init_EIR = 50)
+  rand_sim <- run_simulation(rand_params) |> as.data.frame()
+
+  expect_equal(corr_sim[10, "n_detect_730_3650"], rand_sim[10, "n_detect_730_3650"])
+  expect_true(corr_sim[60, "n_detect_730_3650"] > rand_sim[60, "n_detect_730_3650"])
+})
+
+test_that("set_smc sets coverage properly for a single SMC dosage", {
+  smc_days <- 20
+  smc_cov <- 0.7
+  params <- get_parameters(n = 50) |>
+    set_smc(coverages = smc_cov,
+            days = smc_days) |>
+    set_equilibrium(init_EIR = 10)
+  expect_equal(params$max_smc_cov, smc_cov)
+})
+
+test_that("Nonsense parameters produce errors", {
+  params <- get_parameters(n_days = 100)
+  expect_error(set_smc(params, days = 5))
+  expect_error(set_smc(params, coverages = 0.5))
+  expect_error(set_smc(params, days = 6,
+                       coverages = 1.5))
+  expect_error(set_smc(params, days = 0,
+                       coverages = 1.5))
+  expect_error(set_smc(params,
+                       days = 5,
+                       coverages = 0.5,
+                       drug = "party"))
+})
