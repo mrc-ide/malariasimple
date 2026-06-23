@@ -6,9 +6,11 @@ Authors@R: c(
   person("Debbie", "Shackleton", email="dshackle@imperial.ac.uk", role = c("aut","cre")),
   person("Peter", "Winskill", email="p.winskill@imperial.ac.uk", role = c("aut")))
 Maintainer: Debbie Shackleton <dshackle@imperial.ac.uk>
-Description: A faster, simpler implementation of malariasimulation built using 
+Description: A faster, simpler implementation of malariasimulation built using
     the package 'odin.dust'.
 License: MIT + file LICENSE
+URL: https://github.com/mrc-ide/malariasimple, https://mrc-ide.github.io/malariasimple/
+BugReports: https://github.com/mrc-ide/malariasimple/issues
 Encoding: UTF-8
 LazyData: true
 Remotes: 

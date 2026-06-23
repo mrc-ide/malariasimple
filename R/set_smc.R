@@ -69,6 +69,9 @@ set_smc <- function(params,
   if (!(length(coverages) == 1 |
         length(coverages) == length(days)))
     stop(message("length(coverages) must be either 1 or length(days)"))
+  if (!distribution_type %in% c("random", "correlated")) {
+    stop("distribution_type must be one of 'random' or 'correlated'")
+  }
   days <- round(days) #It's easiest if SMC days are all integer values.
   days <- days + 1 #To account for day 0.
   #----------------------------------- Set Parameters -----------------------------------------------

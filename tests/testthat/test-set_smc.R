@@ -11,17 +11,25 @@ test_that("get_smc_usage_mat returns zero usage from zero coverage input",{
     n_days = 300,
     distribution_type = "random"
   )
-  smc_usage_mat_cohort <- get_smc_usage_mat(
+  smc_usage_mat_corr <- get_smc_usage_mat(
     days = c(10, 100, 200),
     coverages = c(0, 0, 0),
     n_days = 300,
-    distribution_type = "cohort"
+    distribution_type = "correlated"
   )
 
-  expect_true(all(smc_usage_mat_cohort[,4] == 1))
+  expect_true(all(smc_usage_mat_corr[,4] == 1))
   expect_true(all(smc_usage_mat_random[,4] == 1))
-  expect_true(all(smc_usage_mat_cohort[,1:3] == 0))
+  expect_true(all(smc_usage_mat_corr[,1:3] == 0))
   expect_true(all(smc_usage_mat_random[,1:3] == 0))
+})
+
+test_that("set_smc rejects an unsupported distribution_type", {
+  expect_error(
+    get_parameters(n_days = 200) |>
+      set_smc(days = c(50, 100), coverages = 0.5, distribution_type = "cohort"),
+    "distribution_type"
+  )
 })
 
 test_that("alpha_smc is zero when drug_efficacy is zero",{

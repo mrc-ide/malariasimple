@@ -73,7 +73,7 @@ smc_params <- malariasimple::get_parameters(n_days = 1000,
           days = smc_days,
           min_age = 1 * 365,
           max_age = 5*365,
-          distribution_type = "cohort") |>
+          distribution_type = "correlated") |>
   malariasimple::set_equilibrium(init_EIR = 30)
 
 #Run simulation with 'full_output = TRUE'
@@ -81,7 +81,11 @@ smc_sim <- malariasimple::run_simulation(smc_params, full_output = TRUE) |> as.d
 
 ## Get customised outputs
 #Define ages of interest (in this case, all age categories within the SMC age boundaries)
-smc_ages <- c(1, 2, 3) * 365 #Age categories are defined by their lower bound
+#Age categories are selected by their lower bound. Given the age_vector above
+#(...1, 2, 3, 5...), selecting lower bounds 1, 2 and 3 covers the bands [1,2),
+#[2,3) and [3,5) - i.e. ages 1 to 5 - which matches the SMC age range
+#(min_age = 1 year, max_age = 5 years) and the reported PfPR1-5.
+smc_ages <- c(1, 2, 3) * 365
 
 #Get output for children who have received SMC
 smc_kids <- get_custom_output(

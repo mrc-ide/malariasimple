@@ -396,7 +396,7 @@ dim(FOIvijk) <- c(na,nh,num_int)
 omega <- parameter()
 FOIvijk[1:na, 1:nh, 1:num_int] <- ((cT*smc_rel_c_mask[i,j,k]*T[i,j,k] + cD*smc_rel_c_mask[i,j,k]*D[i,j,k] + cA[i,j,k]*smc_rel_c_mask[i,j,k]*A[i,j,k] + cU*smc_rel_c_mask[i,j,k]*U[i,j,k])/H) *
   rel_foi[j] * av_mosq[k]*foi_age[i]/omega ## For discrete human compartments
-lag_FOIv=sum(FOIvijk)
+lag_FOIv <- sum(FOIvijk)
 
 ince <- FOIv[lag_ratesMos] * lag_ratesMos/delayGam * Sv
 

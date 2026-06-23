@@ -8,6 +8,14 @@
 \description{
 A faster, simpler implementation of malariasimulation built using the package 'odin.dust'.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/mrc-ide/malariasimple}
+  \item Report bugs at \url{https://github.com/mrc-ide/malariasimple/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Debbie Shackleton \email{dshackle@imperial.ac.uk}
 
