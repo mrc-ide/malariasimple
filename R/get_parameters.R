@@ -239,9 +239,12 @@ get_parameters <- function(
   }
 
   #Parameter draws
-  if (parameter_draws != "median") {
-    if (!is.numeric(parameter_draws) || length(parameter_draws) != 1) {
-      stop("'set_parameter_draws' must be 'median' or a single integer 1:1000")
+  if (length(parameter_draws) != 1) {
+    stop("'parameter_draws' must be 'median' or a single integer 1:1000")
+  }
+  if (!identical(parameter_draws, "median")) {
+    if (!is.numeric(parameter_draws)) {
+      stop("'parameter_draws' must be 'median' or a single integer 1:1000")
     }
 
     draw_id <- as.integer(parameter_draws)

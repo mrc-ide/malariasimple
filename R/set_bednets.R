@@ -271,6 +271,6 @@ itn_continuous_distribution_params <- function(params,
   mean_itn_decay <- mean(exp(-((1:retention)) * decay_rate))
   d_itn <- dn0 * mean_itn_decay * params$itn_eff_cov_daily
   params$r_itn_daily <- (rnm + (rn - rnm) * mean_itn_decay) * params$itn_eff_cov_daily
-  params$s_itn_daily <- 1 - params$r_itn - d_itn
+  params$s_itn_daily <- 1 - params$r_itn_daily - d_itn
   return(params)
 }
