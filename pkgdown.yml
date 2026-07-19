@@ -1,8 +1,15 @@
-pandoc: 3.1.11
-pkgdown: 2.1.1
+pandoc: 3.8.3
+pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   Basic_Model_Run: Basic_Model_Run.html
+  comparison_with_malariasimulation: comparison_with_malariasimulation.html
+  custom_outputs: custom_outputs.html
+  ITN: ITN.html
   model_introduction: model_introduction.html
-  speed_vs_accuracy: speed_vs_accuracy.html
-last_built: 2024-12-12T11:42Z
+  SMC: SMC.html
+  speed_accuracy_parameters: speed_accuracy_parameters.html
+last_built: 2026-07-19T11:18Z
+urls:
+  reference: https://mrc-ide.github.io/malariasimple/reference
+  article: https://mrc-ide.github.io/malariasimple/articles
