@@ -105,7 +105,7 @@ out_ages <- run_simulation(params_ages) |> as.data.frame()
 par(mfrow = c(1,2))
 plot(x = out_ages$time, y = out_ages$n_clin_inc_0_Inf / out_ages$n_0_Inf,
      type = "l", col = "#F8766D", ylim = c(0,0.0025),lwd = 2,
-     xlab = "Days", ylab = "Clinical Incidence")
+     xlab = "Days", ylab = "Clinical incidence (cases per person per day)")
 lines(out_ages$time, out_ages$n_clin_inc_730_3650 / out_ages$n_730_3650,
       col = "#00BFC4",lwd=2)
 legend("bottomright", legend = c("All ages", "Ages 2-10"),
@@ -124,7 +124,7 @@ legend("bottomright", legend = c("All ages", "Ages 2-10"),
 
 ## Plotting Age Distribution
 
-We can also use the age rendering function to plot the age distribution of certain outputs. Here we show an example of how to output the average age distribution of clinical incidence. 
+We can also use the age rendering function to plot the age distribution of certain outputs. Here we show an example of how to output the average age distribution of clinical incidence. As above, we report incidence per capita (cases per person per day) by dividing each age group's incidence count (`n_clin_inc_*`) by its population (`n_*`), so the values are on the same scale as the plots above.
 ```{r, message = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=0.55}
 age_vector <- c(0:100) * 365
 min_age_render <- c(0:99) * 365
@@ -146,13 +146,21 @@ out_ages <- run_simulation(params_ages) |>
   as.data.frame()
 
 ## -------------------------- Plot age distribution  --------------------------
-col_means <- sapply(out_ages[, grepl("n_clin_inc", colnames(out_ages))], mean, na.rm = TRUE)
-names(col_means) <- NULL
+clin_cols <- grep("n_clin_inc", colnames(out_ages), value = TRUE)
+pop_cols  <- sub("n_clin_inc_", "n_", clin_cols)
+
+# Per-capita clinical incidence (cases per person per day), averaged over time
+age_means <- vapply(
+  seq_along(clin_cols),
+  function(i) mean(out_ages[[clin_cols[i]]] / out_ages[[pop_cols[i]]], na.rm = TRUE),
+  numeric(1)
+)
 barplot(
-  col_means,
+  age_means,
   col = "lightblue",
   main = "Average Clinical Incidence by Yearly Age Group",
-  ylab = "Average Incidence"
+  xlab = "Age group (years)",
+  ylab = "Clinical incidence (cases per person per day)"
 )
 ```
 

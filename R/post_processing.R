@@ -6,7 +6,12 @@
 #' @param output_variable Output variable of interest.
 #' @param ages Age groups of interest (defined by the lower bracket)
 #' @param biting_groups Biting groups of interest
-#' @param int_groups Intervention groups of interest. 1 = No intervention, 2 = Bednets, 3 = SMC, 4 = Bednets and SMC
+#' @param int_groups Intervention groups of interest, given as indices into the
+#'   model's intervention strata (1 = No intervention, 2 = Bednets, 3 = SMC,
+#'   4 = Bednets and SMC). These indices reflect the interventions currently
+#'   supported by the model (ITNs and SMC); adding a new intervention type would
+#'   require extending the intervention structure in `set_equilibrium()` and the
+#'   odin model, after which the index meanings would change accordingly.
 #' @importFrom dplyr mutate
 #' @importFrom reshape2 melt
 
@@ -59,7 +64,12 @@ get_custom <- function(params,
 #' @param output_variables Output variable of interest.
 #' @param ages Age groups of interest (defined by the lower bracket)
 #' @param biting_groups Biting groups of interest
-#' @param int_groups Intervention groups of interest. 1 = No intervention, 2 = Bednets, 3 = SMC, 4 = Bednets and SMC
+#' @param int_groups Intervention groups of interest, given as indices into the
+#'   model's intervention strata (1 = No intervention, 2 = Bednets, 3 = SMC,
+#'   4 = Bednets and SMC). These indices reflect the interventions currently
+#'   supported by the model (ITNs and SMC); adding a new intervention type would
+#'   require extending the intervention structure in `set_equilibrium()` and the
+#'   odin model, after which the index meanings would change accordingly.
 #' @examples
 #'   params <- get_parameters(
 #'     n_days = 50,

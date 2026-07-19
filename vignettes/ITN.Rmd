@@ -187,6 +187,8 @@ plot(continuous_out$time, continuous_out$n_detect_730_3650/continuous_out$n_730_
 
 Under the continuous assumption, insecticide decay is considered constant (equal to mean decay over `retention` period). ITN coverage is input directly as a daily time series `daily_continuous_cov`.
 
+Below we overlay the total ITN usage (`daily_continuous_cov`) with the *mean ITN efficacy*: the daily probability that a host-seeking mosquito is killed or repelled (`1 - s_itn_daily`). This combines coverage with the (constant) mean insecticide effect, so it sits below the usage curve.
+
 ```{r, message = FALSE, results = "hide", fig.align = 'center', out.width='100%', fig.asp=0.6}
 ## -----------------------  Plot --------------------------------------
 par(cex = 0.8)
@@ -200,6 +202,13 @@ plot(
   lty = 2,
   lwd = 2
 )
+lines(
+  1:n_days,
+  1 - continuous_params$s_itn_daily[2:(n_days + 1)],
+  col = "red",
+  lty = 2,
+  lwd = 2
+)
 legend(
   "bottomright",
   legend = c("Total ITN usage", "Mean ITN efficacy"),
@@ -207,7 +216,7 @@ legend(
   lty = c(2, 2),
   lwd = c(2, 2),
   bty = "n"
-) 
+)
 ```
 
 

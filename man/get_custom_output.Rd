@@ -24,7 +24,12 @@ get_custom_output(
 
 \item{biting_groups}{Biting groups of interest}
 
-\item{int_groups}{Intervention groups of interest. 1 = No intervention, 2 = Bednets, 3 = SMC, 4 = Bednets and SMC}
+\item{int_groups}{Intervention groups of interest, given as indices into the
+model's intervention strata (1 = No intervention, 2 = Bednets, 3 = SMC,
+4 = Bednets and SMC). These indices reflect the interventions currently
+supported by the model (ITNs and SMC); adding a new intervention type would
+require extending the intervention structure in `set_equilibrium()` and the
+odin model, after which the index meanings would change accordingly.}
 }
 \description{
 Allows the user to filter to more specific human outputs. Aggregated values for any human compartment as well as
